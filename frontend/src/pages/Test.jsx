@@ -34,15 +34,16 @@ const Test = () => {
                 const data = await customFetch.get("/");
                 console.log(data);
                 toast("Success", {
-                  description: "Connect to backend success 😊😊😊",
+                  description: "Connect to backend failed 😥😥😥",
                   action: {
                     label: "Oke",
                     onClick: () => console.log("Undo"),
                   },
                 });
               } else {
-                const data = await customFetch.post("/check");
-                console.log(data);
+                const data = await customFetch.get("/test");
+                console.log("here");
+                console.log(data.data);
                 toast("connect to backend success", {
                   description: "Connect to backend success 😊😊😊",
                   action: {
