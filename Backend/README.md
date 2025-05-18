@@ -71,3 +71,25 @@ await clerkClient.users.updateUserMetadata(userId, {
   },
 });
 ```
+
+### 6: Swagger
+
+```
+API: http://localhost:3000/api
+
+/**
+ * @swagger
+ * /test:
+ *   get:
+ *     summary: API test trực tiếp từ app
+ *     tags:
+ *        - Test
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+ router.get("/", controller.checkHealth);
+
+```

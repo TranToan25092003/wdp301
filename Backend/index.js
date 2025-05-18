@@ -45,6 +45,12 @@ const adminRouter = require("./API/admin/index.router");
 adminRouter(app);
 // admin router
 
+// Swagger
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
+app.use("/api", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger
+
 // run server
 app.listen(port, () => {
   console.log(`server is running at port ${port}`);
