@@ -4,7 +4,8 @@ const { clerkClient } = require("../../config/clerk");
 
 module.exports.authenticate = async (req, res, next) => {
   try {
-    const token = req.cookies.__session || req.headers?.authorization;
+    const token =
+      req.cookies.__session || req.headers?.authorization.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({
