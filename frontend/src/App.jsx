@@ -4,6 +4,7 @@ import { ClerkProvider, SignedIn } from "@clerk/clerk-react";
 import HomeLayout from "./pages/HomeLayout";
 import ErrorPage from "./components/global/Error";
 import { Toaster } from "sonner";
+import HomePage from "./pages/HomePage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -16,6 +17,12 @@ const router = createBrowserRouter([
     path: "/",
     element: <HomeLayout />,
     errorElement: <ErrorPage />,
+    children: [
+      {
+        index: true, 
+        element: <HomePage />,
+      }
+    ]
   },
   testRouter,
 ]);
