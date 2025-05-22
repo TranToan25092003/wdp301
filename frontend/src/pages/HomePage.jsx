@@ -3,158 +3,97 @@ import { Layout, Typography, Button, Row, Col, Card, Tag, Divider, Segmented } f
 import { ShoppingOutlined } from "@ant-design/icons";
 const { Title, Paragraph } = Typography;
 import bannerImg from '../assets/banner.png';
+import sample from "../assets/sample.jpg"
 const { Content } = Layout;
+import Banner from "../components/item/banner"
+import { CategorySection } from "@/components/item/category-card";
+import ItemList from "@/components/item/item-list";
+import ProductList from "@/components/item/item-list";
+import Footer from "@/components/global/Footer";
 
 // Fake product data
 const recentProducts = [
-    { id: 1, name: "Used HP Laptop", price: "$220", image: "https://via.placeholder.com/200x150", tags: ["90%"] },
-    { id: 2, name: "LG 40-inch TV", price: "$145", image: "https://via.placeholder.com/200x150", tags: ["80%"] },
+    { id: 1, name: "Used HP Laptop", price: "$220", image: sample, tags: ["90%"] },
+    { id: 2, name: "LG 40-inch TV", price: "$145", image: sample, tags: ["80%"] },
 ];
 
 const allProducts = [
     ...recentProducts,
-    { id: 3, name: "Toshiba Washing Machine", price: "$130", image: "https://via.placeholder.com/200x150", tags: ["85%"] },
-    { id: 4, name: "Samsung A71 Phone", price: "$150", image: "https://via.placeholder.com/200x150", tags: ["88%"] },
+    { id: 3, name: "Toshiba Washing Machine", price: "$130", image: sample, tags: ["85%"] },
+    { id: 4, name: "Samsung A71 Phone", price: "$150", image: sample, tags: ["88%"] },
 ];
 
 const categories = [
     {
         title: "Shoes",
-        image: "https://via.placeholder.com/50x50?text=Shoes",
+        image: sample,
         tags: ["fashion", "durability", "comfort", "style", "footwear"],
         products: 3,
     },
     {
         title: "Electronic",
-        image: "https://via.placeholder.com/50x50?text=Electronic",
+        image: sample,
         tags: ["sustainability", "connectivity", "innovation"],
         products: 3,
     },
     {
         title: "Sports",
-        image: "https://via.placeholder.com/50x50?text=Sports",
+        image: sample,
         tags: ["community", "entertainment", "competition", "unity"],
         products: 3,
     },
 ];
 
+const items = [
+    {
+        _id: "item001",
+        name: "Asus Vivobook Laptop",
+        category: "Computers",
+        images: [sample],
+        description: "A powerful laptop suitable for work and study.",
+        price: 100,
+        rate: "day",
+        isFree: false,
+        status: "available",
+    },
+    {
+        _id: "item002",
+        name: "Basketball",
+        category: "Sports",
+        images: [sample],
+        description: "Standard size basketball. Good grip and durability.",
+        price: 5,
+        rate: "hour",
+        isFree: true,
+        status: "available",
+    },
+    {
+        _id: "item003",
+        name: "Canon DSLR Camera",
+        category: "Photography",
+        images: [sample],
+        description: "Great for shooting photos and videos. Includes lens.",
+        price: 30,
+        rate: "day",
+        isFree: false,
+        status: "not-available",
+    },
+];
+
+
 const HomePage = () => {
     return (
         <Layout style={{ backgroundColor: "#fff" }}>
-            {/* BANNER */}
-            <div style={{ backgroundColor: "#1DCD9F", padding: "50px 100px", borderRadius: 12 }}>
-                <Row justify="center" align="middle">
-                    <Col xs={24} md={12}>
-                        <Title style={{ fontSize: 42 }}>Second-hand<br />Marketplace</Title>
-                        <Paragraph>Buy – Sell – Save more</Paragraph>
-                        <Button style={{ backgroundColor: "black", color: "white" }} size="large" >Start Browsing</Button>
-                    </Col>
-                    <Col xs={24} md={12}>
-                        <img src={bannerImg} alt="banner" style={{ width: "80%" }} />
-                    </Col>
-                </Row>
-            </div>
-
-            {/* CATEGORY SECTION */}
-            <div style={{ padding: "40px 20px", background: "#fafafa", borderRadius: 12 }}>
-                <Title level={3}>
-                    Top Exploring. <span style={{ color: "#6B7280" }}>By Niche</span>
-                </Title>
-
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 30 }}>
-                    <Segmented
-                        options={[
-                            { label: "Brand", value: "brand" },
-                            { label: "Category", value: "category" },
-                            { label: "Store", value: "store" },
-                        ]}
-                        defaultValue="category"
-                        block
-                    />
-                </div>
-
-                <Row gutter={[16, 16]} justify="center">
-                    {categories.map((item, i) => (
-                        <Col xs={24} sm={12} md={8} key={i}>
-                            <Card
-                                bordered
-                                hoverable
-                                style={{ textAlign: "center", minHeight: 220 }}
-                            >
-                                <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    style={{ width: 50, height: 50, marginBottom: 10 }}
-                                />
-                                <Title level={4}>{item.title}</Title>
-                                <Paragraph>{item.products} Products</Paragraph>
-                                <div style={{ marginTop: 10 }}>
-                                    {item.tags.map((tag, idx) => (
-                                        <Tag key={idx} color="blue">
-                                            {tag}
-                                        </Tag>
-                                    ))}
-                                </div>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-            </div>
+            <Banner />
+            <CategorySection categories={categories} />
 
             <Divider />
 
             {/* RECENT PRODUCTS */}
             <Content>
-                <Title level={3}>🆕 Recently Listed Products</Title>
-                <Row gutter={[16, 16]}>
-                    {recentProducts.map((item) => (
-                        <Col xs={24} sm={12} md={6} key={item.id}>
-                            <Card
-                                hoverable
-                                cover={<img src={item.image} alt={item.name} />}
-                            >
-                                <Card.Meta
-                                    title={item.name}
-                                    description={
-                                        <>
-                                            <Paragraph strong>{item.price}</Paragraph>
-                                            {item.tags.map((tag, i) => (
-                                                <Tag color="green" key={i}>{tag}</Tag>
-                                            ))}
-                                        </>
-                                    }
-                                />
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-
+                <ProductList title="Recently Listed Products" products={recentProducts} tagColor="green" />
                 <Divider />
-
-                {/* ALL PRODUCTS */}
-                <Title level={3}>📦 All Products</Title>
-                <Row gutter={[16, 16]}>
-                    {allProducts.map((item) => (
-                        <Col xs={24} sm={12} md={6} key={item.id}>
-                            <Card
-                                hoverable
-                                cover={<img src={item.image} alt={item.name} />}
-                            >
-                                <Card.Meta
-                                    title={item.name}
-                                    description={
-                                        <>
-                                            <Paragraph strong>{item.price}</Paragraph>
-                                            {item.tags.map((tag, i) => (
-                                                <Tag color="blue" key={i}>{tag}</Tag>
-                                            ))}
-                                        </>
-                                    }
-                                />
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
+                <ProductList title="All Products" products={allProducts} tagColor="blue" />
             </Content>
 
             <Divider />
@@ -163,6 +102,7 @@ const HomePage = () => {
                 <ShoppingOutlined style={{ fontSize: 28 }} />
                 <Paragraph>Smart and budget-friendly second-hand shopping</Paragraph>
             </div>
+            
         </Layout>
     );
 };
