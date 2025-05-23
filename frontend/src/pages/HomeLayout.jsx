@@ -5,6 +5,7 @@ import Container from "@/components/global/Container";
 import { Outlet, useNavigation } from "react-router-dom";
 import Loading from "@/components/global/Loading";
 import { Toaster } from "sonner";
+import AppFooter from "@/components/global/Footer";
 
 const HomeLayout = () => {
   const { state } = useNavigation();
@@ -24,6 +25,7 @@ const HomeLayout = () => {
               <Outlet></Outlet>
             )}
           </Container>
+          <AppFooter />
         </Providers>
       </div>
     </>
