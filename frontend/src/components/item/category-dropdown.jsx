@@ -28,8 +28,8 @@ const CategoryDropdown = ({categories}) => {
         <DropdownMenuLabel>All Categories</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {categories.map((cat, index) => (
-          <Link key={index} to={cat.path}>
-            <DropdownMenuItem>{cat.name}</DropdownMenuItem>
+          <Link key={index} to={`/category/${cat._id}`}>
+            <DropdownMenuItem>{cat.title}</DropdownMenuItem>
           </Link>
         ))}
       </DropdownMenuContent>

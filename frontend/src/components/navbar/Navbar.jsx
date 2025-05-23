@@ -11,14 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dr
 import { Button } from "antd";
 import { SlidersHorizontal } from "lucide-react";
 import { ShoppingCart } from "lucide-react";
-const Navbar = () => {
 
-  const categories = [
-    { name: "Electronics", path: "/category/electronics" },
-    { name: "Clothing", path: "/category/clothing" },
-    { name: "Books", path: "/category/books" },
-    { name: "Home Appliances", path: "/category/home-appliances" },
-  ];
+const Navbar = ({ categories }) => {
 
   const [filters, setFilters] = useState({
     category: "",

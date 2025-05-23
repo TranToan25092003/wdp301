@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { testRouter } from "./routers/client/Test.router";
 import { ClerkProvider, SignedIn } from "@clerk/clerk-react";
-import HomeLayout from "./pages/HomeLayout";
+import HomeLayout, { homeLayoutLoader } from "./pages/HomeLayout";
 import ErrorPage from "./components/global/Error";
 import { Toaster } from "sonner";
 import HomePage, { homepageLoader } from "./pages/HomePage";
@@ -19,6 +19,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <HomeLayout />,
     errorElement: <ErrorPage />,
+    loader: homeLayoutLoader,
     children: [
       {
         index: true,
