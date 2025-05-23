@@ -13,92 +13,23 @@ import Footer from "@/components/global/Footer";
 import { useLoaderData } from 'react-router-dom'
 import { getAllItems } from "@/API/duc.api/item.api";
 import { useState } from "react";
+import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
 
 
 export const homepageLoader = async () => {
     try {
-        const data = await getAllItems()
-        // return
-        return {data}
+        const dataItems = await getAllItems()
+        const dataCategories = await getAllCategoriesWithStats()
+        return { dataItems, dataCategories }
     } catch (error) {
         console.log(error)
     }
 }
 
-
-// Fake product data
-const recentProducts = [
-    { id: 1, name: "Used HP Laptop", price: "$220", image: sample, tags: ["90%"] },
-    { id: 2, name: "LG 40-inch TV", price: "$145", image: sample, tags: ["80%"] },
-];
-
-const allProducts = [
-    ...recentProducts,
-    { id: 3, name: "Toshiba Washing Machine", price: "$130", image: sample, tags: ["85%"] },
-    { id: 4, name: "Samsung A71 Phone", price: "$150", image: sample, tags: ["88%"] },
-];
-
-const categories = [
-    {
-        title: "Shoes",
-        image: sample,
-        tags: ["fashion", "durability", "comfort", "style", "footwear"],
-        products: 3,
-    },
-    {
-        title: "Electronic",
-        image: sample,
-        tags: ["sustainability", "connectivity", "innovation"],
-        products: 3,
-    },
-    {
-        title: "Sports",
-        image: sample,
-        tags: ["community", "entertainment", "competition", "unity"],
-        products: 3,
-    },
-];
-
-const items = [
-    {
-        _id: "item001",
-        name: "Asus Vivobook Laptop",
-        category: "Computers",
-        images: [sample],
-        description: "A powerful laptop suitable for work and study.",
-        price: 100,
-        rate: "day",
-        isFree: false,
-        status: "available",
-    },
-    {
-        _id: "item002",
-        name: "Basketball",
-        category: "Sports",
-        images: [sample],
-        description: "Standard size basketball. Good grip and durability.",
-        price: 5,
-        rate: "hour",
-        isFree: true,
-        status: "available",
-    },
-    {
-        _id: "item003",
-        name: "Canon DSLR Camera",
-        category: "Photography",
-        images: [sample],
-        description: "Great for shooting photos and videos. Includes lens.",
-        price: 30,
-        rate: "day",
-        isFree: false,
-        status: "not-available",
-    },
-];
-
-
 const HomePage = () => {
-    const { data } = useLoaderData()
-    const [items, setItems] = useState(data.data)
+    const { dataItems, dataCategories } = useLoaderData()
+    const [items, setItems] = useState(dataItems.data)
+    const [categories, setCategories] = useState(dataCategories.data)
     return (
         <Layout style={{ backgroundColor: "#fff" }}>
             <Banner />
@@ -108,7 +39,7 @@ const HomePage = () => {
 
             {/* RECENT PRODUCTS */}
             <Content>
-                <ProductList title="Recently Listed Products" products={items}/>
+                <ProductList title="Recently Listed Products" products={items} />
                 <Divider />
                 <ProductList title="All Products" products={items} />
             </Content>

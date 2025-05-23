@@ -5,7 +5,8 @@ import HomeLayout from "./pages/HomeLayout";
 import ErrorPage from "./components/global/Error";
 import { Toaster } from "sonner";
 import HomePage, { homepageLoader } from "./pages/HomePage";
-import ProductDetail from "./pages/ProductDetail";
+import ProductDetail, { productDetailLoader } from "./pages/ProductDetail";
+import CategoryPage, { categoryPageLoader } from "./pages/CategoryPage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -20,13 +21,19 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        index: true, 
+        index: true,
         element: <HomePage />,
         loader: homepageLoader
       },
       {
-        path: "/products",
-        element: <ProductDetail />
+        path: "/item/:itemId",
+        element: <ProductDetail />,
+        loader: productDetailLoader,
+      },
+      {
+        path: "/category/:categoryId",
+        element: <CategoryPage />,
+        loader: categoryPageLoader,
       }
     ]
   },

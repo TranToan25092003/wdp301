@@ -1,8 +1,10 @@
 import { Card, Typography, Tag } from "antd";
 const { Title, Paragraph } = Typography;
-
+import { useNavigate } from 'react-router-dom';
 const ProductCard = ({ item }) => {
+    const navigate = useNavigate();
     const {
+        _id,
         name,
         price,
         ratePrice,
@@ -17,6 +19,7 @@ const ProductCard = ({ item }) => {
     return (
         <Card
             hoverable
+            onClick={() => navigate(`/item/${_id}`)}
             cover={<img src={images[0] || "/fallback.jpg"} alt={name} style={{ objectFit: "cover", height: "200px" }} />}
         >
             <Card.Meta
