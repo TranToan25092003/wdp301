@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
-import imgSample from "../assets/sample.jpg"
+import imgSample from "/assets/sample.jpg"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const product = {

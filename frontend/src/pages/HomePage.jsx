@@ -3,13 +3,28 @@ import { Layout, Typography, Button, Row, Col, Card, Tag, Divider, Segmented } f
 import { ShoppingOutlined } from "@ant-design/icons";
 const { Title, Paragraph } = Typography;
 import bannerImg from '../assets/banner.png';
-import sample from "../assets/sample.jpg"
+import sample from "/assets/sample.jpg"
 const { Content } = Layout;
 import Banner from "../components/item/banner"
 import { CategorySection } from "@/components/item/category-card";
 import ItemList from "@/components/item/item-list";
 import ProductList from "@/components/item/item-list";
 import Footer from "@/components/global/Footer";
+import { useLoaderData } from 'react-router-dom'
+import { getAllItems } from "@/API/duc.api/item.api";
+import { useState } from "react";
+
+
+export const homepageLoader = async () => {
+    try {
+        const data = await getAllItems()
+        // return
+        return {data}
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 
 // Fake product data
 const recentProducts = [
@@ -82,6 +97,8 @@ const items = [
 
 
 const HomePage = () => {
+    const { data } = useLoaderData()
+    const [items, setItems] = useState(data.data)
     return (
         <Layout style={{ backgroundColor: "#fff" }}>
             <Banner />
@@ -91,9 +108,9 @@ const HomePage = () => {
 
             {/* RECENT PRODUCTS */}
             <Content>
-                <ProductList title="Recently Listed Products" products={recentProducts} tagColor="green" />
+                <ProductList title="Recently Listed Products" products={items}/>
                 <Divider />
-                <ProductList title="All Products" products={allProducts} tagColor="blue" />
+                <ProductList title="All Products" products={items} />
             </Content>
 
             <Divider />
@@ -102,7 +119,7 @@ const HomePage = () => {
                 <ShoppingOutlined style={{ fontSize: 28 }} />
                 <Paragraph>Smart and budget-friendly second-hand shopping</Paragraph>
             </div>
-            
+
         </Layout>
     );
 };
