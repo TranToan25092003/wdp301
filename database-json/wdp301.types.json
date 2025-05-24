@@ -1,0 +1,18 @@
+[{
+  "_id": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "name": "Sell"
+},
+{
+  "_id": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "name": "Borrow"
+},
+{
+  "_id": {
+    "$oid": "682fee6c4a0495973b61df56"
+  },
+  "name": "Auction"
+}]

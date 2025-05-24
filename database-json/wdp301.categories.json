@@ -1,0 +1,26 @@
+[{
+  "_id": {
+    "$oid": "682fed324a0495973b61df51"
+  },
+  "name": "Electronics",
+  "image": "/assets/category-electronics.jpeg",
+  "tags": [
+    "gadget",
+    "tech",
+    "innovation",
+    "smart"
+  ]
+},
+{
+  "_id": {
+    "$oid": "682feddc4a0495973b61df52"
+  },
+  "name": "Furniture",
+  "image": "/assets/category-furniture.png",
+  "tags": [
+    "comfort",
+    "interior",
+    "wood",
+    "durability"
+  ]
+}]

@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { redirect } from "react-router-dom";
 import clerk from "./clerk";
+import { customFetch } from "./customAxios";
 
 export const authenTicationLoader = async () => {
   try {
@@ -28,8 +29,9 @@ export const authenTicationLoader = async () => {
       });
       return redirect("/");
     }
+    // customFetch.get('/test')
 
-    return null;
+    return {data: '1111111'};
   } catch (error) {
     console.error("Authentication error:", error);
     toast.error("Lỗi xác thực", {

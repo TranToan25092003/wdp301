@@ -10,6 +10,15 @@ const categorySchema = new mongoose.Schema(
       maxlength: [50, "Name cannot exceed 50 characters"],
       unique: true, // Ensure name is unique
     },
+    image: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    tags: {
+      type: [String],
+      default: [], 
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

@@ -1,22 +1,28 @@
-import { Card, Col, Row } from 'antd';
-import React from 'react'
-import { Typography } from 'antd';
-import { Tag } from 'antd';
-import { Segmented } from 'antd';
+import { Card, Col, Row, Tag, Typography, Segmented } from 'antd';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 const { Title, Paragraph } = Typography;
 
-const CategoryCard = ({ title, image, tags, products }) => (
-    <Card hoverable style={{ textAlign: "left", minHeight: 220 }}>
-        <img src={image} alt={title} style={{ width: 50, height: 50, marginBottom: 10 }} />
-        <Title level={4}>{title}</Title>
-        <Paragraph>{products} Products</Paragraph>
-        <div style={{ marginTop: 10 }}>
-            {tags.map((tag, idx) => (
-                <Tag key={idx} color="blue">{tag}</Tag>
-            ))}
-        </div>
-    </Card>
-);
+const CategoryCard = ({ id, title, image, tags, products }) => {
+    const navigate = useNavigate();
+
+    return (
+        <Card
+            hoverable
+            onClick={() => navigate(`/category/${id}`)}
+            style={{ textAlign: "left", minHeight: 220 }}
+        >
+            <img src={image} alt={title} style={{ width: 50, height: 50, marginBottom: 10 }} />
+            <Title level={4}>{title}</Title>
+            <Paragraph>{products} Products</Paragraph>
+            <div style={{ marginTop: 10 }}>
+                {tags.map((tag, idx) => (
+                    <Tag key={idx} color="blue">{tag}</Tag>
+                ))}
+            </div>
+        </Card>
+    );
+};
 
 const CategorySection = ({ categories }) => (
     <div style={{ padding: "40px 20px", background: "#fafafa", borderRadius: 12 }}>
@@ -26,12 +32,18 @@ const CategorySection = ({ categories }) => (
         </div>
         <Row gutter={[16, 16]} justify="center">
             {categories.map((item, i) => (
-                <Col xs={24} sm={12} md={8} key={i}>
-                    <CategoryCard {...item} />
+                <Col xs={24} sm={12} md={8} key={item._id}>
+                    <CategoryCard
+                        id={item._id}
+                        title={item.title}
+                        image={item.image}
+                        tags={item.tags}
+                        products={item.products}
+                    />
                 </Col>
             ))}
         </Row>
     </div>
 );
 
-export { CategoryCard, CategorySection }
+export { CategoryCard, CategorySection };
