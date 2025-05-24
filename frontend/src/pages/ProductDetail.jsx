@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
 import { useLoaderData } from 'react-router-dom'
 import ProductList from "@/components/item/item-list";
+import { Tag } from "antd";
+import BorrowModal from "@/components/item/borrow-modal";
+import { useState } from "react";
 
 export const productDetailLoader = async ({ params }) => {
   try {
@@ -25,14 +28,13 @@ export const productDetailLoader = async ({ params }) => {
 
 export default function ProductDetail() {
   const { product, relatedItems } = useLoaderData();
+  const [borrowModalOpen, setBorrowModalOpen] = useState(false);
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
-
-  console.log(product)
 
   return (
     <div className="container mx-auto p-6">
@@ -51,6 +53,15 @@ export default function ProductDetail() {
           <div className="text-xl font-semibold text-primary">
             {formatPrice(product.price)}
           </div>
+          <div>
+            <span className="text-sm text-muted-foreground">Rate Type: </span>
+            <span className="font-medium uppercase">{product.ratePrice}</span>
+          </div>
+          <div >
+            <Tag color="blue" className="text-2xl">
+              {product.typeId?.name || "Unknown Type"}
+            </Tag>
+          </div>
           <div className="flex items-center gap-2">
             {product.statusId?.name === "Available" ? (
               <>
@@ -65,21 +76,37 @@ export default function ProductDetail() {
             )}
           </div>
           <div>
-            <span className="text-sm text-muted-foreground">Rate Type: </span>
-            <span className="font-medium">{product.ratePrice}</span>
-          </div>
-          <div>
             <span className="text-sm text-muted-foreground">Seller ID: </span>
             <span className="font-medium">{product.owner}</span>
           </div>
+
+          {/* Display button */}
           <div className="pt-4">
-            <Button
-              disabled={product.statusId?.name !== "Available"}
-              className="flex items-center gap-2"
-            >
-              <ShoppingCart size={18} />
-              Add to Cart
-            </Button>
+            {product.typeId?.name === "Sell" && product.statusId?.name === "Available" && (
+              <Button className="flex items-center gap-2">Add to Cart</Button>
+            )}
+
+            {product.typeId?.name === "Borrow" && product.statusId?.name === "Available" && (
+              <>
+                <Button className="flex items-center gap-2"
+                  onClick={() => setBorrowModalOpen(true)}
+                >
+                  <ShoppingCart size={18} /> Borrow now
+                </Button>
+
+                <BorrowModal
+                  open={borrowModalOpen}
+                  onClose={() => setBorrowModalOpen(false)}
+                  product={product}
+                />
+              </>
+            )}
+
+            {product.typeId?.name === "Auction" && product.statusId?.name === "Available" && (
+              <>
+                <Button className="flex items-center gap-2"><ShoppingCart size={18} /> Place Bid</Button>
+              </>
+            )}
           </div>
         </div>
       </Card>
@@ -109,11 +136,10 @@ export default function ProductDetail() {
 
       {/* Related Products Section */}
       {relatedItems.length > 0 && (
-        <section style={{marginTop: "2%"}}>
+        <section style={{ marginTop: "2%" }}>
           <ProductList title="Related Products" products={relatedItems} />
         </section>
       )}
-
     </div>
   );
 }
