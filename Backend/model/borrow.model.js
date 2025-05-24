@@ -22,6 +22,14 @@ const borrowSchema = new mongoose.Schema(
       ref: "Item", // Reference to the Item model
       required: [true, "Item ID is required"],
     },
+    startTime: {
+      type: Date,
+      required: [true, "Start time is required"],
+    },
+    endTime: {
+      type: Date,
+      required: [true, "End time is required"],
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt
