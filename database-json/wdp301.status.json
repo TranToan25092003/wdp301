@@ -1,0 +1,48 @@
+[{
+  "_id": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "name": "Pending"
+},
+{
+  "_id": {
+    "$oid": "682fefdb4a0495973b61df5a"
+  },
+  "name": "Approved"
+},
+{
+  "_id": {
+    "$oid": "682fefe44a0495973b61df5b"
+  },
+  "name": "Rejected"
+},
+{
+  "_id": {
+    "$oid": "682fefeb4a0495973b61df5c"
+  },
+  "name": "Available"
+},
+{
+  "_id": {
+    "$oid": "682feff34a0495973b61df5d"
+  },
+  "name": "Sold"
+},
+{
+  "_id": {
+    "$oid": "682ff0024a0495973b61df5e"
+  },
+  "name": "Borrowed"
+},
+{
+  "_id": {
+    "$oid": "682ff00d4a0495973b61df5f"
+  },
+  "name": "Returned"
+},
+{
+  "_id": {
+    "$oid": "682ff0154a0495973b61df60"
+  },
+  "name": "Auctioning"
+}]

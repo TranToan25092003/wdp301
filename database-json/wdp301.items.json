@@ -1,0 +1,84 @@
+[{
+  "_id": {
+    "$oid": "682ff1114a0495973b61df65"
+  },
+  "name": "Dell Laptop XPS 13",
+  "description": "High-performance Dell XPS 13 laptop with Intel i7, 16GB RAM, perfect for programming and remote work.",
+  "price": 500,
+  "images": [
+    "/assets/sample.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "682fed324a0495973b61df51"
+  },
+  "statusId": {
+    "$oid": "682fefeb4a0495973b61df5c"
+  },
+  "createdAt": {
+    "$date": "2025-05-23T10:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-23T10:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "682ff1244a0495973b61df66"
+  },
+  "name": "Wooden Dining Table Set",
+  "description": "Classic 6-seater dining table made of oak wood. Slightly used, in great condition.",
+  "price": 100,
+  "images": [
+    "/assets/sample.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "682feddc4a0495973b61df52"
+  },
+  "statusId": {
+    "$oid": "682fefeb4a0495973b61df5c"
+  },
+  "createdAt": {
+    "$date": "2025-06-23T10:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-06-23T10:00:00.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "682ff13c4a0495973b61df67"
+  },
+  "name": "Samsung Galaxy Tab S6",
+  "description": "Samsung tablet with S Pen, ideal for drawing, note-taking, and watching videos. Available for borrowing.",
+  "price": 20,
+  "images": [
+    "/assets/sample.jpg"
+  ],
+  "ratePrice": "hour",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "682fed324a0495973b61df51"
+  },
+  "statusId": {
+    "$oid": "682fefeb4a0495973b61df5c"
+  },
+  "createdAt": {
+    "$date": "2025-07-23T10:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-23T10:00:00.000Z"
+  }
+}]
