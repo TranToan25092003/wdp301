@@ -7,6 +7,8 @@ import { Toaster } from "sonner";
 import HomePage, { homepageLoader } from "./pages/HomePage";
 import ProductDetail, { productDetailLoader } from "./pages/ProductDetail";
 import CategoryPage, { categoryPageLoader } from "./pages/CategoryPage";
+import AuctionList, { auctionListLoader } from "./pages/AuctionList";
+import AuctionDetail, { auctionDetailLoader } from "./pages/AuctionDetail";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -24,7 +26,7 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
-        loader: homepageLoader
+        loader: homepageLoader,
       },
       {
         path: "/item/:itemId",
@@ -35,8 +37,18 @@ const router = createBrowserRouter([
         path: "/category/:categoryId",
         element: <CategoryPage />,
         loader: categoryPageLoader,
-      }
-    ]
+      },
+      {
+        path: "/auctions",
+        element: <AuctionList />,
+        loader: auctionListLoader,
+      },
+      {
+        path: "/auctions/:auctionId",
+        element: <AuctionDetail />,
+        loader: auctionDetailLoader,
+      },
+    ],
   },
   testRouter,
 ]);
