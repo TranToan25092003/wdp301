@@ -11,7 +11,6 @@ router.post("/", authenticate, validateBorrow, async (req, res, next) => {
         return res.status(400).json({ errors: errors.array() });
     }
     
-    // ✅ Đảm bảo return để tránh chạy tiếp sau khi xử lý xong
     return createBorrow(req, res, next);
 });
 

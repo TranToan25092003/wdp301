@@ -11,7 +11,7 @@ import ItemList from "@/components/item/item-list";
 import ProductList from "@/components/item/item-list";
 import Footer from "@/components/global/Footer";
 import { useLoaderData } from 'react-router-dom'
-import { getAllItems } from "@/API/duc.api/item.api";
+import { getAllItems, getRecentItems } from "@/API/duc.api/item.api";
 import { useState } from "react";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
 
@@ -19,17 +19,19 @@ import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
 export const homepageLoader = async () => {
     try {
         const dataItems = await getAllItems()
+        const recentItems = await getRecentItems()
         const dataCategories = await getAllCategoriesWithStats()
-        return { dataItems, dataCategories }
+        return { dataItems, dataCategories, recentItems }
     } catch (error) {
         console.log(error)
     }
 }
 
 const HomePage = () => {
-    const { dataItems, dataCategories } = useLoaderData()
-    const [items, setItems] = useState(dataItems.data)
-    const [categories, setCategories] = useState(dataCategories.data)
+    const { dataItems, dataCategories, recentItems } = useLoaderData()
+    const [items] = useState(dataItems.data)
+    const [recent] = useState(recentItems.data)
+    const [categories] = useState(dataCategories.data)
     return (
         <Layout style={{ backgroundColor: "#fff" }}>
             <Banner />
@@ -39,7 +41,7 @@ const HomePage = () => {
 
             {/* RECENT PRODUCTS */}
             <Content>
-                <ProductList title="Recently Listed Products" products={items} />
+                <ProductList title="Recently Listed Products" products={recent} />
                 <Divider />
                 <ProductList title="All Products" products={items} />
             </Content>
