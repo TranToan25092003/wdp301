@@ -33,6 +33,9 @@ const itemSchema = new mongoose.Schema(
       required: [true, "Rate price is required"],
       default: "no",
     },
+    rejectReason: {
+      type: String,
+    },
     owner: {
       type: String,
       required: [true, "Owner ID is required"],

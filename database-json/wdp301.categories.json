@@ -1,26 +1,47 @@
-[{
-  "_id": {
-    "$oid": "682fed324a0495973b61df51"
+[
+  {
+    "_id": {
+      "$oid": "682fed324a0495973b61df51"
+    },
+    "name": "Electronics",
+    "image": "/assets/category-electronics.jpeg",
+    "tags": ["gadget", "tech", "innovation", "smart"]
   },
-  "name": "Electronics",
-  "image": "/assets/category-electronics.jpeg",
-  "tags": [
-    "gadget",
-    "tech",
-    "innovation",
-    "smart"
-  ]
-},
-{
-  "_id": {
-    "$oid": "682feddc4a0495973b61df52"
+  {
+    "_id": {
+      "$oid": "682feddc4a0495973b61df52"
+    },
+    "name": "Furniture",
+    "image": "/assets/category-furniture.png",
+    "tags": ["comfort", "interior", "wood", "durability"]
   },
-  "name": "Furniture",
-  "image": "/assets/category-furniture.png",
-  "tags": [
-    "comfort",
-    "interior",
-    "wood",
-    "durability"
-  ]
-}]
+  {
+    "_id": {
+      "$oid": "683acfe534534b2075aac25e"
+    },
+    "name": "Giấy thủ công",
+    "description": "Samsung tablet with S Pen, ideal for drawing, note-taking, and watching videos. Available for borrowing.",
+    "price": 20,
+    "images": [
+      "https://res.cloudinary.com/dzq1rcnwl/image/upload/v1745575649/mdxandxuxp9cin8xvvbq.webp",
+      "https://res.cloudinary.com/dzq1rcnwl/image/upload/v1745575649/mdxandxuxp9cin8xvvbq.webp"
+    ],
+    "ratePrice": "hour",
+    "owner": "user_2xp0JJPV5DDQzNnpMqgLfvGoyRk",
+    "typeId": {
+      "$oid": "682fee514a0495973b61df54"
+    },
+    "categoryId": {
+      "$oid": "682fed324a0495973b61df51"
+    },
+    "statusId": {
+      "$oid": "682fefcb4a0495973b61df59"
+    },
+    "createdAt": {
+      "$date": "2025-07-23T10:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2025-07-23T10:00:00.000Z"
+    }
+  }
+]
