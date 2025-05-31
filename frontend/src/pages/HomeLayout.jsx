@@ -7,7 +7,9 @@ import Loading from "@/components/global/Loading";
 import { Toaster } from "sonner";
 import AppFooter from "@/components/global/Footer";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
-import { useLoaderData } from 'react-router-dom'
+import { useLoaderData } from "react-router-dom";
+import { useClerk } from "@clerk/clerk-react";
+import { useEffect } from "react";
 
 export const homeLayoutLoader = async () => {
   try {
@@ -20,6 +22,14 @@ export const homeLayoutLoader = async () => {
 };
 
 const HomeLayout = () => {
+  const { setActive } = useClerk();
+
+  useEffect(() => {
+    setActive({
+      organization: "org_2xoxDQqucb3Sq0MiAoLGmEvCW87",
+    });
+  }, []);
+
   const { state } = useNavigation();
   const { categories } = useLoaderData();
   return (

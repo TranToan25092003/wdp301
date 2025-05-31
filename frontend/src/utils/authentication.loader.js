@@ -13,7 +13,7 @@ export const authenTicationLoader = async () => {
     }
 
     const memberships = await clerk.user.getOrganizationMemberships();
-    
+
     if (!memberships.data || memberships.data.length === 0) {
       toast.error("Bạn không thuộc tổ chức nào", {
         description: "Vui lòng liên hệ admin để được thêm vào tổ chức",
@@ -29,9 +29,6 @@ export const authenTicationLoader = async () => {
       });
       return redirect("/");
     }
-    // customFetch.get('/test')
-
-    return {data: '1111111'};
   } catch (error) {
     console.error("Authentication error:", error);
     toast.error("Lỗi xác thực", {
