@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { customFetch } from "@/utils/customAxios";
+
 import { adminLinks } from "@/utils/links";
-import axios from "axios";
-import React, { useEffect } from "react";
+import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 const DashboardLayout = () => {

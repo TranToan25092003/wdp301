@@ -8,8 +8,9 @@ import HomePage, { homepageLoader } from "./pages/HomePage";
 import ProductDetail, { productDetailLoader } from "./pages/ProductDetail";
 import CategoryPage, { categoryPageLoader } from "./pages/CategoryPage";
 import { authenTicationLoader } from "./utils/authentication.loader";
-import { useEffect } from "react";
 import DashboardLayout from "@/pages/admin/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import Items, { itemsAdminLoader } from "./pages/admin/Items";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -40,6 +41,14 @@ const router = createBrowserRouter([
         element: <DashboardLayout></DashboardLayout>,
         errorElement: <ErrorPage></ErrorPage>,
         loader: authenTicationLoader,
+        children: [
+          { index: true, element: <Dashboard></Dashboard> },
+          {
+            path: "items",
+            element: <Items></Items>,
+            loader: itemsAdminLoader,
+          },
+        ],
       },
     ],
   },
