@@ -11,6 +11,7 @@ import { authenTicationLoader } from "./utils/authentication.loader";
 import DashboardLayout from "@/pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Items, { itemsAdminLoader } from "./pages/admin/Items";
+import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -42,11 +43,21 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage></ErrorPage>,
         loader: authenTicationLoader,
         children: [
+          // home
           { index: true, element: <Dashboard></Dashboard> },
+
+          // all items
           {
             path: "items",
             element: <Items></Items>,
             loader: itemsAdminLoader,
+          },
+
+          // browse items
+          {
+            path: "browse",
+            element: <BrowseItem></BrowseItem>,
+            loader: browseLoader,
           },
         ],
       },
