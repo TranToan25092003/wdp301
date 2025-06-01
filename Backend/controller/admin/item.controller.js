@@ -126,7 +126,7 @@ module.exports.approveItem = async (req, res) => {
     });
 
     return res.json({
-      message: "hello",
+      message: "success",
     });
   } catch (error) {
     return res.json({

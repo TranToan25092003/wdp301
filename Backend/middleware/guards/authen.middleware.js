@@ -19,8 +19,7 @@ module.exports.authenticate = async (req, res, next) => {
     const user = await clerkClient.users.getUser(tokenPayload.sub);
 
     req.user = user;
-
-    // console.log(user);
+    req.userId = user.id;
 
     next();
   } catch (error) {

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = new express.Router();
 const controller = require("../../controller/test.controller");
-const { clerkClient } = require("../../config/clerk");
+// const { clerkClient } = require("../../config/clerk");
 
 /**
  * @swagger

@@ -58,7 +58,6 @@ router.get("/browse", itemController.getBrowseItem);
  *       200:
  *         description: OK
  */
-
 router.post("/approve", itemController.approveItem);
 
 module.exports = router;
