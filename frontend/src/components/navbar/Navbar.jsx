@@ -1,18 +1,24 @@
 import React from "react";
 import Container from "../global/Container";
-import NavSearch from "./NavSearch";
 import LinkDropdown from "./LinksDropdown";
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo.png";
 import { Link } from "react-router-dom";
 import CategoryDropdown from "../item/category-dropdown";
 import FilterBar from "../item/filter-bar";
 import { useState } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { Button } from "antd";
 import { SlidersHorizontal } from "lucide-react";
 import { ShoppingCart } from "lucide-react";
+import { TbCoinFilled } from "react-icons/tb";
+import { useUser } from "@clerk/clerk-react";
 
 const Navbar = ({ categories }) => {
+  const { user } = useUser();
 
   const [filters, setFilters] = useState({
     category: "",
@@ -50,10 +56,7 @@ const Navbar = ({ categories }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[300px] sm:w-[600px] max-h-[80vh] overflow-auto">
-              <FilterBar
-                filters={filters}
-                onFilterChange={onFilterChange}
-              />
+              <FilterBar filters={filters} onFilterChange={onFilterChange} />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -66,6 +69,14 @@ const Navbar = ({ categories }) => {
               3
             </span>
           </div>
+
+          <Link to={"/topup"}>
+            <div className=" flex items-center mx-2 ">
+              <TbCoinFilled size={30} color="#ebb410" />
+              <p className="ml-1"> {user?.publicMetadata?.coin || 0}</p>
+            </div>
+          </Link>
+
           {/* Dropdown menu */}
           <LinkDropdown />
         </div>

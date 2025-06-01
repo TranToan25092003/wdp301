@@ -12,6 +12,9 @@ import DashboardLayout from "@/pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Items, { itemsAdminLoader } from "./pages/admin/Items";
 import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
+import TopUp from "./pages/TopUpCoin";
+import CheckOut from "./pages/stripe/CheckOut";
+import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -37,6 +40,27 @@ const router = createBrowserRouter([
         element: <CategoryPage />,
         loader: categoryPageLoader,
       },
+
+      // top up coin router
+      {
+        path: "/topup",
+        element: <TopUp></TopUp>,
+      },
+
+      // check out router
+      {
+        path: "checkout",
+        element: <CheckOut></CheckOut>,
+      },
+
+      // redirect page
+      {
+        path: "/coin/confirm",
+        element: <PaymentSuccess></PaymentSuccess>,
+        loader: paymentLoader,
+      },
+
+      // admin routers
       {
         path: "/admin",
         element: <DashboardLayout></DashboardLayout>,
