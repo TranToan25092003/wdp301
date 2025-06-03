@@ -15,6 +15,7 @@ import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
 import TopUp from "./pages/TopUpCoin";
 import CheckOut from "./pages/stripe/CheckOut";
 import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
+import EditContact, { contactLoader } from "./pages/admin/ContactInfo";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -82,6 +83,13 @@ const router = createBrowserRouter([
             path: "browse",
             element: <BrowseItem></BrowseItem>,
             loader: browseLoader,
+          },
+
+          // contact info
+          {
+            path: "contact",
+            element: <EditContact></EditContact>,
+            loader: contactLoader,
           },
         ],
       },
