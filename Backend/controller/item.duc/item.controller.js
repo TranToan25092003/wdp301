@@ -1,3 +1,4 @@
+const { Mongoose, default: mongoose } = require('mongoose');
 const Category = require('../../model/category.model');
 const Item = require('../../model/item.model');
 
@@ -19,6 +20,29 @@ const getAllItems = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while fetching items",
+    });
+  }
+};
+
+const getRecentItems = async (req, res) => {
+  try {
+    const items = await Item.find()
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .populate('typeId', 'name')
+      .populate('categoryId', 'name')
+      .populate('statusId', 'name')
+      .exec();
+
+    res.status(200).json({
+      success: true,
+      data: items,
+    });
+  } catch (error) {
+    console.error("Error fetching recent items:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching recent items",
     });
   }
 };
@@ -73,8 +97,8 @@ const getRecentItemsByCategory = async (req, res) => {
     }
 
     const recentItems = await Item.find({ categoryId })
-      .sort({ createdAt: -1 })        
-      .limit(4)                        
+      .sort({ createdAt: -1 })
+      .limit(4)
       .populate("typeId", "name")
       .populate("categoryId", "name")
       .populate("statusId", "name");
@@ -102,6 +126,13 @@ const getRecentItemsByCategory = async (req, res) => {
 const getItemDetailById = async (req, res) => {
   try {
     const { itemId } = req.params;
+    
+    if(!mongoose.Types.ObjectId.isValid(itemId)){
+      res.status(500).json({
+      success: false,
+      message: "itemId must be in mongoose objectId format.",
+    });
+    }
 
     const item = await Item.findById(itemId)
       .populate("typeId", "name")
@@ -128,9 +159,79 @@ const getItemDetailById = async (req, res) => {
   }
 };
 
+const filterItems = async (req, res) => {
+  try {
+    const {
+      name,
+      minPrice,
+      maxPrice,
+      ratePrice,
+      owner,
+      typeId,
+      categoryId,
+      statusId,
+      startDate,
+      endDate, 
+    } = req.query;
+
+    const query = {};
+
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    if (ratePrice) {
+      query.ratePrice = ratePrice;
+    }
+
+    if (owner) {
+      query.owner = owner;
+    }
+
+    if (typeId) {
+      query.typeId = typeId;
+    }
+
+    if (categoryId) {
+      query.categoryId = categoryId;
+    }
+
+    if (statusId) {
+      query.statusId = statusId;
+    }
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    const items = await Item.find(query)
+      .populate("typeId categoryId statusId")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ success: true, data: items });
+  } catch (error) {
+    console.error("Error filtering items:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   getAllItems,
   getItemsByCategory,
   getRecentItemsByCategory,
-  getItemDetailById
+  getItemDetailById,
+  getRecentItems,
+  filterItems
 };
