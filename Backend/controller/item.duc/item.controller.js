@@ -127,7 +127,7 @@ const getItemDetailById = async (req, res) => {
   try {
     const { itemId } = req.params;
     
-    if(mongoose.Types.ObjectId.isValid(itemId)){
+    if(!mongoose.Types.ObjectId.isValid(itemId)){
       res.status(500).json({
       success: false,
       message: "itemId must be in mongoose objectId format.",
