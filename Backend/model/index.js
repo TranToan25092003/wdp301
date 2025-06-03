@@ -10,6 +10,7 @@ const Status = require("./status.model");
 const Test = require("./test.model");
 const Type = require("./type.model");
 const Session = require("./session.model");
+const Contact = require("./contact.model");
 
 module.exports = {
   Test,
@@ -24,4 +25,5 @@ module.exports = {
   Auction,
   Bid,
   Session,
+  Contact,
 };
