@@ -43,7 +43,7 @@ const AuctionDetailPage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [bidAmount, setBidAmount] = useState(null);
+  const [bidIncrement, setBidIncrement] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const [form] = Form.useForm();
   const socketRef = useRef(null);
@@ -180,9 +180,12 @@ const AuctionDetailPage = () => {
     setError(null);
 
     try {
+      // Tính toán giá trị bid cuối cùng = giá hiện tại + increment
+      const finalBidAmount = auction.currentPrice + values.bidIncrement;
+
       const bidData = {
         auctionId,
-        amount: values.bidAmount,
+        amount: finalBidAmount, // Sử dụng giá trị đã tính toán
         userId: "current-user-id", // Replace with actual user ID from auth context
       };
 
@@ -190,11 +193,11 @@ const AuctionDetailPage = () => {
       const result = await placeBid(bidData);
       console.log("Bid placed successfully:", result);
 
-      // Create optimistic update
+      // Create optimistic update với giá trị cuối cùng
       const optimisticBid = {
         id: `temp-${Date.now()}`,
         userId: bidData.userId,
-        amount: values.bidAmount,
+        amount: finalBidAmount, // Sử dụng giá trị cuối cùng
         createdAt: new Date().toISOString(),
         auctionId: auctionId,
       };
@@ -211,7 +214,7 @@ const AuctionDetailPage = () => {
       // Optimistic update for current user
       setAuction((prev) => ({
         ...prev,
-        currentPrice: values.bidAmount,
+        currentPrice: finalBidAmount, // Cập nhật với giá trị cuối cùng
       }));
 
       setBids((prev) => {
@@ -220,6 +223,7 @@ const AuctionDetailPage = () => {
       });
 
       form.resetFields();
+      setBidIncrement(null); // Reset increment state
     } catch (err) {
       console.error("Error placing bid:", err);
       setError(
@@ -268,6 +272,230 @@ const AuctionDetailPage = () => {
 
         <Row gutter={[24, 24]}>
           <Col xs={24} md={12}>
+            {/* Leaderboard Section */}
+            <Title
+              level={3}
+              style={{ textAlign: "center", marginBottom: "24px" }}
+            >
+              🏆 Leaderboard - Top 10 Highest Bids ({bids.length})
+              {socketConnected && (
+                <Text
+                  type="secondary"
+                  style={{ fontSize: "12px", display: "block" }}
+                >
+                  Real-time updates active
+                </Text>
+              )}
+            </Title>
+
+            {bids.length > 0 ? (
+              <List
+                dataSource={bids.slice(0, 10)}
+                renderItem={(bid, index) => (
+                  <List.Item style={{ padding: "8px 0" }}>
+                    <Card
+                      size="small"
+                      style={{
+                        width: "100%",
+                        backgroundColor:
+                          index === 0
+                            ? "#f6ffed"
+                            : index === 1
+                            ? "#fff7e6"
+                            : index === 2
+                            ? "#fff1f0"
+                            : "#fafafa",
+                        border:
+                          index === 0
+                            ? "2px solid #52c41a"
+                            : index === 1
+                            ? "2px solid #faad14"
+                            : index === 2
+                            ? "2px solid #f5222d"
+                            : "1px solid #d9d9d9",
+                        transition: "all 0.3s ease",
+                        boxShadow:
+                          index < 3
+                            ? "0 4px 12px rgba(0,0,0,0.1)"
+                            : "0 2px 8px rgba(0,0,0,0.06)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "20px",
+                              fontWeight: "bold",
+                              minWidth: "40px",
+                              textAlign: "center",
+                            }}
+                          >
+                            {index === 0 && "🥇"}
+                            {index === 1 && "🥈"}
+                            {index === 2 && "🥉"}
+                            {index > 2 && `#${index + 1}`}
+                          </div>
+                          <div>
+                            <Text
+                              strong
+                              style={{
+                                color:
+                                  index === 0
+                                    ? "#52c41a"
+                                    : index === 1
+                                    ? "#faad14"
+                                    : index === 2
+                                    ? "#f5222d"
+                                    : "inherit",
+                                fontSize: index < 3 ? "16px" : "14px",
+                              }}
+                            >
+                              User {bid.userId}
+                            </Text>
+                            <br />
+                            <Text type="secondary" style={{ fontSize: "12px" }}>
+                              {new Date(bid.createdAt).toLocaleString()}
+                            </Text>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <Text
+                            strong
+                            style={{
+                              fontSize:
+                                index === 0
+                                  ? "22px"
+                                  : index < 3
+                                  ? "18px"
+                                  : "16px",
+                              color:
+                                index === 0
+                                  ? "#52c41a"
+                                  : index === 1
+                                  ? "#faad14"
+                                  : index === 2
+                                  ? "#f5222d"
+                                  : "#1890ff",
+                              textShadow:
+                                index < 3
+                                  ? "0 1px 2px rgba(0,0,0,0.1)"
+                                  : "none",
+                            }}
+                          >
+                            ${bid.amount?.toLocaleString()}
+                          </Text>
+                          {index === 0 && (
+                            <div>
+                              <Text
+                                type="success"
+                                style={{ fontSize: "12px", fontWeight: "bold" }}
+                              >
+                                🏆 LEADING BID
+                              </Text>
+                            </div>
+                          )}
+                          {index === 1 && (
+                            <div>
+                              <Text
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#faad14",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                🥈 2nd Place
+                              </Text>
+                            </div>
+                          )}
+                          {index === 2 && (
+                            <div>
+                              <Text
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#f5222d",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                🥉 3rd Place
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {index < 3 && bids.length > 1 && (
+                        <div style={{ marginTop: "12px" }}>
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "6px",
+                              backgroundColor: "#f0f0f0",
+                              borderRadius: "3px",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${
+                                  (bid.amount / bids[0].amount) * 100
+                                }%`,
+                                height: "100%",
+                                background:
+                                  index === 0
+                                    ? "linear-gradient(90deg, #52c41a 0%, #73d13d 100%)"
+                                    : index === 1
+                                    ? "linear-gradient(90deg, #faad14 0%, #ffc53d 100%)"
+                                    : "linear-gradient(90deg, #f5222d 0%, #ff4d4f 100%)",
+                                transition: "width 0.5s ease",
+                                borderRadius: "3px",
+                              }}
+                            />
+                          </div>
+                          <div
+                            style={{
+                              marginTop: "4px",
+                              fontSize: "11px",
+                              color: "#666",
+                              textAlign: "right",
+                            }}
+                          >
+                            {((bid.amount / bids[0].amount) * 100).toFixed(1)}%
+                            of leading bid
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Card style={{ textAlign: "center", padding: "40px" }}>
+                <Alert
+                  message="No bids yet"
+                  description="Be the first to place a bid and claim the top spot!"
+                  type="info"
+                  showIcon
+                  style={{
+                    borderLeft: "4px solid #1890ff",
+                    backgroundColor: "#e6f7ff",
+                  }}
+                />
+              </Card>
+            )}
+          </Col>
+
+          <Col xs={24} md={12}>
             <Card>
               <Image
                 width="100%"
@@ -294,9 +522,6 @@ const AuctionDetailPage = () => {
                 }
               />
             </Card>
-          </Col>
-
-          <Col xs={24} md={12}>
             <Title level={2}>{auction.title}</Title>
             <Text
               style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}
@@ -311,7 +536,7 @@ const AuctionDetailPage = () => {
                   <Text strong>Starting Price: </Text>
                   <br />
                   <Text style={{ fontSize: "16px", color: "#666" }}>
-                    ${auction.startingPrice?.toLocaleString()}
+                    ${auction.startPrice?.toLocaleString()}
                   </Text>
                 </Col>
                 <Col span={12}>
@@ -329,8 +554,16 @@ const AuctionDetailPage = () => {
                   </Text>
                 </Col>
                 <Col span={12}>
+                  <Text strong>Start Time: </Text>
+                  <br />
+
+                  <Text style={{ fontSize: "14px", color: "#666" }}>
+                    {new Date(auction.startTime).toLocaleString()}
+                  </Text>
+                  <br />
                   <Text strong>End Time: </Text>
                   <br />
+
                   <Text style={{ fontSize: "14px", color: "#666" }}>
                     {new Date(auction.endTime).toLocaleString()}
                   </Text>
@@ -363,30 +596,90 @@ const AuctionDetailPage = () => {
               )}
               <Form form={form} onFinish={onFinish} layout="vertical">
                 <Form.Item
-                  name="bidAmount"
-                  label="Your Bid Amount"
+                  name="bidIncrement"
+                  label={
+                    <div>
+                      <Text>Amount to Add</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                        Current price: ${auction.currentPrice?.toLocaleString()}
+                        {bidIncrement && bidIncrement > 0 && (
+                          <>
+                            <br />
+                            <Text
+                              style={{ color: "#1890ff", fontWeight: "bold" }}
+                            >
+                              Your bid will be: $
+                              {(
+                                auction.currentPrice + bidIncrement
+                              )?.toLocaleString()}
+                            </Text>
+                          </>
+                        )}
+                      </Text>
+                    </div>
+                  }
                   rules={[
-                    { required: true, message: "Please enter a bid amount" },
+                    {
+                      required: true,
+                      message: "Please enter an amount to add",
+                    },
                     {
                       type: "number",
-                      min: auction.currentPrice + 1,
-                      message: `Bid must be higher than $${auction.currentPrice?.toLocaleString()}`,
+                      min: 1,
+                      message: "Amount must be at least $1",
                     },
                   ]}
                 >
                   <InputNumber
-                    min={auction.currentPrice + 1}
-                    placeholder={`Minimum: $${(
-                      auction.currentPrice + 1
-                    )?.toLocaleString()}`}
+                    min={1}
+                    placeholder="Enter amount to add (e.g., 1000)"
                     style={{ width: "100%" }}
                     formatter={(value) =>
                       `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                     }
                     parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                     size="large"
+                    onChange={(value) => setBidIncrement(value)}
+                    addonBefore="+"
                   />
                 </Form.Item>
+
+                {/* Preview của bid cuối cùng */}
+                {bidIncrement && bidIncrement > 0 && (
+                  <div
+                    style={{
+                      background: "#e6f7ff",
+                      border: "1px solid #91d5ff",
+                      borderRadius: "6px",
+                      padding: "12px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <Text style={{ fontSize: "14px" }}>
+                      <strong>Bid Preview:</strong>
+                    </Text>
+                    <br />
+                    <Text style={{ fontSize: "16px" }}>
+                      ${auction.currentPrice?.toLocaleString()} + $
+                      {bidIncrement?.toLocaleString()} =
+                      <Text
+                        style={{
+                          color: "#1890ff",
+                          fontWeight: "bold",
+                          fontSize: "18px",
+                          marginLeft: "8px",
+                        }}
+                      >
+                        $
+                        {(
+                          auction.currentPrice + bidIncrement
+                        )?.toLocaleString()}
+                      </Text>
+                    </Text>
+                  </div>
+                )}
+
                 <Form.Item>
                   <Button
                     type="primary"
@@ -394,6 +687,7 @@ const AuctionDetailPage = () => {
                     loading={loading}
                     size="large"
                     block
+                    disabled={!bidIncrement || bidIncrement <= 0}
                     style={{
                       background:
                         "linear-gradient(135deg, #1890ff 0%, #722ed1 100%)",
@@ -403,7 +697,13 @@ const AuctionDetailPage = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    {loading ? "Placing Bid..." : "Place Bid"}
+                    {loading
+                      ? "Placing Bid..."
+                      : bidIncrement && bidIncrement > 0
+                      ? `Place Bid: $${(
+                          auction.currentPrice + bidIncrement
+                        )?.toLocaleString()}`
+                      : "Place Bid"}
                   </Button>
                 </Form.Item>
               </Form>
@@ -412,217 +712,6 @@ const AuctionDetailPage = () => {
         </Row>
 
         <Divider />
-
-        {/* Leaderboard Section */}
-        <Title level={3} style={{ textAlign: "center", marginBottom: "24px" }}>
-          🏆 Leaderboard - Top 10 Highest Bids ({bids.length})
-          {socketConnected && (
-            <Text
-              type="secondary"
-              style={{ fontSize: "12px", display: "block" }}
-            >
-              Real-time updates active
-            </Text>
-          )}
-        </Title>
-
-        {bids.length > 0 ? (
-          <List
-            dataSource={bids.slice(0, 10)}
-            renderItem={(bid, index) => (
-              <List.Item style={{ padding: "8px 0" }}>
-                <Card
-                  size="small"
-                  style={{
-                    width: "100%",
-                    backgroundColor:
-                      index === 0
-                        ? "#f6ffed"
-                        : index === 1
-                        ? "#fff7e6"
-                        : index === 2
-                        ? "#fff1f0"
-                        : "#fafafa",
-                    border:
-                      index === 0
-                        ? "2px solid #52c41a"
-                        : index === 1
-                        ? "2px solid #faad14"
-                        : index === 2
-                        ? "2px solid #f5222d"
-                        : "1px solid #d9d9d9",
-                    transition: "all 0.3s ease",
-                    boxShadow:
-                      index < 3
-                        ? "0 4px 12px rgba(0,0,0,0.1)"
-                        : "0 2px 8px rgba(0,0,0,0.06)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                          minWidth: "40px",
-                          textAlign: "center",
-                        }}
-                      >
-                        {index === 0 && "🥇"}
-                        {index === 1 && "🥈"}
-                        {index === 2 && "🥉"}
-                        {index > 2 && `#${index + 1}`}
-                      </div>
-                      <div>
-                        <Text
-                          strong
-                          style={{
-                            color:
-                              index === 0
-                                ? "#52c41a"
-                                : index === 1
-                                ? "#faad14"
-                                : index === 2
-                                ? "#f5222d"
-                                : "inherit",
-                            fontSize: index < 3 ? "16px" : "14px",
-                          }}
-                        >
-                          User {bid.userId}
-                        </Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: "12px" }}>
-                          {new Date(bid.createdAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <Text
-                        strong
-                        style={{
-                          fontSize:
-                            index === 0 ? "22px" : index < 3 ? "18px" : "16px",
-                          color:
-                            index === 0
-                              ? "#52c41a"
-                              : index === 1
-                              ? "#faad14"
-                              : index === 2
-                              ? "#f5222d"
-                              : "#1890ff",
-                          textShadow:
-                            index < 3 ? "0 1px 2px rgba(0,0,0,0.1)" : "none",
-                        }}
-                      >
-                        ${bid.amount?.toLocaleString()}
-                      </Text>
-                      {index === 0 && (
-                        <div>
-                          <Text
-                            type="success"
-                            style={{ fontSize: "12px", fontWeight: "bold" }}
-                          >
-                            🏆 LEADING BID
-                          </Text>
-                        </div>
-                      )}
-                      {index === 1 && (
-                        <div>
-                          <Text
-                            style={{
-                              fontSize: "12px",
-                              color: "#faad14",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            🥈 2nd Place
-                          </Text>
-                        </div>
-                      )}
-                      {index === 2 && (
-                        <div>
-                          <Text
-                            style={{
-                              fontSize: "12px",
-                              color: "#f5222d",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            🥉 3rd Place
-                          </Text>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {index < 3 && bids.length > 1 && (
-                    <div style={{ marginTop: "12px" }}>
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "6px",
-                          backgroundColor: "#f0f0f0",
-                          borderRadius: "3px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${(bid.amount / bids[0].amount) * 100}%`,
-                            height: "100%",
-                            background:
-                              index === 0
-                                ? "linear-gradient(90deg, #52c41a 0%, #73d13d 100%)"
-                                : index === 1
-                                ? "linear-gradient(90deg, #faad14 0%, #ffc53d 100%)"
-                                : "linear-gradient(90deg, #f5222d 0%, #ff4d4f 100%)",
-                            transition: "width 0.5s ease",
-                            borderRadius: "3px",
-                          }}
-                        />
-                      </div>
-                      <div
-                        style={{
-                          marginTop: "4px",
-                          fontSize: "11px",
-                          color: "#666",
-                          textAlign: "right",
-                        }}
-                      >
-                        {((bid.amount / bids[0].amount) * 100).toFixed(1)}% of
-                        leading bid
-                      </div>
-                    </div>
-                  )}
-                </Card>
-              </List.Item>
-            )}
-          />
-        ) : (
-          <Card style={{ textAlign: "center", padding: "40px" }}>
-            <Alert
-              message="No bids yet"
-              description="Be the first to place a bid and claim the top spot!"
-              type="info"
-              showIcon
-              style={{
-                borderLeft: "4px solid #1890ff",
-                backgroundColor: "#e6f7ff",
-              }}
-            />
-          </Card>
-        )}
       </Content>
     </Layout>
   );
