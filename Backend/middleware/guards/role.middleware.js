@@ -37,7 +37,7 @@ module.exports.roleProtected = async (req, res, next) => {
 
   req.role = roleUserInOrganization.data[0]?.role;
 
-  console.log(roleUserInOrganization.data[0]?.role);
+  // console.log(roleUserInOrganization.data[0]?.role);
   // const organization =
   //   await clerkClient.organizations.getOrganizationMembershipList({
   //     organizationId: "org_2vlKMp1OtZT5LxT5teFmhuP0MxL",

@@ -33,6 +33,9 @@ const itemSchema = new mongoose.Schema(
       required: [true, "Rate price is required"],
       default: "no",
     },
+    rejectReason: {
+      type: String,
+    },
     owner: {
       type: String,
       required: [true, "Owner ID is required"],
@@ -47,6 +50,7 @@ const itemSchema = new mongoose.Schema(
       ref: "Category", // Reference to the Category model
       required: [true, "Category ID is required"],
     },
+
     statusId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Status", // Reference to the Status model

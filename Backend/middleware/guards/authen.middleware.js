@@ -1,5 +1,4 @@
 const { verifyToken } = require("@clerk/backend");
-const { Clerk } = require("@clerk/clerk-sdk-node");
 const { clerkClient } = require("../../config/clerk");
 
 module.exports.authenticate = async (req, res, next) => {
@@ -20,8 +19,7 @@ module.exports.authenticate = async (req, res, next) => {
     const user = await clerkClient.users.getUser(tokenPayload.sub);
 
     req.user = user;
-
-    console.log(user);
+    req.userId = user.id;
 
     next();
   } catch (error) {
