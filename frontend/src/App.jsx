@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { testRouter } from "./routers/client/Test.router";
-import { ClerkProvider, SignedIn } from "@clerk/clerk-react";
+import { ClerkProvider } from "@clerk/clerk-react";
 import HomeLayout, { homeLayoutLoader } from "./pages/HomeLayout";
 import ErrorPage from "./components/global/Error";
 import { Toaster } from "sonner";
@@ -9,12 +9,16 @@ import ProductDetail, { productDetailLoader } from "./pages/ProductDetail";
 import CategoryPage, { categoryPageLoader } from "./pages/CategoryPage";
 import AuctionList, { auctionListLoader } from "./pages/AuctionList";
 import AuctionDetail, { auctionDetailLoader } from "./pages/AuctionDetail";
+import { authenTicationLoader } from "./utils/authentication.loader";
+import DashboardLayout from "@/pages/admin/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import Items, { itemsAdminLoader } from "./pages/admin/Items";
+import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
+import TopUp from "./pages/TopUpCoin";
+import CheckOut from "./pages/stripe/CheckOut";
+import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key");
-}
 
 const router = createBrowserRouter([
   {
@@ -48,14 +52,64 @@ const router = createBrowserRouter([
         element: <AuctionDetail />,
         loader: auctionDetailLoader,
       },
+
+      // top up coin router
+      {
+        path: "/topup",
+        element: <TopUp></TopUp>,
+      },
+
+      // check out router
+      {
+        path: "checkout",
+        element: <CheckOut></CheckOut>,
+      },
+
+      // redirect page
+      {
+        path: "/coin/confirm",
+        element: <PaymentSuccess></PaymentSuccess>,
+        loader: paymentLoader,
+      },
+
+      // admin routers
+      {
+        path: "/admin",
+        element: <DashboardLayout></DashboardLayout>,
+        errorElement: <ErrorPage></ErrorPage>,
+        loader: authenTicationLoader,
+        children: [
+          // home
+          { index: true, element: <Dashboard></Dashboard> },
+
+          // all items
+          {
+            path: "items",
+            element: <Items></Items>,
+            loader: itemsAdminLoader,
+          },
+
+          // browse items
+          {
+            path: "browse",
+            element: <BrowseItem></BrowseItem>,
+            loader: browseLoader,
+          },
+        ],
+      },
     ],
   },
+
   testRouter,
 ]);
 
 function App() {
+  if (!PUBLISHABLE_KEY) {
+    return <h1>Server was closed. See you around</h1>;
+  }
+
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
       <Toaster></Toaster>
       <RouterProvider router={router} />
     </ClerkProvider>

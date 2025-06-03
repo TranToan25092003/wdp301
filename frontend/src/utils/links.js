@@ -6,12 +6,17 @@ export const links = [
   { href: "/return", label: "return" },
   { href: "/admin", label: "dashboard" },
   { href: "/report", label: "report" },
+  { href: "https://informed-slug-82.accounts.dev/user", label: "profile" },
 ];
 
 export const adminLinks = [
   { href: "/admin", label: "dashboard" },
-  { href: "/admin/supplies", label: "supplies" },
-  { href: "/admin/reject", label: "reject list" },
+  { href: "/admin/items", label: "items" },
+  { href: "/admin/browse", label: "Waiting items" },
   { href: "/admin/report", label: "report" },
   { href: "/admin/statistics", label: "statistics" },
+  {
+    href: "https://informed-slug-82.accounts.dev/organization",
+    label: "organizations",
+  },
 ];

@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@clerk/clerk-react";
 import { customFetch } from "@/utils/customAxios";
-import {useLoaderData} from 'react-router-dom'
+
 const Test = () => {
   const { getToken, isSignedIn, userId, orgRole, orgId } = useAuth();
-const data = useLoaderData()
 
-console.log(data)
   console.log(userId);
 
   console.log(orgRole);

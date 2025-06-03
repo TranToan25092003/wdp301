@@ -9,6 +9,7 @@ const Report = require("./report.model");
 const Status = require("./status.model");
 const Test = require("./test.model");
 const Type = require("./type.model");
+const Session = require("./session.model");
 
 module.exports = {
   Test,
@@ -22,4 +23,5 @@ module.exports = {
   Buy,
   Auction,
   Bid,
+  Session,
 };
