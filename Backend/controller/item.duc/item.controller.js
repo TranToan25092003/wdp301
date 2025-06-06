@@ -1,13 +1,12 @@
-const Category = require('../../model/category.model');
-const Item = require('../../model/item.model');
-
+const Category = require("../../model/category.model");
+const Item = require("../../model/item.model");
 
 const getAllItems = async (req, res) => {
   try {
     const items = await Item.find()
-      .populate('typeId', 'name')
-      .populate('categoryId', 'name')
-      .populate('statusId', 'name')
+      .populate("typeId", "name")
+      .populate("categoryId", "name")
+      .populate("statusId", "name")
       .exec();
 
     res.status(200).json({
@@ -73,8 +72,8 @@ const getRecentItemsByCategory = async (req, res) => {
     }
 
     const recentItems = await Item.find({ categoryId })
-      .sort({ createdAt: -1 })        
-      .limit(4)                        
+      .sort({ createdAt: -1 })
+      .limit(4)
       .populate("typeId", "name")
       .populate("categoryId", "name")
       .populate("statusId", "name");
@@ -132,5 +131,5 @@ module.exports = {
   getAllItems,
   getItemsByCategory,
   getRecentItemsByCategory,
-  getItemDetailById
+  getItemDetailById,
 };

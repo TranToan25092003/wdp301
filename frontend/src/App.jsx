@@ -17,6 +17,7 @@ import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
 import TopUp from "./pages/TopUpCoin";
 import CheckOut from "./pages/stripe/CheckOut";
 import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
+import CreatePost from "./pages/CreatePost";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -70,6 +71,12 @@ const router = createBrowserRouter([
         path: "/coin/confirm",
         element: <PaymentSuccess></PaymentSuccess>,
         loader: paymentLoader,
+      },
+
+      // create post router
+      {
+        path: "/create-post",
+        element: <CreatePost></CreatePost>,
       },
 
       // admin routers
