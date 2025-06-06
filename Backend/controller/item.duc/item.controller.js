@@ -26,9 +26,14 @@ const getAllItems = async (req, res) => {
 
 const getRecentItems = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;       
+    const limit = parseInt(req.query.limit) || 8;     
+    const skip = (page - 1) * limit;                  
+
     const items = await Item.find()
       .sort({ createdAt: -1 })
-      .limit(8)
+      .skip(skip)
+      .limit(limit)
       .populate('typeId', 'name')
       .populate('categoryId', 'name')
       .populate('statusId', 'name')
