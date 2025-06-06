@@ -7,6 +7,8 @@ import { Toaster } from "sonner";
 import HomePage, { homepageLoader } from "./pages/HomePage";
 import ProductDetail, { productDetailLoader } from "./pages/ProductDetail";
 import CategoryPage, { categoryPageLoader } from "./pages/CategoryPage";
+import AuctionList, { auctionListLoader } from "./pages/AuctionList";
+import AuctionDetail, { auctionDetailLoader } from "./pages/AuctionDetail";
 import { authenTicationLoader } from "./utils/authentication.loader";
 import DashboardLayout from "@/pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
@@ -15,6 +17,7 @@ import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
 import TopUp from "./pages/TopUpCoin";
 import CheckOut from "./pages/stripe/CheckOut";
 import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
+import CreatePost from "./pages/CreatePost";
 import EditContact, { contactLoader } from "./pages/admin/ContactInfo";
 import FilterPage from "./pages/FilterPage";
 
@@ -45,6 +48,14 @@ const router = createBrowserRouter([
       {
         path: "/filter",
         element: <FilterPage />,
+        path: "/auctions",
+        element: <AuctionList />,
+        loader: auctionListLoader,
+      },
+      {
+        path: "/auctions/:auctionId",
+        element: <AuctionDetail />,
+        loader: auctionDetailLoader,
       },
 
       // top up coin router
@@ -64,6 +75,12 @@ const router = createBrowserRouter([
         path: "/coin/confirm",
         element: <PaymentSuccess></PaymentSuccess>,
         loader: paymentLoader,
+      },
+
+      // create post router
+      {
+        path: "/create-post",
+        element: <CreatePost></CreatePost>,
       },
 
       // admin routers

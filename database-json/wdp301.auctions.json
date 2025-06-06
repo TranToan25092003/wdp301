@@ -1,0 +1,50 @@
+[{
+  "_id": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "startTime": {
+    "$date": "2025-05-26T08:00:00.000Z"
+  },
+  "endTime": {
+    "$date": "2025-05-29T08:00:00.000Z"
+  },
+  "startPrice": 100,
+  "currentPrice": 1111044,
+  "itemId": {
+    "$oid": "6651a1aee13f1a001f6a5678"
+  },
+  "statusId": {
+    "$oid": "6651a1bde13f1a001f6a9012"
+  },
+  "createdAt": {
+    "$date": "2025-05-25T10:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:26:01.508Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6651a1d1e13f1a001f6a1235"
+  },
+  "startTime": {
+    "$date": "2025-06-01T12:00:00.000Z"
+  },
+  "endTime": {
+    "$date": "2025-06-02T12:00:00.000Z"
+  },
+  "startPrice": 200,
+  "currentPrice": 300,
+  "itemId": {
+    "$oid": "6651a1aee13f1a001f6a5679"
+  },
+  "statusId": {
+    "$oid": "6651a1bde13f1a001f6a9013"
+  },
+  "createdAt": {
+    "$date": "2025-05-25T11:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-25T11:00:00.000Z"
+  }
+}]

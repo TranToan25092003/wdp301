@@ -1,6 +1,7 @@
 // create server
 const express = require("express");
-
+const http = require("http");
+const { Server } = require("socket.io");
 const app = express();
 
 const comp = require("./model/index");
@@ -63,6 +64,35 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 app.use("/api", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Swagger
+
+// Create HTTP server and integrate Socket.IO
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+// Store io instance in app for use in other modules (e.g., controllers)
+app.set("socketio", io);
+
+// Socket.IO connection handling
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  // Join auction room
+  socket.on("joinAuction", (auctionId) => {
+    socket.join(auctionId);
+    console.log(`User ${socket.id} joined auction ${auctionId}`);
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
 
 // run server
 app.listen(port, () => {
