@@ -31,18 +31,11 @@ const getRecentItems = async (req, res) => {
 
     const items = await Item.find()
       .sort({ createdAt: -1 })
-<<<<<<< HEAD
       .skip(skip)
       .limit(limit)
       .populate('typeId', 'name')
       .populate('categoryId', 'name')
       .populate('statusId', 'name')
-=======
-      .limit(8)
-      .populate("typeId", "name")
-      .populate("categoryId", "name")
-      .populate("statusId", "name")
->>>>>>> origin/main
       .exec();
 
     res.status(200).json({

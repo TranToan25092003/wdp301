@@ -48,6 +48,8 @@ const router = createBrowserRouter([
       {
         path: "/filter",
         element: <FilterPage />,
+      },
+      {
         path: "/auctions",
         element: <AuctionList />,
         loader: auctionListLoader,
