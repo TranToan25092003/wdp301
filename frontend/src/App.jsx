@@ -19,6 +19,7 @@ import CheckOut from "./pages/stripe/CheckOut";
 import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
 import CreatePost from "./pages/CreatePost";
 import EditContact, { contactLoader } from "./pages/admin/ContactInfo";
+import FilterPage from "./pages/FilterPage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
         path: "/category/:categoryId",
         element: <CategoryPage />,
         loader: categoryPageLoader,
+      },
+      {
+        path: "/filter",
+        element: <FilterPage />,
       },
       {
         path: "/auctions",

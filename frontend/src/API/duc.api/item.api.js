@@ -5,8 +5,10 @@ export const getAllItems = async () => {
   return response.data;
 };
 
-export const getRecentItems = async () => {
-  const response = await customFetch.get("/items/recent");
+export const getRecentItems = async (page = 1, limit = 8) => {
+  const response = await customFetch.get("/items/recent", {
+    params: { page, limit },
+  });
   return response.data;
 };
 
