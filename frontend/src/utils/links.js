@@ -16,6 +16,10 @@ export const adminLinks = [
   { href: "/admin/report", label: "report" },
   { href: "/admin/statistics", label: "statistics" },
   {
+    href: "/admin/contact",
+    label: "contact info",
+  },
+  {
     href: "https://informed-slug-82.accounts.dev/organization",
     label: "organizations",
   },

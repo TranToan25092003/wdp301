@@ -61,3 +61,17 @@ export const validateWithZodSchema = (schema, data) => {
 
   return result.data;
 };
+
+/**
+ * ====================================
+ * contact schema
+ * ====================================
+ */
+export const contactSchema = z.object({
+  address: z.string().min(1, "Address is required"),
+  phone: z.string().regex(/^\+?\d{10,15}$/, "Invalid phone number"),
+  email: z.string().email("Invalid email address"),
+  facebook: z.string().url("Invalid Facebook URL").optional().or(z.literal("")),
+  zalo: z.string().url("Invalid Zalo URL").optional().or(z.literal("")),
+  iframe: z.string().optional().or(z.literal("")),
+});

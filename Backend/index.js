@@ -16,6 +16,19 @@ const port = process.env.PORT;
 database.connectToDatabase();
 //end database
 
+// check health
+const cron = require("node-cron");
+cron.schedule("* * * * *", async () => {
+  try {
+    await comp.Test.find({});
+
+    console.log("system is healthy 💪💪💪");
+  } catch (error) {
+    console.log("System is broken 😰😰😰");
+  }
+});
+// end check health
+
 // body parser
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
