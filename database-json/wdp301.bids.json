@@ -1,0 +1,476 @@
+[{
+  "_id": {
+    "$oid": "6834b637d5643e48354e492c"
+  },
+  "amount": 12000,
+  "userId": "2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:43:03.398Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:43:03.398Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b65bd5643e48354e4937"
+  },
+  "amount": 13000,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:43:39.565Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:43:39.565Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b665d5643e48354e4942"
+  },
+  "amount": 1111000,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:43:49.219Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:43:49.219Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b675d5643e48354e494d"
+  },
+  "amount": 1111001,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:44:05.643Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:44:05.643Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b67fd5643e48354e4958"
+  },
+  "amount": 1111002,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:44:15.187Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:44:15.187Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b68ad5643e48354e4963"
+  },
+  "amount": 1111004,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:44:26.656Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:44:26.656Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b752d5643e48354e497f"
+  },
+  "amount": 1111005,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:47:46.551Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:47:46.551Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b760d5643e48354e498a"
+  },
+  "amount": 1111006,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:48:00.291Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:48:00.291Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b767d5643e48354e4990"
+  },
+  "amount": 1111007,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:48:07.984Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:48:07.984Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b76fd5643e48354e499b"
+  },
+  "amount": 1111010,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:48:15.847Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:48:15.847Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b80cd5643e48354e49bd"
+  },
+  "amount": 1111012,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:50:52.632Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:50:52.632Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b80ed5643e48354e49c2"
+  },
+  "amount": 1111014,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:50:54.786Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:50:54.786Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b925d5643e48354e49ea"
+  },
+  "amount": 1111016,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:55:33.009Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:55:33.009Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b929d5643e48354e49ef"
+  },
+  "amount": 1111017,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:55:37.473Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:55:37.473Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834b92cd5643e48354e49f4"
+  },
+  "amount": 1111018,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T18:55:40.290Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T18:55:40.290Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834baacd5643e48354e4a16"
+  },
+  "amount": 1111020,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T19:02:04.282Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T19:02:04.282Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834bab0d5643e48354e4a1b"
+  },
+  "amount": 1111023,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T19:02:08.004Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T19:02:08.004Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6834bab2d5643e48354e4a20"
+  },
+  "amount": 1111025,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-26T19:02:10.187Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T19:02:10.187Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6835103a8f4c63cf866a8ffa"
+  },
+  "amount": 1111030,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:07:06.058Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:07:06.058Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6835104c8f4c63cf866a9005"
+  },
+  "amount": 1111032,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:07:24.455Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:07:24.455Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683512d68f4c63cf866a90ee"
+  },
+  "amount": 1111033,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:18:14.791Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:18:14.791Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683512db8f4c63cf866a90f3"
+  },
+  "amount": 1111034,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:18:19.213Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:18:19.213Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683512e38f4c63cf866a9104"
+  },
+  "amount": 1111036,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:18:27.543Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:18:27.543Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6835144c8f4c63cf866a9128"
+  },
+  "amount": 1111039,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:24:28.417Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:24:28.417Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683514638f4c63cf866a913d"
+  },
+  "amount": 1111040,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:24:51.439Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:24:51.439Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6835146b8f4c63cf866a914a"
+  },
+  "amount": 1111041,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:24:59.951Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:24:59.951Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683514768f4c63cf866a9157"
+  },
+  "amount": 1111043,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:25:10.665Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:25:10.665Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "683514a98f4c63cf866a9190"
+  },
+  "amount": 1111044,
+  "userId": "current-user-id",
+  "auctionId": {
+    "$oid": "6651a1d1e13f1a001f6a1234"
+  },
+  "createdAt": {
+    "$date": "2025-05-27T01:26:01.506Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-27T01:26:01.506Z"
+  },
+  "__v": 0
+}]
