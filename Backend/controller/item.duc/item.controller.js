@@ -1,14 +1,13 @@
-const { Mongoose, default: mongoose } = require('mongoose');
-const Category = require('../../model/category.model');
-const Item = require('../../model/item.model');
-
+const { Mongoose, default: mongoose } = require("mongoose");
+const Category = require("../../model/category.model");
+const Item = require("../../model/item.model");
 
 const getAllItems = async (req, res) => {
   try {
     const items = await Item.find()
-      .populate('typeId', 'name')
-      .populate('categoryId', 'name')
-      .populate('statusId', 'name')
+      .populate("typeId", "name")
+      .populate("categoryId", "name")
+      .populate("statusId", "name")
       .exec();
 
     res.status(200).json({
@@ -29,9 +28,9 @@ const getRecentItems = async (req, res) => {
     const items = await Item.find()
       .sort({ createdAt: -1 })
       .limit(8)
-      .populate('typeId', 'name')
-      .populate('categoryId', 'name')
-      .populate('statusId', 'name')
+      .populate("typeId", "name")
+      .populate("categoryId", "name")
+      .populate("statusId", "name")
       .exec();
 
     res.status(200).json({
@@ -126,12 +125,12 @@ const getRecentItemsByCategory = async (req, res) => {
 const getItemDetailById = async (req, res) => {
   try {
     const { itemId } = req.params;
-    
-    if(!mongoose.Types.ObjectId.isValid(itemId)){
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
       res.status(500).json({
-      success: false,
-      message: "itemId must be in mongoose objectId format.",
-    });
+        success: false,
+        message: "itemId must be in mongoose objectId format.",
+      });
     }
 
     const item = await Item.findById(itemId)
@@ -171,7 +170,7 @@ const filterItems = async (req, res) => {
       categoryId,
       statusId,
       startDate,
-      endDate, 
+      endDate,
     } = req.query;
 
     const query = {};
@@ -233,5 +232,5 @@ module.exports = {
   getRecentItemsByCategory,
   getItemDetailById,
   getRecentItems,
-  filterItems
+  filterItems,
 };
