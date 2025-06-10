@@ -7,68 +7,140 @@ import {
   Input,
   Button,
   DatePicker,
-  Divider,
   Form,
+  Select,
 } from "antd";
 import { useSearchParams } from "react-router-dom";
 import ProductList from "@/components/item/item-list";
-import { getAllItems } from "@/API/duc.api/item.api";
+import { getAllItems, getFilteredItems } from "@/API/duc.api/item.api";
+import { message } from "antd";
+import dayjs from "dayjs";
 
 const { Content } = Layout;
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
+// export const filterPageLoader = async () => {
+//   try {
+//     const [typesRes, categoriesRes, statusesRes] = await Promise.all([
+//       getAllTypes(),
+//       getAllCategories(),
+//       getAllStatuses(),
+//     ]);
+
+//     return {
+//       types: typesRes.data || [],
+//       categories: categoriesRes.data || [],
+//       statuses: statusesRes.data || [],
+//     };
+//   } catch (error) {
+//     console.error("Error loading filter options:", error);
+//     return {
+//       types: [],
+//       categories: [],
+//       statuses: [],
+//     };
+//   }
+// };
+
 const FilterPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [form] = Form.useForm();
   const [filteredItems, setFilteredItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [typeOptions, setTypeOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [statusOptions, setStatusOptions] = useState([]);
 
-  const fetchFilteredItems = async (filters) => {
+
+  const fetchFilteredItems = async (filters = {}) => {
+    setLoading(true);
     try {
-      const res = await getAllItems(filters);
-      setFilteredItems(res.data);
+      const res = await getFilteredItems(filters);
+      setFilteredItems(res.data || []);
     } catch (error) {
-      console.error("Failed to fetch items:", error);
+      const errors = error?.response?.data?.errors;
+      if (Array.isArray(errors)) {
+        const errorMessages = errors.map(e => `${e.path}: ${e.msg}`).join(" | ");
+        message.error(errorMessages);
+      } else {
+        message.error("Invalid filter parameters.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const onFinish = (values) => {
-    const params = { ...values };
+    const params = {};
 
-    if (values.dateRange) {
-      params.startDate = values.dateRange[0]?.toISOString();
-      params.endDate = values.dateRange[1]?.toISOString();
-    }
-    delete params.dateRange;
+    Object.entries(values).forEach(([key, value]) => {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== "" &&
+        value !== "undefined"
+      ) {
+        if (key === "dateRange" && Array.isArray(value) && value.length === 2) {
+          params.startDate = value[0]?.toISOString();
+          params.endDate = value[1]?.toISOString();
+        } else if (key !== "dateRange") {
+          params[key] = value;
+        }
+      }
+    });
 
     setSearchParams(params);
     fetchFilteredItems(params);
   };
 
+
   useEffect(() => {
     const initialFilters = {};
+    let isValid = true;
+
     searchParams.forEach((value, key) => {
-      initialFilters[key] = value;
+      if (
+        value === "undefined" ||
+        value === null ||
+        value === "" ||
+        (["minPrice", "maxPrice", "ratePrice"].includes(key) && isNaN(Number(value)))
+      ) {
+        isValid = false;
+      } else {
+        initialFilters[key] = value;
+      }
     });
 
-    if (initialFilters.startDate && initialFilters.endDate) {
-      form.setFieldsValue({
-        ...initialFilters,
-        dateRange: [new Date(initialFilters.startDate), new Date(initialFilters.endDate)],
-      });
-    } else {
-      form.setFieldsValue(initialFilters);
+    if (!isValid) {
+      console.warn("Invalid search parameters detected.");
+      message.warning("One or more filter parameters are invalid.");
+      return;
     }
 
+    const formValues = { ...initialFilters };
+
+    if (initialFilters.startDate && initialFilters.endDate) {
+      formValues.dateRange = [
+        dayjs(initialFilters.startDate),
+        dayjs(initialFilters.endDate),
+      ];
+      delete formValues.startDate;
+      delete formValues.endDate;
+    }
+
+    form.setFieldsValue(formValues);
     fetchFilteredItems(initialFilters);
   }, []);
+
+
 
   return (
     <Layout style={{ backgroundColor: "#fff" }}>
       <Content style={{ padding: "0" }}>
         <Row gutter={24}>
           {/* FILTER BAR */}
-          <Col span={6} style={{borderRight: "1px #E5E5E5 solid"}}>
+          <Col span={6} style={{ borderRight: "1px #E5E5E5 solid", padding: "16px" }}>
             <Title level={4}>Filter Products</Title>
             <Form layout="vertical" form={form} onFinish={onFinish}>
               <Form.Item label="Name" name="name">
@@ -94,6 +166,18 @@ const FilterPage = () => {
                 <Input placeholder="Owner ID" />
               </Form.Item>
 
+              <Form.Item label="Type ID" name="typeId">
+                <Input placeholder="Type ID" />
+              </Form.Item>
+
+              <Form.Item label="Category ID" name="categoryId">
+                <Input placeholder="Category ID" />
+              </Form.Item>
+
+              <Form.Item label="Status ID" name="statusId">
+                <Input placeholder="Status ID" />
+              </Form.Item>
+
               <Form.Item label="Post Date Range" name="dateRange">
                 <RangePicker />
               </Form.Item>
@@ -104,12 +188,31 @@ const FilterPage = () => {
                 </Button>
               </Form.Item>
             </Form>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="button"
+                onClick={() => {
+                  form.resetFields();
+                  setSearchParams({});
+                  fetchFilteredItems();
+                }}
+                block
+              >
+                Clear Filters
+              </Button>
+            </Form.Item>
+
           </Col>
 
-          
           {/* PRODUCT LIST */}
-          <Col span={18}>
-            <ProductList title="Filtered Products" products={filteredItems} />
+          <Col span={18} style={{ padding: "16px" }}>
+            <ProductList
+              title="Filtered Products"
+              products={filteredItems}
+              loading={loading}
+            />
           </Col>
         </Row>
       </Content>
