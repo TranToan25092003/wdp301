@@ -65,10 +65,10 @@ const FilterPage = () => {
 
   return (
     <Layout style={{ backgroundColor: "#fff" }}>
-      <Content style={{ padding: "24px" }}>
+      <Content style={{ padding: "0" }}>
         <Row gutter={24}>
           {/* FILTER BAR */}
-          <Col span={6}>
+          <Col span={6} style={{borderRight: "1px #E5E5E5 solid"}}>
             <Title level={4}>Filter Products</Title>
             <Form layout="vertical" form={form} onFinish={onFinish}>
               <Form.Item label="Name" name="name">
@@ -106,6 +106,7 @@ const FilterPage = () => {
             </Form>
           </Col>
 
+          
           {/* PRODUCT LIST */}
           <Col span={18}>
             <ProductList title="Filtered Products" products={filteredItems} />
