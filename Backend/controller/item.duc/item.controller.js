@@ -25,9 +25,9 @@ const getAllItems = async (req, res) => {
 
 const getRecentItems = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;       
-    const limit = parseInt(req.query.limit) || 8;     
-    const skip = (page - 1) * limit;                  
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 8;
+    const skip = (page - 1) * limit;
 
     const items = await Item.find()
       .sort({ createdAt: -1 })
@@ -176,6 +176,8 @@ const filterItems = async (req, res) => {
       statusId,
       startDate,
       endDate,
+      page = 1,
+      pageSize = 10,
     } = req.query;
 
     const query = {};
@@ -220,11 +222,23 @@ const filterItems = async (req, res) => {
       }
     }
 
-    const items = await Item.find(query)
-      .populate("typeId categoryId statusId")
-      .sort({ createdAt: -1 });
+    // Calculate skip and limit for pagination
+    const pageNum = parseInt(page) || 1;
+    const pageSizeNum = parseInt(pageSize) || 10;
+    const skip = (pageNum - 1) * pageSizeNum;
 
-    return res.status(200).json({ success: true, data: items });
+
+    // Fetch paginated items and total count
+    const [items, totalItems] = await Promise.all([
+      Item.find(query)
+        .populate("typeId categoryId statusId")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSizeNum),
+      Item.countDocuments(query),
+    ]);
+
+    return res.status(200).json({ success: true, data: items, total: totalItems });
   } catch (error) {
     console.error("Error filtering items:", error);
     return res.status(500).json({ success: false, message: "Server error" });

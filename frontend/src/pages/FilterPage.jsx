@@ -12,7 +12,7 @@ import {
 } from "antd";
 import { useSearchParams, useLoaderData } from "react-router-dom";
 import ProductList from "@/components/item/item-list";
-import { getAllItems, getFilteredItems } from "@/API/duc.api/item.api";
+import { getFilteredItems } from "@/API/duc.api/item.api";
 import { message } from "antd";
 import dayjs from "dayjs";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
@@ -52,16 +52,23 @@ const FilterPage = () => {
   const [form] = Form.useForm();
   const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
+  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [pageSize, setPageSize] = useState(Number(searchParams.get("pageSize")) || 10);
 
   const typeOptions = types.map(type => ({ label: type.name, value: type._id }));
-  const categoryOptions = categories.map(c => ({ label: c.title, value: c._id }))
+  const categoryOptions = categories.map(c => ({ label: c.title, value: c._id }));
   const statusOptions = statuses.map(s => ({ label: s.name, value: s._id }));
 
   const fetchFilteredItems = async (filters = {}) => {
     setLoading(true);
     try {
-      const res = await getFilteredItems(filters);
+      // Use page and pageSize from filters if provided, otherwise fall back to state
+      const pageToFetch = Number(filters.page) || page;
+      const pageSizeToFetch = Number(filters.pageSize) || pageSize;
+      const res = await getFilteredItems({ ...filters, page: pageToFetch, pageSize: pageSizeToFetch });
       setFilteredItems(res.data || []);
+      setTotalItems(res.total || 0);
     } catch (error) {
       const errors = error?.response?.data?.errors;
       if (Array.isArray(errors)) {
@@ -77,7 +84,6 @@ const FilterPage = () => {
 
   const onFinish = (values) => {
     const params = {};
-
     Object.entries(values).forEach(([key, value]) => {
       if (
         value !== undefined &&
@@ -88,16 +94,38 @@ const FilterPage = () => {
         if (key === "dateRange" && Array.isArray(value) && value.length === 2) {
           params.startDate = value[0]?.toISOString();
           params.endDate = value[1]?.toISOString();
-        } else if (key !== "dateRange") {
+        } else {
           params[key] = value;
         }
       }
     });
 
+    params.page = 1;
+    params.pageSize = pageSize;
+    setPage(1);
     setSearchParams(params);
     fetchFilteredItems(params);
   };
 
+  const handlePaginationChange = (newPage, newPageSize) => {
+    const params = {};
+    searchParams.forEach((value, key) => {
+      if (value && value !== "undefined" && key !== "page" && key !== "pageSize") {
+        params[key] = value;
+      }
+    });
+    params.page = newPage;
+    params.pageSize = newPageSize;
+    setPage(newPage);
+    setPageSize(newPageSize);
+    setSearchParams(params);
+    fetchFilteredItems(params);
+  };
+
+  // Log page state changes for debugging
+  useEffect(() => {
+    console.log("Current page state:", page);
+  }, [page]);
 
   useEffect(() => {
     const initialFilters = {};
@@ -119,11 +147,14 @@ const FilterPage = () => {
     if (!isValid) {
       console.warn("Invalid search parameters detected.");
       message.warning("One or more filter parameters are invalid.");
+      setSearchParams({ page: 1, pageSize: 10 });
+      setPage(1);
+      setPageSize(10);
+      fetchFilteredItems({ page: 1, pageSize: 10 });
       return;
     }
 
     const formValues = { ...initialFilters };
-
     if (initialFilters.startDate && initialFilters.endDate) {
       formValues.dateRange = [
         dayjs(initialFilters.startDate),
@@ -134,10 +165,12 @@ const FilterPage = () => {
     }
 
     form.setFieldsValue(formValues);
-    fetchFilteredItems(initialFilters);
-  }, []);
-
-
+    const initialPage = Number(initialFilters.page) || 1;
+    const initialPageSize = Number(initialFilters.pageSize) || 10;
+    setPage(initialPage);
+    setPageSize(initialPageSize);
+    fetchFilteredItems({ ...initialFilters, page: initialPage, pageSize: initialPageSize });
+  }, []); // Run only on mount
 
   return (
     <Layout style={{ backgroundColor: "#fff" }}>
@@ -199,15 +232,16 @@ const FilterPage = () => {
                 htmlType="button"
                 onClick={() => {
                   form.resetFields();
-                  setSearchParams({});
-                  fetchFilteredItems();
+                  setSearchParams({ page: 1, pageSize: 10 });
+                  setPage(1);
+                  setPageSize(10);
+                  fetchFilteredItems({ page: 1, pageSize: 10 });
                 }}
                 block
               >
                 Clear Filters
               </Button>
             </Form.Item>
-
           </Col>
 
           {/* PRODUCT LIST */}
@@ -216,6 +250,10 @@ const FilterPage = () => {
               title="Filtered Products"
               products={filteredItems}
               loading={loading}
+              total={totalItems}
+              page={page}
+              pageSize={pageSize}
+              onPaginationChange={handlePaginationChange}
             />
           </Col>
         </Row>
