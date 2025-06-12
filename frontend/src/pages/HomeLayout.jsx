@@ -37,7 +37,7 @@ const HomeLayout = () => {
       <Toaster position="bottom-right" richColors expand closeButton />
       <div className={` antialiased`}>
         <Providers>
-          <Navbar categories={categories}></Navbar>
+          <Navbar></Navbar>
           <Container className={"mt-4"}>
             {state === "loading" ? (
               <>

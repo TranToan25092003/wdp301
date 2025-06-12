@@ -10,48 +10,52 @@ import {
   Form,
   Select,
 } from "antd";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLoaderData } from "react-router-dom";
 import ProductList from "@/components/item/item-list";
 import { getAllItems, getFilteredItems } from "@/API/duc.api/item.api";
 import { message } from "antd";
 import dayjs from "dayjs";
+import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
+import { getAllTypes } from "@/API/duc.api/type.api";
+import { getAllStatuses } from "@/API/duc.api/status.api";
 
 const { Content } = Layout;
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
-// export const filterPageLoader = async () => {
-//   try {
-//     const [typesRes, categoriesRes, statusesRes] = await Promise.all([
-//       getAllTypes(),
-//       getAllCategories(),
-//       getAllStatuses(),
-//     ]);
+export const filterPageLoader = async () => {
+  try {
+    const [typesRes, categoriesRes, statusesRes] = await Promise.all([
+      getAllTypes(),
+      getAllCategoriesWithStats(),
+      getAllStatuses(),
+    ]);
 
-//     return {
-//       types: typesRes.data || [],
-//       categories: categoriesRes.data || [],
-//       statuses: statusesRes.data || [],
-//     };
-//   } catch (error) {
-//     console.error("Error loading filter options:", error);
-//     return {
-//       types: [],
-//       categories: [],
-//       statuses: [],
-//     };
-//   }
-// };
+    return {
+      types: typesRes || [],
+      categories: categoriesRes.data || [],
+      statuses: statusesRes || [],
+    };
+  } catch (error) {
+    console.error("Error loading filter options:", error);
+    return {
+      types: [],
+      categories: [],
+      statuses: [],
+    };
+  }
+};
 
 const FilterPage = () => {
+  const { categories, types, statuses } = useLoaderData();
   const [searchParams, setSearchParams] = useSearchParams();
   const [form] = Form.useForm();
   const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [typeOptions, setTypeOptions] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [statusOptions, setStatusOptions] = useState([]);
 
+  const typeOptions = types.map(type => ({ label: type.name, value: type._id }));
+  const categoryOptions = categories.map(c => ({ label: c.title, value: c._id }))
+  const statusOptions = statuses.map(s => ({ label: s.name, value: s._id }));
 
   const fetchFilteredItems = async (filters = {}) => {
     setLoading(true);
@@ -166,16 +170,16 @@ const FilterPage = () => {
                 <Input placeholder="Owner ID" />
               </Form.Item>
 
-              <Form.Item label="Type ID" name="typeId">
-                <Input placeholder="Type ID" />
+              <Form.Item label="Type" name="typeId">
+                <Select options={typeOptions} placeholder="Select a type" allowClear />
               </Form.Item>
 
-              <Form.Item label="Category ID" name="categoryId">
-                <Input placeholder="Category ID" />
+              <Form.Item label="Category" name="categoryId">
+                <Select options={categoryOptions} placeholder="Select a category" allowClear />
               </Form.Item>
 
-              <Form.Item label="Status ID" name="statusId">
-                <Input placeholder="Status ID" />
+              <Form.Item label="Status" name="statusId">
+                <Select options={statusOptions} placeholder="Select a status" allowClear />
               </Form.Item>
 
               <Form.Item label="Post Date Range" name="dateRange">
