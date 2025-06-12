@@ -60,7 +60,7 @@ const HomePage = () => {
             <Divider />
 
             <Content>
-                <ProductList title="Recently Listed Products" products={recent} onViewAll={() => navigate('/filter?sort=recent')}/>
+                <ProductList title="Recently Listed Products" products={recent} onViewAll={() => navigate('/filter')}/>
                 {hasMore && (
                     <div style={{ textAlign: "center", marginTop: 16 }}>
                         <Button onClick={handleViewMore} loading={loading} style={{backgroundColor: "#8AE5CD"}}>

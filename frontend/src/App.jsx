@@ -19,7 +19,7 @@ import CheckOut from "./pages/stripe/CheckOut";
 import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
 import CreatePost from "./pages/CreatePost";
 import EditContact, { contactLoader } from "./pages/admin/ContactInfo";
-import FilterPage from "./pages/FilterPage";
+import FilterPage, { filterPageLoader } from "./pages/FilterPage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -48,6 +48,7 @@ const router = createBrowserRouter([
       {
         path: "/filter",
         element: <FilterPage />,
+        loader: filterPageLoader
       },
       {
         path: "/auctions",
