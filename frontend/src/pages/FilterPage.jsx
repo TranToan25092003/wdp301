@@ -54,7 +54,10 @@ const FilterPage = () => {
     if (initialFilters.startDate && initialFilters.endDate) {
       form.setFieldsValue({
         ...initialFilters,
-        dateRange: [new Date(initialFilters.startDate), new Date(initialFilters.endDate)],
+        dateRange: [
+          new Date(initialFilters.startDate),
+          new Date(initialFilters.endDate),
+        ],
       });
     } else {
       form.setFieldsValue(initialFilters);
@@ -78,10 +81,18 @@ const FilterPage = () => {
               <Form.Item label="Price Range">
                 <Input.Group compact>
                   <Form.Item name="minPrice" noStyle>
-                    <Input style={{ width: "50%" }} placeholder="Min" type="number" />
+                    <Input
+                      style={{ width: "50%" }}
+                      placeholder="Min"
+                      type="number"
+                    />
                   </Form.Item>
                   <Form.Item name="maxPrice" noStyle>
-                    <Input style={{ width: "50%" }} placeholder="Max" type="number" />
+                    <Input
+                      style={{ width: "50%" }}
+                      placeholder="Max"
+                      type="number"
+                    />
                   </Form.Item>
                 </Input.Group>
               </Form.Item>
