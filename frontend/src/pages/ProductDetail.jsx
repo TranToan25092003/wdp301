@@ -4,12 +4,13 @@ import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
 import imgSample from "/assets/sample.jpg"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
+import { getItemDetailById, getItemsByCategory, purchaseItem } from "@/API/duc.api/item.api";
 import { useLoaderData } from 'react-router-dom'
 import ProductList from "@/components/item/item-list";
 import { Tag } from "antd";
 import BorrowModal from "@/components/item/borrow-modal";
 import { useState } from "react";
+import BuyModal from "@/components/item/buy-modal";
 
 export const productDetailLoader = async ({ params }) => {
   try {
@@ -29,12 +30,27 @@ export const productDetailLoader = async ({ params }) => {
 export default function ProductDetail() {
   const { product, relatedItems } = useLoaderData();
   const [borrowModalOpen, setBorrowModalOpen] = useState(false);
+  const [buyModalOpen, setBuyModalOpen] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
+
+  const handlePurchase = async () => {
+    setIsPurchasing(true);
+    try {
+      await purchaseItem(product._id);
+      toast.success("Purchase successful! The item is now yours.");
+      setBuyModalOpen(false);
+    } catch (error) {
+      toast.error("Failed to purchase item: " + error.message);
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -83,7 +99,23 @@ export default function ProductDetail() {
           {/* Display button */}
           <div className="pt-4">
             {product.typeId?.name === "Sell" && product.statusId?.name === "Available" && (
-              <Button className="flex items-center gap-2">Add to Cart</Button>
+              <>
+                <Button
+                  className="flex items-center gap-2"
+                  onClick={() => setBuyModalOpen(true)}
+                  disabled={isPurchasing}
+                >
+                  <ShoppingCart size={18} />
+                  Buy Now
+                </Button>
+                <BuyModal
+                  open={buyModalOpen}
+                  onClose={() => setBuyModalOpen(false)}
+                  product={product}
+                 setIsPurchasing={setIsPurchasing}
+                />
+              </>
+
             )}
 
             {product.typeId?.name === "Borrow" && product.statusId?.name === "Available" && (
