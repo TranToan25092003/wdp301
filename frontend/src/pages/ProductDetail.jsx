@@ -4,7 +4,7 @@ import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
 import imgSample from "/assets/sample.jpg"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getItemDetailById, getItemsByCategory, purchaseItem } from "@/API/duc.api/item.api";
+import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
 import { useLoaderData } from 'react-router-dom'
 import ProductList from "@/components/item/item-list";
 import { Tag } from "antd";
@@ -38,19 +38,6 @@ export default function ProductDetail() {
       style: "currency",
       currency: "VND",
     }).format(price);
-
-  const handlePurchase = async () => {
-    setIsPurchasing(true);
-    try {
-      await purchaseItem(product._id);
-      toast.success("Purchase successful! The item is now yours.");
-      setBuyModalOpen(false);
-    } catch (error) {
-      toast.error("Failed to purchase item: " + error.message);
-    } finally {
-      setIsPurchasing(false);
-    }
-  };
 
   return (
     <div className="container mx-auto p-6">
@@ -112,7 +99,7 @@ export default function ProductDetail() {
                   open={buyModalOpen}
                   onClose={() => setBuyModalOpen(false)}
                   product={product}
-                 setIsPurchasing={setIsPurchasing}
+                  setIsPurchasing={setIsPurchasing}
                 />
               </>
 

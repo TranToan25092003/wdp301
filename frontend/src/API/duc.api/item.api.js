@@ -38,6 +38,3 @@ export const getFilteredItems = async (filters = {}) => {
   return response.data;
 };
 
-export const purchaseItem = async()=>{
-  
-}

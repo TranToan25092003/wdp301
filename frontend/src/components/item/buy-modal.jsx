@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/clerk-react";
-import { purchaseItem } from "@/API/duc.api/item.api";
+import { purchaseItem } from "@/API/duc.api/buy.api";
 
 const BuyModal = ({ open, onClose, product, setIsPurchasing }) => {
   const navigate = useNavigate();
@@ -51,22 +51,27 @@ const BuyModal = ({ open, onClose, product, setIsPurchasing }) => {
 
     if (result.isConfirmed) {
       setIsPurchasing(true);
+      setIsPurchasing(true);
       try {
         const token = await getToken();
-        await purchaseItem(product._id, token);
+        const response = await purchaseItem(product._id, token);
+        console.log(response)
         await Swal.fire({
           icon: "success",
-          title: "Purchase successful!",
-          text: "Your purchase has been successfully completed.",
+          title: "Purchase Successful!",
+          text: "Your purchase has been completed.",
           confirmButtonText: "OK",
         });
         navigate("/");
       } catch (error) {
         console.error("Purchase error:", error);
+        const errorMessage =
+          error?.response?.data?.message || "Failed to complete purchase. Please try again.";
         await Swal.fire({
           icon: "error",
-          title: "Something went wrong",
-          text: error?.response?.data?.message || "Failed to complete purchase.",
+          title: "Purchase Failed",
+          text: errorMessage,
+          confirmButtonText: "OK",
         });
       } finally {
         setIsPurchasing(false);
