@@ -37,3 +37,4 @@ export const getFilteredItems = async (filters = {}) => {
   const response = await customFetch.get(`/items/filter?${queryParams.toString()}`);
   return response.data;
 };
+
