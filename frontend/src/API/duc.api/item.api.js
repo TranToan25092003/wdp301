@@ -34,7 +34,13 @@ export const getFilteredItems = async (filters = {}) => {
       queryParams.append(key, value);
     }
   });
-  const response = await customFetch.get(`/items/filter?${queryParams.toString()}`);
+  const response = await customFetch.get(
+    `/items/filter?${queryParams.toString()}`
+  );
   return response.data;
 };
 
+export const createItem = async (itemData) => {
+  const response = await customFetch.post("/items", itemData);
+  return response.data;
+};

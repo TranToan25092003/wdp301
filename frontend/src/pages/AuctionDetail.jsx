@@ -500,8 +500,8 @@ const AuctionDetailPage = () => {
               <Image
                 width="100%"
                 height={400}
-                src={auction.image || "/assets/sample.jpg"}
-                alt={auction.title}
+                src={auction.itemId?.images?.[0] || "/assets/sample.jpg"}
+                alt={auction.itemId?.name || "Auction item"}
                 style={{
                   objectFit: "cover",
                   borderRadius: "8px",
@@ -522,11 +522,11 @@ const AuctionDetailPage = () => {
                 }
               />
             </Card>
-            <Title level={2}>{auction.title}</Title>
+            <Title level={2}>{auction.itemId?.name}</Title>
             <Text
               style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}
             >
-              {auction.description}
+              {auction.itemId?.description}
             </Text>
             <Divider />
 
@@ -646,7 +646,7 @@ const AuctionDetailPage = () => {
                 </Form.Item>
 
                 {/* Preview của bid cuối cùng */}
-                {bidIncrement && bidIncrement > 0 && (
+                {/* {bidIncrement && bidIncrement > 0 && (
                   <div
                     style={{
                       background: "#e6f7ff",
@@ -678,7 +678,7 @@ const AuctionDetailPage = () => {
                       </Text>
                     </Text>
                   </div>
-                )}
+                )} */}
 
                 <Form.Item>
                   <Button

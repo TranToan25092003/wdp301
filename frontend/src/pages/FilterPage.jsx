@@ -25,6 +25,7 @@ const { RangePicker } = DatePicker;
 
 export const filterPageLoader = async () => {
   try {
+    console.log("2222222222222222222222222222");
     const [typesRes, categoriesRes, statusesRes] = await Promise.all([
       getAllTypes(),
       getAllCategoriesWithStats(),
@@ -54,11 +55,19 @@ const FilterPage = () => {
   const [loading, setLoading] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
-  const [pageSize, setPageSize] = useState(Number(searchParams.get("pageSize")) || 10);
+  const [pageSize, setPageSize] = useState(
+    Number(searchParams.get("pageSize")) || 10
+  );
 
-  const typeOptions = types.map(type => ({ label: type.name, value: type._id }));
-  const categoryOptions = categories.map(c => ({ label: c.title, value: c._id }));
-  const statusOptions = statuses.map(s => ({ label: s.name, value: s._id }));
+  const typeOptions = types.map((type) => ({
+    label: type.name,
+    value: type._id,
+  }));
+  const categoryOptions = categories.map((c) => ({
+    label: c.title,
+    value: c._id,
+  }));
+  const statusOptions = statuses.map((s) => ({ label: s.name, value: s._id }));
 
   const fetchFilteredItems = async (filters = {}) => {
     setLoading(true);
@@ -66,13 +75,19 @@ const FilterPage = () => {
       // Use page and pageSize from filters if provided, otherwise fall back to state
       const pageToFetch = Number(filters.page) || page;
       const pageSizeToFetch = Number(filters.pageSize) || pageSize;
-      const res = await getFilteredItems({ ...filters, page: pageToFetch, pageSize: pageSizeToFetch });
+      const res = await getFilteredItems({
+        ...filters,
+        page: pageToFetch,
+        pageSize: pageSizeToFetch,
+      });
       setFilteredItems(res.data || []);
       setTotalItems(res.total || 0);
     } catch (error) {
       const errors = error?.response?.data?.errors;
       if (Array.isArray(errors)) {
-        const errorMessages = errors.map(e => `${e.path}: ${e.msg}`).join(" | ");
+        const errorMessages = errors
+          .map((e) => `${e.path}: ${e.msg}`)
+          .join(" | ");
         message.error(errorMessages);
       } else {
         message.error("Invalid filter parameters.");
@@ -110,7 +125,12 @@ const FilterPage = () => {
   const handlePaginationChange = (newPage, newPageSize) => {
     const params = {};
     searchParams.forEach((value, key) => {
-      if (value && value !== "undefined" && key !== "page" && key !== "pageSize") {
+      if (
+        value &&
+        value !== "undefined" &&
+        key !== "page" &&
+        key !== "pageSize"
+      ) {
         params[key] = value;
       }
     });
@@ -136,7 +156,8 @@ const FilterPage = () => {
         value === "undefined" ||
         value === null ||
         value === "" ||
-        (["minPrice", "maxPrice", "ratePrice"].includes(key) && isNaN(Number(value)))
+        (["minPrice", "maxPrice", "ratePrice"].includes(key) &&
+          isNaN(Number(value)))
       ) {
         isValid = false;
       } else {
@@ -169,7 +190,11 @@ const FilterPage = () => {
     const initialPageSize = Number(initialFilters.pageSize) || 10;
     setPage(initialPage);
     setPageSize(initialPageSize);
-    fetchFilteredItems({ ...initialFilters, page: initialPage, pageSize: initialPageSize });
+    fetchFilteredItems({
+      ...initialFilters,
+      page: initialPage,
+      pageSize: initialPageSize,
+    });
   }, []); // Run only on mount
 
   return (
@@ -177,7 +202,10 @@ const FilterPage = () => {
       <Content style={{ padding: "0" }}>
         <Row gutter={24}>
           {/* FILTER BAR */}
-          <Col span={6} style={{ borderRight: "1px #E5E5E5 solid", padding: "16px" }}>
+          <Col
+            span={6}
+            style={{ borderRight: "1px #E5E5E5 solid", padding: "16px" }}
+          >
             <Title level={4}>Filter Products</Title>
             <Form layout="vertical" form={form} onFinish={onFinish}>
               <Form.Item label="Name" name="name">
@@ -187,10 +215,18 @@ const FilterPage = () => {
               <Form.Item label="Price Range">
                 <Input.Group compact>
                   <Form.Item name="minPrice" noStyle>
-                    <Input style={{ width: "50%" }} placeholder="Min" type="number" />
+                    <Input
+                      style={{ width: "50%" }}
+                      placeholder="Min"
+                      type="number"
+                    />
                   </Form.Item>
                   <Form.Item name="maxPrice" noStyle>
-                    <Input style={{ width: "50%" }} placeholder="Max" type="number" />
+                    <Input
+                      style={{ width: "50%" }}
+                      placeholder="Max"
+                      type="number"
+                    />
                   </Form.Item>
                 </Input.Group>
               </Form.Item>
@@ -204,15 +240,27 @@ const FilterPage = () => {
               </Form.Item>
 
               <Form.Item label="Type" name="typeId">
-                <Select options={typeOptions} placeholder="Select a type" allowClear />
+                <Select
+                  options={typeOptions}
+                  placeholder="Select a type"
+                  allowClear
+                />
               </Form.Item>
 
               <Form.Item label="Category" name="categoryId">
-                <Select options={categoryOptions} placeholder="Select a category" allowClear />
+                <Select
+                  options={categoryOptions}
+                  placeholder="Select a category"
+                  allowClear
+                />
               </Form.Item>
 
               <Form.Item label="Status" name="statusId">
-                <Select options={statusOptions} placeholder="Select a status" allowClear />
+                <Select
+                  options={statusOptions}
+                  placeholder="Select a status"
+                  allowClear
+                />
               </Form.Item>
 
               <Form.Item label="Post Date Range" name="dateRange">
