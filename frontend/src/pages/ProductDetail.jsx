@@ -11,6 +11,7 @@ import { Tag } from "antd";
 import BorrowModal from "@/components/item/borrow-modal";
 import { useState } from "react";
 import BuyModal from "@/components/item/buy-modal";
+import { Carousel } from "antd";
 
 export const productDetailLoader = async ({ params }) => {
   try {
@@ -39,15 +40,53 @@ export default function ProductDetail() {
       currency: "VND",
     }).format(price);
 
+    // Handle image display
+  const renderImages = () => {
+    if (!product.images || product.images.length === 0) {
+      return (
+        <img
+          src="/fallback.jpg"
+          alt={product.name}
+          className="rounded-md object-cover w-full h-auto border-2 border-gray-200"
+        />
+      );
+    }
+
+    if (product.images.length === 1) {
+      return (
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          className="rounded-md object-cover w-full h-auto border-2 border-gray-200"
+        />
+      );
+    }
+
+    return (
+      <Carousel
+        autoplay
+        dots={{ className: "carousel-dots" }}
+        style={{ height: "400px", width: "100%" }} 
+      >
+        {product.images.map((image, index) => (
+          <div key={index}>
+            <img
+              src={image}
+              alt={`${product.name}-${index}`}
+              style={{ objectFit: "cover", height: "400px", width: "100%" }}
+              className="rounded-md border-2 border-gray-200"
+            />
+          </div>
+        ))}
+      </Carousel>
+    );
+  };
+
   return (
     <div className="container mx-auto p-6">
       <Card className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
         <div>
-          <img
-            src={product.images[0] || "/fallback.jpg"}
-            alt={product.name}
-            className="rounded-md object-cover w-full h-auto border-2 border-gray-200"
-          />
+          {renderImages()}
         </div>
 
         <div className="space-y-4">
