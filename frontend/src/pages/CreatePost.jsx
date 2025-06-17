@@ -11,8 +11,14 @@ import {
   message,
   Divider,
   Select,
+  Spin,
+  notification,
 } from "antd";
-import { UploadOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  VideoCameraOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ImgCrop from "antd-img-crop";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
@@ -30,7 +36,8 @@ const CreatePost = () => {
   const [form] = Form.useForm();
   const [modalForm] = Form.useForm();
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isSignedIn } = useAuth();
+  const [api, contextHolder] = notification.useNotification();
   const [currentStep, setCurrentStep] = useState(1);
   const [postType, setPostType] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -41,25 +48,51 @@ const CreatePost = () => {
   const [selectedType, setSelectedType] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [firstStepData, setFirstStepData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [shouldShowNotification, setShouldShowNotification] = useState(false);
 
   useEffect(() => {
+    if (shouldShowNotification) {
+      api.warning({
+        message: "Yêu cầu đăng nhập",
+        description: "Vui lòng đăng nhập để có thể đăng bán sản phẩm!",
+        icon: <ExclamationCircleOutlined style={{ color: "#faad14" }} />,
+        placement: "bottomRight",
+        duration: 4,
+      });
+      setTimeout(() => {
+        navigate("/");
+      }, 100);
+      setShouldShowNotification(false);
+    }
+  }, [shouldShowNotification, api, navigate]);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      setShouldShowNotification(true);
+      return;
+    }
+
     const fetchData = async () => {
       try {
+        setLoading(true);
         const [categoriesRes, typesRes, statusesRes] = await Promise.all([
           getAllCategoriesWithStats(),
           getAllTypes(),
           getAllStatuses(),
         ]);
-        setCategories(categoriesRes.data);
-        setTypes(typesRes.data);
-        setStatuses(statusesRes.data);
+        setCategories(categoriesRes.data || []);
+        setTypes(typesRes || []);
+        setStatuses(statusesRes || []);
       } catch (error) {
         console.error("Error fetching data:", error);
         message.error("Failed to load initial data");
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [isSignedIn]);
 
   const uploadImage = async (file) => {
     const formData = new FormData();
@@ -107,6 +140,11 @@ const CreatePost = () => {
         throw new Error("First step data is missing");
       }
 
+      if (!userId) {
+        setShouldShowNotification(true);
+        return;
+      }
+
       // Upload all images to Cloudinary
       const uploadPromises = fileList.map((file) =>
         uploadImage(file.originFileObj)
@@ -123,6 +161,7 @@ const CreatePost = () => {
 
       console.log("First step data:", firstStepData);
       console.log("Second step (modal) values:", values);
+      console.log("User ID:", userId);
 
       // First create the item
       const itemData = {
@@ -151,6 +190,8 @@ const CreatePost = () => {
 
       const missingFields = requiredFields.filter((field) => !itemData[field]);
       if (missingFields.length > 0) {
+        console.error("Missing fields:", missingFields);
+        console.error("Item data:", itemData);
         throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
       }
 
@@ -345,133 +386,151 @@ const CreatePost = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Create Post</h1>
+    <>
+      {contextHolder}
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-6">Create Post</h1>
 
-      {currentStep === 1 && (
-        <Form form={form} layout="vertical" onFinish={handleFirstStepSubmit}>
-          <Form.Item
-            name="name"
-            label="Title"
-            rules={[{ required: true, message: "Please enter title" }]}
-          >
-            <Input placeholder="Enter product title" />
-          </Form.Item>
+        {currentStep === 1 && (
+          <Form form={form} layout="vertical" onFinish={handleFirstStepSubmit}>
+            <Form.Item
+              name="name"
+              label="Title"
+              rules={[{ required: true, message: "Please enter title" }]}
+            >
+              <Input placeholder="Enter product title" />
+            </Form.Item>
 
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: "Please enter description" }]}
-          >
-            <TextArea
-              rows={4}
-              placeholder="Detailed description of the product"
-            />
-          </Form.Item>
+            <Form.Item
+              name="description"
+              label="Description"
+              rules={[{ required: true, message: "Please enter description" }]}
+            >
+              <TextArea
+                rows={4}
+                placeholder="Detailed description of the product"
+              />
+            </Form.Item>
 
-          <Form.Item
-            name="categoryId"
-            label="Category"
-            rules={[{ required: true, message: "Please select category" }]}
-          >
-            <Select placeholder="Select category">
-              {categories.map((category) => (
-                <Option key={category._id} value={category._id}>
-                  {category.title}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+            <Form.Item
+              name="categoryId"
+              label="Category"
+              rules={[{ required: true, message: "Please select category" }]}
+            >
+              <Select placeholder="Select category">
+                {categories.map((category) => (
+                  <Option key={category._id} value={category._id}>
+                    {category.title}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
 
-          <Form.Item
-            name="ratePrice"
-            label="Rate Price"
-            rules={[{ required: true, message: "Please select rate price" }]}
-          >
-            <Radio.Group>
-              <Radio.Button value="hour">Per Hour</Radio.Button>
-              <Radio.Button value="day">Per Day</Radio.Button>
-              <Radio.Button value="no">No Rate</Radio.Button>
-            </Radio.Group>
-          </Form.Item>
+            <Form.Item
+              name="ratePrice"
+              label="Rate Price"
+              rules={[{ required: true, message: "Please select rate price" }]}
+            >
+              <Radio.Group>
+                <Radio.Button value="hour">Per Hour</Radio.Button>
+                <Radio.Button value="day">Per Day</Radio.Button>
+                <Radio.Button value="no">No Rate</Radio.Button>
+              </Radio.Group>
+            </Form.Item>
 
-          <Divider>Images & Video</Divider>
+            <Divider>Images & Video</Divider>
 
-          <div className="space-y-4">
-            <div>
-              <h3 className="mb-2">
-                Product Images (First image will be cover)
-              </h3>
-              <ImgCrop rotationSlider>
+            <div className="space-y-4">
+              <div>
+                <h3 className="mb-2">
+                  Product Images (First image will be cover)
+                </h3>
+                <ImgCrop rotationSlider>
+                  <Upload
+                    listType="picture-card"
+                    fileList={fileList}
+                    onChange={handleImageChange}
+                    beforeUpload={() => false}
+                    multiple
+                    maxCount={10}
+                  >
+                    {fileList.length < 10 && (
+                      <div>
+                        <UploadOutlined />
+                        <div style={{ marginTop: 8 }}>Upload</div>
+                      </div>
+                    )}
+                  </Upload>
+                </ImgCrop>
+                <p className="text-gray-500 text-sm">
+                  Maximum 10 images, each less than 5MB
+                </p>
+              </div>
+
+              {/* <div>
+                <h3 className="mb-2">Product Video (optional)</h3>
                 <Upload
-                  listType="picture-card"
-                  fileList={fileList}
-                  onChange={handleImageChange}
-                  beforeUpload={() => false}
-                  multiple
-                  maxCount={10}
+                  maxCount={1}
+                  beforeUpload={beforeVideoUpload}
+                  onChange={handleVideoChange}
+                  listType="picture"
                 >
-                  {fileList.length < 10 && (
-                    <div>
-                      <UploadOutlined />
-                      <div style={{ marginTop: 8 }}>Upload</div>
-                    </div>
-                  )}
+                  <Button icon={<VideoCameraOutlined />}>Upload video</Button>
                 </Upload>
-              </ImgCrop>
-              <p className="text-gray-500 text-sm">
-                Maximum 10 images, each less than 5MB
-              </p>
+                <p className="text-gray-500 text-sm">
+                  Maximum 1 video, less than 100MB
+                </p>
+              </div> */}
             </div>
 
-            {/* <div>
-              <h3 className="mb-2">Product Video (optional)</h3>
-              <Upload
-                maxCount={1}
-                beforeUpload={beforeVideoUpload}
-                onChange={handleVideoChange}
-                listType="picture"
-              >
-                <Button icon={<VideoCameraOutlined />}>Upload video</Button>
-              </Upload>
-              <p className="text-gray-500 text-sm">
-                Maximum 1 video, less than 100MB
-              </p>
-            </div> */}
-          </div>
-
-          <Form.Item className="mt-6">
-            <Button type="primary" htmlType="submit" block>
-              Continue
-            </Button>
-          </Form.Item>
-        </Form>
-      )}
-
-      {currentStep === 2 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Choose Post Type</h2>
-          <div className="grid grid-cols-3 gap-4">
-            {types.map((type) => (
-              <Button
-                key={type._id}
-                size="large"
-                onClick={() => {
-                  setSelectedType(type);
-                  handlePostTypeSelect(type.name.toLowerCase());
-                }}
-                block
-              >
-                {type.name}
+            <Form.Item className="mt-6">
+              <Button type="primary" htmlType="submit" block>
+                Continue
               </Button>
-            ))}
-          </div>
-        </div>
-      )}
+            </Form.Item>
+          </Form>
+        )}
 
-      {renderPriceModal()}
-    </div>
+        {currentStep === 2 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Choose Post Type</h2>
+            <div className="grid grid-cols-3 gap-4">
+              {types.map((type) => (
+                <Button
+                  key={type._id}
+                  size="large"
+                  onClick={() => {
+                    setSelectedType(type);
+                    handlePostTypeSelect(type.name.toLowerCase());
+                  }}
+                  block
+                >
+                  {type.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {renderPriceModal()}
+      </div>
+    </>
   );
 };
 
