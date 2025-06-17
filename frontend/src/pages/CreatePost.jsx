@@ -425,7 +425,7 @@ const CreatePost = () => {
               </p>
             </div>
 
-            <div>
+            {/* <div>
               <h3 className="mb-2">Product Video (optional)</h3>
               <Upload
                 maxCount={1}
@@ -438,7 +438,7 @@ const CreatePost = () => {
               <p className="text-gray-500 text-sm">
                 Maximum 1 video, less than 100MB
               </p>
-            </div>
+            </div> */}
           </div>
 
           <Form.Item className="mt-6">
