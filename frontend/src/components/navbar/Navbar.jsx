@@ -29,13 +29,13 @@ const Navbar = () => {
               Trang chủ
             </Link>
             <Link
-              to="/about"
+              to="/auctions"
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
-              About Us
+              Auctions
             </Link>
             <Link
-              to="/info"
+              to="/about"
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Thông tin
