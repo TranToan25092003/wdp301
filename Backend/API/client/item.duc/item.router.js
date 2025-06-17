@@ -6,6 +6,7 @@ const {
   getItemDetailById,
   getRecentItems,
   filterItems,
+  createItem,
 } = require("../../../controller/item.duc/item.controller");
 const validateFilterItems = require("../../../dto/item.dto");
 const { validationResult } = require("express-validator");
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.get("/", getAllItems);
 router.get("/recent", getRecentItems);
+router.post("/", createItem);
 router.get(
   "/filter",
   validateFilterItems,

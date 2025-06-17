@@ -14,16 +14,23 @@ const AuctionCard = ({ auction, onDelete, onViewDetails }) => {
     }
   };
 
+  // Get the first image from item's images array, or use a default image
+  const itemImage = auction.itemId?.images?.[0] || "/assets/sample.jpg";
+
   return (
     <Card
       hoverable
       style={{ width: "100%" }}
       cover={
-        <img alt={auction.title} src={auction.image || "/assets/sample.jpg"} />
+        <img
+          alt={auction.itemId?.name || "Auction item"}
+          src={itemImage}
+          style={{ height: 200, objectFit: "cover" }}
+        />
       }
     >
-      <Title level={4}>{auction.title}</Title>
-      <Text>{auction.description}</Text>
+      <Title level={4}>{auction.itemId?.name}</Title>
+      <Text>{auction.itemId?.description}</Text>
       <br />
       <Text strong>Current Price: </Text>${auction.currentPrice}
       <br />

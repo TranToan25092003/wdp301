@@ -33,9 +33,9 @@ const getRecentItems = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('typeId', 'name')
-      .populate('categoryId', 'name')
-      .populate('statusId', 'name')
+      .populate("typeId", "name")
+      .populate("categoryId", "name")
+      .populate("statusId", "name")
       .exec();
 
     res.status(200).json({
@@ -245,6 +245,108 @@ const filterItems = async (req, res) => {
   }
 };
 
+const createItem = async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      price,
+      images,
+      ratePrice,
+      owner,
+      typeId,
+      categoryId,
+      statusId,
+    } = req.body;
+
+    console.log("Received item data:", {
+      name,
+      description,
+      price,
+      images,
+      ratePrice,
+      owner,
+      typeId,
+      categoryId,
+      statusId,
+    });
+
+    // Validate required fields
+    if (
+      !name ||
+      !description ||
+      !price ||
+      !ratePrice ||
+      !owner ||
+      !typeId ||
+      !categoryId ||
+      !statusId
+    ) {
+      console.error("Missing required fields");
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+        receivedData: {
+          name,
+          description,
+          price,
+          ratePrice,
+          owner,
+          typeId,
+          categoryId,
+          statusId,
+        },
+      });
+    }
+
+    // Validate ObjectIds
+    if (!mongoose.Types.ObjectId.isValid(typeId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid typeId format",
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid categoryId format",
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(statusId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid statusId format",
+      });
+    }
+
+    const item = new Item({
+      name,
+      description,
+      price,
+      images: images || [],
+      ratePrice,
+      owner,
+      typeId,
+      categoryId,
+      statusId,
+    });
+
+    await item.save();
+
+    res.status(201).json({
+      success: true,
+      data: item,
+    });
+  } catch (error) {
+    console.error("Detailed error in createItem:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while creating item",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllItems,
   getItemsByCategory,
@@ -252,4 +354,5 @@ module.exports = {
   getItemDetailById,
   getRecentItems,
   filterItems,
+  createItem,
 };
