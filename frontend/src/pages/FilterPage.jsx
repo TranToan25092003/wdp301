@@ -25,6 +25,7 @@ const { RangePicker } = DatePicker;
 
 export const filterPageLoader = async () => {
   try {
+    console.log("2222222222222222222222222222");
     const [typesRes, categoriesRes, statusesRes] = await Promise.all([
       getAllTypes(),
       getAllCategoriesWithStats(),
