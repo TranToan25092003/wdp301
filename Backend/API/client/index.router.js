@@ -5,6 +5,8 @@ const categoryRouter = require("./category.duc/category.router");
 const userRouter = require("./user.duc/user.router");
 const borrowRouter = require("./borrow.duc/borrow.router");
 const coinRouter = require("./coin.router");
+const typeRouter = require("./type.router");
+const statusRouter = require("./status.router");
 const { authenticate } = require("../../middleware/guards/authen.middleware");
 
 module.exports = (app) => {
@@ -17,4 +19,6 @@ module.exports = (app) => {
   app.use("/coin", authenticate, coinRouter);
   app.use("/auctions", auctionRouter);
   app.use("/bids", bidRouter);
+  app.use("/types", typeRouter);
+  app.use("/statuses", statusRouter);
 };
