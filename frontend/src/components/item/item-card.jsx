@@ -13,6 +13,7 @@ const ProductCard = ({ item }) => {
     typeId,
     categoryId,
     statusId,
+    createdAt,
   } = item;
 
   const formatPrice = (price) =>
@@ -22,6 +23,23 @@ const ProductCard = ({ item }) => {
     }).format(price);
 
   const displayPrice = ratePrice !== "no" ? `${formatPrice(price)} / ${ratePrice}` : formatPrice(price);
+
+  // Format time since uploaded
+  const formatTimeAgo = (createdAt) => {
+    if (!createdAt) return "Unknown";
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffInMs = now - created;
+    const diffInSeconds = Math.floor(diffInMs / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds} second${diffInSeconds !== 1 ? 's' : ''} ago`;
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+  };
 
   // Handle image display
   const renderImages = () => {
@@ -76,6 +94,9 @@ const ProductCard = ({ item }) => {
           <>
             <Paragraph strong style={{ margin: "4px 0" }}>
               {displayPrice}
+            </Paragraph>
+            <Paragraph style={{ margin: "4px 0", color: "#888", fontSize: "12px" }}>
+              Uploaded {formatTimeAgo(createdAt)}
             </Paragraph>
             <Tag color="blue">{categoryId?.name || "Unknown"}</Tag>
             <Tag color="green">{typeId?.name || "Unknown"}</Tag>
