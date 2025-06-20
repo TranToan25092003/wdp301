@@ -2,15 +2,15 @@ import React from "react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
-import imgSample from "/assets/sample.jpg"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
-import { useLoaderData } from 'react-router-dom'
+import { useLoaderData } from 'react-router-dom';
 import ProductList from "@/components/item/item-list";
 import { Tag } from "antd";
 import BorrowModal from "@/components/item/borrow-modal";
 import { useState } from "react";
 import BuyModal from "@/components/item/buy-modal";
+import { Carousel } from "antd";
 
 export const productDetailLoader = async ({ params }) => {
   try {
@@ -39,15 +39,115 @@ export default function ProductDetail() {
       currency: "VND",
     }).format(price);
 
+  // Handle image display
+  const renderImages = () => {
+    if (!product.images || product.images.length === 0) {
+      return (
+        <img
+          src="/fallback.jpg"
+          alt={product.name}
+          className="rounded-md object-cover w-full h-auto border-2 border-gray-200"
+        />
+      );
+    }
+
+    if (product.images.length === 1) {
+      return (
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          className="rounded-md object-cover w-full h-auto border-2 border-gray-200"
+        />
+      );
+    }
+
+    return (
+      <Carousel
+        autoplay
+        dots={{ className: "carousel-dots" }}
+        style={{ height: "400px", width: "100%" }}
+      >
+        {product.images.map((image, index) => (
+          <div key={index}>
+            <img
+              src={image}
+              alt={`${product.name}-${index}`}
+              style={{ objectFit: "cover", height: "400px", width: "100%" }}
+              className="rounded-md border-2 border-gray-200"
+            />
+          </div>
+        ))}
+      </Carousel>
+    );
+  };
+
+  // Render seller information
+  const renderSellerInfo = () => {
+    if (!product.ownerInfo) {
+      return <p className="text-sm text-gray-700">No seller information available.</p>;
+    }
+
+    const { name, imageUrl, hasImage, emailAddresses, phoneNumbers } = product.ownerInfo;
+
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-4">
+          {hasImage && imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={name}
+              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+
+            </div>
+          )}
+          <div>
+            <p className="text-lg font-semibold">{name || "Anonymous Seller"}</p>
+          </div>
+        </div>
+        <div>
+          <p className="text-sm text-gray-700 font-medium">Email:</p>
+          {emailAddresses?.length > 0 ? (
+            <ul className="text-sm text-gray-700 list-disc pl-5">
+              {emailAddresses.map((email, index) => (
+                <li key={index}>{email}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-700">
+              <ul className="text-sm text-gray-700 list-disc pl-5">
+                  <li>Unknown</li>
+              </ul>
+            </p>
+          )}
+        </div>
+        <div>
+          <p className="text-sm text-gray-700 font-medium">Phone:</p>
+          {phoneNumbers?.length > 0 ? (
+            <ul className="text-sm text-gray-700 list-disc pl-5">
+              {phoneNumbers.map((phone, index) => (
+                <li key={index}>{phone}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-700">
+              <ul className="text-sm text-gray-700 list-disc pl-5">
+                  <li>Unknown</li>
+              </ul>
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto p-6">
       <Card className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
         <div>
-          <img
-            src={product.images[0] || "/fallback.jpg"}
-            alt={product.name}
-            className="rounded-md object-cover w-full h-auto border-2 border-gray-200"
-          />
+          {renderImages()}
         </div>
 
         <div className="space-y-4">
@@ -60,7 +160,7 @@ export default function ProductDetail() {
             <span className="text-sm text-muted-foreground">Rate Type: </span>
             <span className="font-medium uppercase">{product.ratePrice}</span>
           </div>
-          <div >
+          <div>
             <Tag color="blue" className="text-2xl">
               {product.typeId?.name || "Unknown Type"}
             </Tag>
@@ -79,8 +179,10 @@ export default function ProductDetail() {
             )}
           </div>
           <div>
-            <span className="text-sm text-muted-foreground">Seller ID: </span>
-            <span className="font-medium">{product.owner}</span>
+            <span className="text-sm text-muted-foreground">Seller: </span>
+            <span className="font-medium">
+              {product.ownerInfo?.name || "Anonymous Seller"}
+            </span>
           </div>
 
           {/* Display button */}
@@ -102,17 +204,16 @@ export default function ProductDetail() {
                   setIsPurchasing={setIsPurchasing}
                 />
               </>
-
             )}
 
             {product.typeId?.name === "Borrow" && product.statusId?.name === "Available" && (
               <>
-                <Button className="flex items-center gap-2"
+                <Button
+                  className="flex items-center gap-2"
                   onClick={() => setBorrowModalOpen(true)}
                 >
                   <ShoppingCart size={18} /> Borrow now
                 </Button>
-
                 <BorrowModal
                   open={borrowModalOpen}
                   onClose={() => setBorrowModalOpen(false)}
@@ -123,7 +224,9 @@ export default function ProductDetail() {
 
             {product.typeId?.name === "Auction" && product.statusId?.name === "Available" && (
               <>
-                <Button className="flex items-center gap-2"><ShoppingCart size={18} /> Place Bid</Button>
+                <Button className="flex items-center gap-2">
+                  <ShoppingCart size={18} /> Place Bid
+                </Button>
               </>
             )}
           </div>
@@ -148,7 +251,7 @@ export default function ProductDetail() {
         <TabsContent value="seller">
           <section className="border rounded-lg p-4 bg-white shadow-sm mt-2">
             <h3 className="text-lg font-semibold mb-2">Seller Information</h3>
-            <p className="text-sm text-gray-700">ID: {product.owner}</p>
+            {renderSellerInfo()}
           </section>
         </TabsContent>
       </Tabs>

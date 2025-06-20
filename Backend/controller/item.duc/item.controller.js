@@ -1,6 +1,7 @@
 const { Mongoose, default: mongoose } = require("mongoose");
 const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
+const { clerkClient } = require("../../config/clerk");
 
 const getAllItems = async (req, res) => {
   try {
@@ -150,9 +151,26 @@ const getItemDetailById = async (req, res) => {
       });
     }
 
+    let userInfo = null;
+    if (item.owner) {
+      const user = await clerkClient.users.getUser(item.owner);
+      if (user) {
+        userInfo = {
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          imageUrl: user.imageUrl || '',
+          hasImage: user.hasImage || false,
+          emailAddresses: user.emailAddresses.map(email => email.emailAddress) || [],
+          phoneNumbers: user.phoneNumbers.map(phone => phone.phoneNumber) || []
+        };
+      }
+    }
+
     res.status(200).json({
       success: true,
-      data: item,
+      data: {
+        ...item.toObject(),
+        ownerInfo: userInfo,
+      },
     });
   } catch (error) {
     console.error("Error fetching item detail:", error);
