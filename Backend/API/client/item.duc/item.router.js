@@ -12,9 +12,24 @@ const validateFilterItems = require("../../../dto/item.dto");
 const { validationResult } = require("express-validator");
 const router = express.Router();
 
+const { checkSpamContent } = require("../../../middleware/spamContentChecker");
+const { createItemLimiter } = require("../../../middleware/rateLimiters");
+const { authenticate } = require("../../../middleware/guards/authen.middleware");
+const { checkBanStatus } = require("../../../middleware/ban.middleware"); // <-- IMPORT DÒNG NÀY
+
 router.get("/", getAllItems);
 router.get("/recent", getRecentItems);
-router.post("/", createItem);
+
+router.post(
+  "/",
+  authenticate, // Đã có middleware xác thực
+  checkBanStatus, // <-- THÊM MIDDLEWARE KIỂM TRA BAN TẠI ĐÂY
+  createItemLimiter,
+  checkSpamContent('name', 'item_name_spam'),
+  checkSpamContent('description', 'item_description_spam'),
+  createItem
+);
+
 router.get(
   "/filter",
   validateFilterItems,
