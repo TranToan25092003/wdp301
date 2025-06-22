@@ -14,12 +14,18 @@ import DashboardLayout from "@/pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Items, { itemsAdminLoader } from "./pages/admin/Items";
 import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
+import AdminReport, { adminReportLoader } from "./pages/admin/AdminReport";
 import TopUp from "./pages/TopUpCoin";
 import CheckOut from "./pages/stripe/CheckOut";
 import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
 import CreatePost from "./pages/CreatePost";
 import EditContact, { contactLoader } from "./pages/admin/ContactInfo";
 import FilterPage, { filterPageLoader } from "./pages/FilterPage";
+import CreateReportPage from "./pages/CreateReportPage";
+import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
+// IMPORT COMPONENT VÀ LOADER MỚI CHO THỐNG KÊ
+import DashboardStats, { dashboardStatsLoader } from "./pages/admin/DashboardStats";
+
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -85,6 +91,10 @@ const router = createBrowserRouter([
         path: "/create-post",
         element: <CreatePost></CreatePost>,
       },
+      {
+        path: "/report", // Đường dẫn bạn muốn sử dụng để truy cập trang tạo báo cáo
+        element: <CreateReportPage />, // Component CreateReportPage (chứa form)
+      },
 
       // admin routers
       {
@@ -93,8 +103,16 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage></ErrorPage>,
         loader: authenTicationLoader,
         children: [
-          // home
-          { index: true, element: <Dashboard></Dashboard> },
+          // TRANG DASHBOARD HIỆN TẠI (nếu bạn muốn giữ lại)
+          { index: true, element: <Dashboard /> }, // Dashboard component hiện tại
+          // HOẶC nếu bạn không muốn trang này nữa, hãy xóa nó đi
+
+          // TRANG THỐNG KÊ
+          {
+            path: "statistics", // Đặt route cho trang thống kê là /admin/stats
+            element: <DashboardStats />,
+            loader: dashboardStatsLoader,
+          },
 
           // all items
           {
@@ -110,12 +128,24 @@ const router = createBrowserRouter([
             loader: browseLoader,
           },
 
+          // admin report page
+          {
+            path: "report",
+            element: <AdminReport></AdminReport>,
+            loader: adminReportLoader,
+          },
+          {
+    path: '/admin/reports/:reportId',
+    element: <ReportDetail />,
+    loader: reportDetailLoader,
+  },
           // contact info
           {
             path: "contact",
             element: <EditContact></EditContact>,
             loader: contactLoader,
           },
+          // THÊM CÁC ROUTES ADMIN KHÁC NẾU CÓ (ví dụ: users/:userId)
         ],
       },
     ],

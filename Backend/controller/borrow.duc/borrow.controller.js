@@ -23,6 +23,7 @@ const createBorrow = async (req, res) => {
       totalTime,
       borrowers,
       itemId,
+      owner: item.owner,
       startTime,
       endTime,
     });
