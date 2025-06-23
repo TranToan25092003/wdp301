@@ -10,11 +10,15 @@ import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
 import { useLoaderData } from "react-router-dom";
 import { useClerk } from "@clerk/clerk-react";
 import { useEffect } from "react";
+import { customFetch } from "@/utils/customAxios";
 
 export const homeLayoutLoader = async () => {
   try {
     const res = await getAllCategoriesWithStats();
-    return { categories: res.data };
+
+    const footerResponse = await customFetch("/admin/contact");
+
+    return { categories: res.data, footerInfo: footerResponse.data.data };
   } catch (error) {
     console.error("Failed to fetch categories", error);
     return { categories: [] };

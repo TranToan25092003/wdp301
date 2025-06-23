@@ -1,12 +1,15 @@
 import React from "react";
 import { Layout, Row, Col, Typography, Divider } from "antd";
-
 const { Footer } = Layout;
 const { Title, Text, Link } = Typography;
+import { useLoaderData } from "react-router-dom";
 
 const AppFooter = () => {
   const year = new Date().getFullYear();
+  const { footerInfo } = useLoaderData();
 
+  const { address, email, facebook, iframe, phone, zalo } = footerInfo;
+  console.log(iframe);
   return (
     <Footer
       style={{
@@ -16,24 +19,26 @@ const AppFooter = () => {
     >
       <Row gutter={[32, 32]}>
         <Col xs={24} sm={12} md={6} style={{ textAlign: "center" }}>
-          <Title level={5}>Company</Title>
-          <div>
-            <Link href="/about">About Us</Link>
+          <Title level={5}>Address</Title>
+          <div className="flex flex-col content-center justify-center">
+            <Link href="/about"> {address} </Link>
             <br />
-            <Link href="/team">Team</Link>
-            <br />
-            <Link href="/careers">Careers</Link>
+            <div
+              className="ml-auto mr-auto"
+              dangerouslySetInnerHTML={{
+                __html: iframe,
+              }}
+            ></div>
           </div>
         </Col>
 
         <Col xs={24} sm={12} md={6} style={{ textAlign: "center" }}>
           <Title level={5}>Support</Title>
           <div>
-            <Link href="/help">Help Center</Link>
+            <Link href="/help">{phone} </Link>
             <br />
-            <Link href="/contact">Contact Us</Link>
+            <Link href="/contact"> {email} </Link>
             <br />
-            <Link href="/faq">FAQ</Link>
           </div>
         </Col>
 
@@ -49,17 +54,14 @@ const AppFooter = () => {
         <Col xs={24} sm={12} md={6} style={{ textAlign: "center" }}>
           <Title level={5}>Follow Us</Title>
           <div>
-            <Link href="https://facebook.com" target="_blank">
+            <Link href={facebook} target="_blank">
               Facebook
             </Link>
             <br />
-            <Link href="https://twitter.com" target="_blank">
-              Twitter
+            <Link href={zalo} target="_blank">
+              Zalo
             </Link>
             <br />
-            <Link href="https://linkedin.com" target="_blank">
-              LinkedIn
-            </Link>
           </div>
         </Col>
       </Row>

@@ -105,13 +105,9 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage></ErrorPage>,
         loader: authenTicationLoader,
         children: [
-          // TRANG DASHBOARD HIỆN TẠI (nếu bạn muốn giữ lại)
           { index: true, element: <Dashboard /> }, // Dashboard component hiện tại
-          // HOẶC nếu bạn không muốn trang này nữa, hãy xóa nó đi
-
-          // TRANG THỐNG KÊ
           {
-            path: "statistics", // Đặt route cho trang thống kê là /admin/stats
+            path: "statistics",
             element: <DashboardStats />,
             loader: dashboardStatsLoader,
           },
@@ -147,7 +143,6 @@ const router = createBrowserRouter([
             element: <EditContact></EditContact>,
             loader: contactLoader,
           },
-          // THÊM CÁC ROUTES ADMIN KHÁC NẾU CÓ (ví dụ: users/:userId)
         ],
       },
     ],

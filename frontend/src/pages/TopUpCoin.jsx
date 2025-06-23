@@ -23,8 +23,8 @@ export const TopUpLoader = async () => {
       return redirect("/");
     }
   } catch (error) {
-    toast.error("Lỗi xác thực", {
-      description: error.message || "Vui lòng thử lại sau",
+    toast.error("Something wrong", {
+      description: "Vui lòng thử lại sau",
     });
     return redirect("/");
   }
