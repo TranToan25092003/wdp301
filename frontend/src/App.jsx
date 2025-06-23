@@ -24,8 +24,10 @@ import FilterPage, { filterPageLoader } from "./pages/FilterPage";
 import CreateReportPage from "./pages/CreateReportPage";
 import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
 // IMPORT COMPONENT VÀ LOADER MỚI CHO THỐNG KÊ
-import DashboardStats, { dashboardStatsLoader } from "./pages/admin/DashboardStats";
-
+import DashboardStats, {
+  dashboardStatsLoader,
+} from "./pages/admin/DashboardStats";
+import AboutUs from "./pages/AboutUs";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -54,7 +56,7 @@ const router = createBrowserRouter([
       {
         path: "/filter",
         element: <FilterPage />,
-        loader: filterPageLoader
+        loader: filterPageLoader,
       },
       {
         path: "/auctions",
@@ -94,6 +96,10 @@ const router = createBrowserRouter([
       {
         path: "/report", // Đường dẫn bạn muốn sử dụng để truy cập trang tạo báo cáo
         element: <CreateReportPage />, // Component CreateReportPage (chứa form)
+      },
+      {
+        path: "/about",
+        element: <AboutUs />,
       },
 
       // admin routers
@@ -135,10 +141,10 @@ const router = createBrowserRouter([
             loader: adminReportLoader,
           },
           {
-    path: '/admin/reports/:reportId',
-    element: <ReportDetail />,
-    loader: reportDetailLoader,
-  },
+            path: "/admin/reports/:reportId",
+            element: <ReportDetail />,
+            loader: reportDetailLoader,
+          },
           // contact info
           {
             path: "contact",

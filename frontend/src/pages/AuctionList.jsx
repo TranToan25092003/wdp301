@@ -46,15 +46,15 @@ const AuctionPage = () => {
     setAuctions((prev) => prev.filter((auction) => auction._id !== auctionId));
   };
 
-  const handleCreate = (newAuction) => {
-    setAuctions((prev) => [...prev, newAuction]);
-    setIsModalOpen(false);
-  };
+  // const handleCreate = (newAuction) => {
+  //   setAuctions((prev) => [...prev, newAuction]);
+  //   setIsModalOpen(false);
+  // };
 
   return (
     <Layout style={{ backgroundColor: "#fff", padding: "20px" }}>
       <Content>
-        <Title level={2}>Auctions</Title>
+        {/* <Title level={2}>Auctions</Title>
         <Button
           type="primary"
           onClick={() => setIsModalOpen(true)}
@@ -67,7 +67,7 @@ const AuctionPage = () => {
           onCancel={() => setIsModalOpen(false)}
           onCreate={handleCreate}
         />
-        <Divider />
+        <Divider /> */}
         {loading ? (
           <Spin
             size="large"

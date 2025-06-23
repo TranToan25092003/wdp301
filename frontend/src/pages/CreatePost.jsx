@@ -26,7 +26,6 @@ import { getAllTypes } from "@/API/duc.api/type.api";
 import { getAllStatuses } from "@/API/duc.api/status.api";
 import { createItem } from "@/API/duc.api/item.api";
 import { createAuction } from "@/API/huynt.api/auction.api";
-import { createBorrow } from "@/API/duc.api/borrow.api";
 import { useAuth } from "@clerk/clerk-react";
 
 const { TextArea } = Input;
@@ -116,20 +115,25 @@ const CreatePost = () => {
     }
   };
 
-  const handleFirstStepSubmit = (values) => {
+  const handleTypeSelect = (type) => {
+    setSelectedType(type);
+    setPostType(type.name.toLowerCase());
+    setCurrentStep(2);
+    form.resetFields();
+    setFileList([]);
+  };
+
+  const handleItemFormSubmit = (values) => {
     if (fileList.length === 0) {
       message.error("Please upload at least 1 image");
       return;
     }
-    console.log("First step submitted with values:", values);
-    setFirstStepData(values);
-    setCurrentStep(2);
-  };
-
-  const handlePostTypeSelect = (type) => {
-    setPostType(type);
+    const ratePrice =
+      selectedType && selectedType.name.toLowerCase() === "borrow"
+        ? values.ratePrice
+        : "no";
+    setFirstStepData({ ...values, ratePrice });
     setIsModalVisible(true);
-    modalForm.resetFields();
   };
 
   const handleModalSubmit = async (values) => {
@@ -212,21 +216,10 @@ const CreatePost = () => {
         };
         console.log("Creating auction with data:", auctionData);
         await createAuction(auctionData);
-      } else if (postType === "borrow") {
-        const borrowData = {
-          totalPrice: Number(values.price),
-          totalTime: Number(values.totalTime),
-          borrowers: userId,
-          itemId: itemRes.data._id,
-          startTime: values.startTime.toISOString(),
-          endTime: values.endTime.toISOString(),
-        };
-        console.log("Creating borrow with data:", borrowData);
-        await createBorrow(borrowData);
       }
 
       message.success("Post created successfully!");
-      navigate("/");
+      navigate("/", { state: { postSuccess: true } });
     } catch (error) {
       console.error("Error creating post:", error);
       if (error.response) {
@@ -253,29 +246,29 @@ const CreatePost = () => {
     setFileList(newFileList);
   };
 
-  const handleVideoChange = (info) => {
-    if (info.file.status === "done") {
-      message.success(`${info.file.name} uploaded successfully`);
-    } else if (info.file.status === "error") {
-      message.error(`${info.file.name} upload failed.`);
-    }
-  };
+  // const handleVideoChange = (info) => {
+  //   if (info.file.status === "done") {
+  //     message.success(`${info.file.name} uploaded successfully`);
+  //   } else if (info.file.status === "error") {
+  //     message.error(`${info.file.name} upload failed.`);
+  //   }
+  // };
 
-  const beforeVideoUpload = (file) => {
-    const isVideo = file.type.startsWith("video/");
-    if (!isVideo) {
-      message.error("You can only upload video files!");
-      return false;
-    }
+  // const beforeVideoUpload = (file) => {
+  //   const isVideo = file.type.startsWith("video/");
+  //   if (!isVideo) {
+  //     message.error("You can only upload video files!");
+  //     return false;
+  //   }
 
-    const isLt100M = file.size / 1024 / 1024 < 100;
-    if (!isLt100M) {
-      message.error("Video must be smaller than 100MB!");
-      return false;
-    }
+  //   const isLt100M = file.size / 1024 / 1024 < 100;
+  //   if (!isLt100M) {
+  //     message.error("Video must be smaller than 100MB!");
+  //     return false;
+  //   }
 
-    return true;
-  };
+  //   return true;
+  // };
 
   const renderPriceModal = () => {
     const isAuction = postType === "auction";
@@ -335,47 +328,6 @@ const CreatePost = () => {
             </>
           )}
 
-          {isBorrow && (
-            <>
-              <Form.Item
-                name="totalTime"
-                label="Total Time (hours)"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter total time",
-                  },
-                ]}
-              >
-                <InputNumber style={{ width: "100%" }} min={1} />
-              </Form.Item>
-              <Form.Item
-                name="startTime"
-                label="Start Time"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select start time",
-                  },
-                ]}
-              >
-                <DatePicker showTime style={{ width: "100%" }} />
-              </Form.Item>
-              <Form.Item
-                name="endTime"
-                label="End Time"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select end time",
-                  },
-                ]}
-              >
-                <DatePicker showTime style={{ width: "100%" }} />
-              </Form.Item>
-            </>
-          )}
-
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={uploading}>
               Complete
@@ -408,7 +360,26 @@ const CreatePost = () => {
         <h1 className="text-2xl font-bold mb-6">Create Post</h1>
 
         {currentStep === 1 && (
-          <Form form={form} layout="vertical" onFinish={handleFirstStepSubmit}>
+          <div className="space-y-4 flex flex-col items-center justify-center min-h-[40vh]">
+            <h2 className="text-xl font-semibold mb-4">Choose Post Type</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-lg mb-8">
+              {types.map((type) => (
+                <Button
+                  key={type._id}
+                  size="large"
+                  onClick={() => handleTypeSelect(type)}
+                  block
+                  className="h-16 text-lg"
+                >
+                  {type.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <Form form={form} layout="vertical" onFinish={handleItemFormSubmit}>
             <Form.Item
               name="name"
               label="Title"
@@ -442,17 +413,20 @@ const CreatePost = () => {
               </Select>
             </Form.Item>
 
-            <Form.Item
-              name="ratePrice"
-              label="Rate Price"
-              rules={[{ required: true, message: "Please select rate price" }]}
-            >
-              <Radio.Group>
-                <Radio.Button value="hour">Per Hour</Radio.Button>
-                <Radio.Button value="day">Per Day</Radio.Button>
-                <Radio.Button value="no">No Rate</Radio.Button>
-              </Radio.Group>
-            </Form.Item>
+            {selectedType && selectedType.name.toLowerCase() === "borrow" && (
+              <Form.Item
+                name="ratePrice"
+                label="Rate Price"
+                rules={[
+                  { required: true, message: "Please select rate price" },
+                ]}
+              >
+                <Radio.Group>
+                  <Radio.Button value="hour">Per Hour</Radio.Button>
+                  <Radio.Button value="day">Per Day</Radio.Button>
+                </Radio.Group>
+              </Form.Item>
+            )}
 
             <Divider>Images & Video</Divider>
 
@@ -505,27 +479,6 @@ const CreatePost = () => {
               </Button>
             </Form.Item>
           </Form>
-        )}
-
-        {currentStep === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Choose Post Type</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {types.map((type) => (
-                <Button
-                  key={type._id}
-                  size="large"
-                  onClick={() => {
-                    setSelectedType(type);
-                    handlePostTypeSelect(type.name.toLowerCase());
-                  }}
-                  block
-                >
-                  {type.name}
-                </Button>
-              ))}
-            </div>
-          </div>
         )}
 
         {renderPriceModal()}
