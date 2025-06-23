@@ -11,7 +11,7 @@ const Test = require("./test.model");
 const Type = require("./type.model");
 const Session = require("./session.model");
 const Contact = require("./contact.model");
-
+const userViolation = require("./userViolation.model");
 module.exports = {
   Test,
   Report,
@@ -26,4 +26,5 @@ module.exports = {
   Bid,
   Session,
   Contact,
+  userViolation
 };
