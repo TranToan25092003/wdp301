@@ -15,7 +15,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Items, { itemsAdminLoader } from "./pages/admin/Items";
 import BrowseItem, { browseLoader } from "./pages/admin/BrowseItem";
 import AdminReport, { adminReportLoader } from "./pages/admin/AdminReport";
-import TopUp from "./pages/TopUpCoin";
+import TopUp, { TopUpLoader } from "./pages/TopUpCoin";
 import CheckOut from "./pages/stripe/CheckOut";
 import PaymentSuccess, { paymentLoader } from "./pages/stripe/RedirectPage";
 import CreatePost from "./pages/CreatePost";
@@ -24,8 +24,9 @@ import FilterPage, { filterPageLoader } from "./pages/FilterPage";
 import CreateReportPage from "./pages/CreateReportPage";
 import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
 // IMPORT COMPONENT VÀ LOADER MỚI CHO THỐNG KÊ
-import DashboardStats, { dashboardStatsLoader } from "./pages/admin/DashboardStats";
-
+import DashboardStats, {
+  dashboardStatsLoader,
+} from "./pages/admin/DashboardStats";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -54,7 +55,7 @@ const router = createBrowserRouter([
       {
         path: "/filter",
         element: <FilterPage />,
-        loader: filterPageLoader
+        loader: filterPageLoader,
       },
       {
         path: "/auctions",
@@ -70,6 +71,7 @@ const router = createBrowserRouter([
       // top up coin router
       {
         path: "/topup",
+        loader: TopUpLoader,
         element: <TopUp></TopUp>,
       },
 
@@ -135,10 +137,10 @@ const router = createBrowserRouter([
             loader: adminReportLoader,
           },
           {
-    path: '/admin/reports/:reportId',
-    element: <ReportDetail />,
-    loader: reportDetailLoader,
-  },
+            path: "/admin/reports/:reportId",
+            element: <ReportDetail />,
+            loader: reportDetailLoader,
+          },
           // contact info
           {
             path: "contact",
