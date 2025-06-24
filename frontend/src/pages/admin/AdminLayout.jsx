@@ -9,7 +9,7 @@ const DashboardLayout = () => {
   const { pathname } = useLocation();
 
   return (
-    <div className="border-2 border-red-500 mb-20">
+    <div className="mb-20">
       <h2 className="text-2xl pl-4">Dashboard</h2>
       <Separator></Separator>
       <section className="grid lg:grid-cols-12 gap-12 mt-12">

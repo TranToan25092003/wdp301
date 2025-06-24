@@ -1,0 +1,11 @@
+{
+  "address": "123 Nguyễn Trãi, Quận 999, TP.HCM",
+  "phone": "090912345611",
+  "email": "contact@yourcompany.com",
+  "facebook": "https://www.facebook.com/DuyThanh.06112003?locale=vi_VN",
+  "zalo": "https://zalo.me/yourzaloid",
+  "iframe": "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d27275.73560033664!2d105.53262079999999!3d21.004288!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135adabecbb31bb%3A0x31cebc83d417c155!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBHacOhbyBE4bulYyDEkEhRR0hOIEjDsmEgTOG6oWM!5e1!3m2!1svi!2s!4v1748961376094!5m2!1svi!2s\" width=\"200\" height=\"200\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>",
+  "updatedAt": {
+    "$date": "2025-06-03T15:37:39.062Z"
+  }
+}
