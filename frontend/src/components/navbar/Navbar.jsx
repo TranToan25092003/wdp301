@@ -67,13 +67,7 @@ const Navbar = () => {
           </div>
 
           {/* Cart Icon with badge */}
-          <div className="relative cursor-pointer">
-            <ShoppingCart className="w-6 h-6" />
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              3
-            </span>
-          </div>
-
+          
           <Link to={"/topup"}>
             <div className="flex items-center mx-2">
               <TbCoinFilled size={30} color="#ebb410" />

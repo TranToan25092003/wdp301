@@ -54,20 +54,6 @@ const AuctionPage = () => {
   return (
     <Layout style={{ backgroundColor: "#fff", padding: "20px" }}>
       <Content>
-        <Title level={2}>Auctions</Title>
-        <Button
-          type="primary"
-          onClick={() => setIsModalOpen(true)}
-          style={{ marginBottom: "20px" }}
-        >
-          Create New Auction
-        </Button>
-        <CreateAuctionForm
-          open={isModalOpen}
-          onCancel={() => setIsModalOpen(false)}
-          onCreate={handleCreate}
-        />
-        <Divider />
         {loading ? (
           <Spin
             size="large"
