@@ -186,7 +186,7 @@ const AuctionDetailPage = () => {
       const bidData = {
         auctionId,
         amount: finalBidAmount, // Sử dụng giá trị đã tính toán
-        userId: "current-user-id", // Replace with actual user ID from auth context
+        userId: "Minh Quốc Hà Đức", // Replace with actual user ID from auth context
       };
 
       console.log("Placing bid:", bidData);

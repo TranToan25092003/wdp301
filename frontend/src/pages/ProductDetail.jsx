@@ -11,6 +11,21 @@ import BorrowModal from "@/components/item/borrow-modal";
 import { useState } from "react";
 import BuyModal from "@/components/item/buy-modal";
 import { Carousel } from "antd";
+import { Clock } from "lucide-react";
+import { CheckSquare } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import { Gavel } from "lucide-react";
+
+const statusConfig = {
+  Available: { icon: CheckCircle, color: 'text-green-600', label: 'Available' },
+  Pending: { icon: Clock, color: 'text-yellow-600', label: 'Pending' },
+  Approved: { icon: CheckSquare, color: 'text-blue-600', label: 'Approved' },
+  Rejected: { icon: XCircle, color: 'text-red-600', label: 'Rejected' },
+  Sold: { icon: Tag, color: 'text-purple-600', label: 'Sold' },
+  Borrowed: { icon: RotateCcw, color: 'text-orange-600', label: 'Borrowed' },
+  Returned: { icon: CheckCircle, color: 'text-teal-600', label: 'Returned' },
+  Auctioning: { icon: Gavel, color: 'text-indigo-600', label: 'Auctioning' },
+};
 
 export const productDetailLoader = async ({ params }) => {
   try {
@@ -118,7 +133,7 @@ export default function ProductDetail() {
           ) : (
             <p className="text-sm text-gray-700">
               <ul className="text-sm text-gray-700 list-disc pl-5">
-                  <li>Unknown</li>
+                <li>Unknown</li>
               </ul>
             </p>
           )}
@@ -134,13 +149,20 @@ export default function ProductDetail() {
           ) : (
             <p className="text-sm text-gray-700">
               <ul className="text-sm text-gray-700 list-disc pl-5">
-                  <li>Unknown</li>
+                <li>Unknown</li>
               </ul>
             </p>
           )}
         </div>
       </div>
     );
+  };
+
+  const status = product.statusId?.name || 'Unknown';
+  const { icon: StatusIcon, color: statusColor, label: statusLabel } = statusConfig[status] || {
+    icon: XCircle,
+    color: 'text-gray-600',
+    label: 'Unknown',
   };
 
   return (
@@ -166,17 +188,8 @@ export default function ProductDetail() {
             </Tag>
           </div>
           <div className="flex items-center gap-2">
-            {product.statusId?.name === "Available" ? (
-              <>
-                <CheckCircle className="text-green-600" size={20} />
-                <span className="text-green-600 font-medium">Available</span>
-              </>
-            ) : (
-              <>
-                <XCircle className="text-red-600" size={20} />
-                <span className="text-red-600 font-medium">Not Available</span>
-              </>
-            )}
+            <StatusIcon className={statusColor} size={20} />
+            <span className={`${statusColor} font-medium`}>{statusLabel}</span>
           </div>
           <div>
             <span className="text-sm text-muted-foreground">Seller: </span>
@@ -187,7 +200,7 @@ export default function ProductDetail() {
 
           {/* Display button */}
           <div className="pt-4">
-            {product.typeId?.name === "Sell" && product.statusId?.name === "Available" && (
+            {product.typeId?.name === "Sell" && (product.statusId?.name === "Available" || product.statusId?.name === "Approved") && (
               <>
                 <Button
                   className="flex items-center gap-2"
@@ -206,7 +219,7 @@ export default function ProductDetail() {
               </>
             )}
 
-            {product.typeId?.name === "Borrow" && product.statusId?.name === "Available" && (
+            {product.typeId?.name === "Borrow" && (product.statusId?.name === "Available" || product.statusId?.name === "Approved") && (
               <>
                 <Button
                   className="flex items-center gap-2"

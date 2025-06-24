@@ -51,7 +51,7 @@ const purchaseItem = async (req, res) => {
             });
         }
 
-        if (item.statusId?.name !== "Available") {
+        if (item.statusId?.name !== "Available" && item.statusId?.name !== "Approved") {
             return res.status(400).json({
                 success: false,
                 message: "This item is no longer available",
