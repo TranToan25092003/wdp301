@@ -105,9 +105,9 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage></ErrorPage>,
         loader: authenTicationLoader,
         children: [
-          { index: true, element: <Dashboard /> }, // Dashboard component hiện tại
+          // { index: true, element: <Dashboard /> }, // Dashboard component hiện tại
           {
-            path: "statistics",
+            index: true,
             element: <DashboardStats />,
             loader: dashboardStatsLoader,
           },
