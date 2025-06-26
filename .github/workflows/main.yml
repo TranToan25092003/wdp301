@@ -5,9 +5,25 @@ on:
   push:
     branches-ignore:
       - main
+      - swap-monorepo
 jobs:
   first-job:
     runs-on: ubuntu-latest
     steps:
-      - name: print
-        run: echo "please wait for TranToan25092003 review your code 😁😁😁😁"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run project dev
+        run: pnpm run build
