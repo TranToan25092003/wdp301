@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened]
   push:
-    branches-ignore:
+    branches:
       - main
       - swap-monorepo
 jobs:
