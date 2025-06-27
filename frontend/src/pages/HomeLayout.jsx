@@ -1,5 +1,5 @@
 import React from "react";
-import Providers from "./providers";
+import Providers from "./Providers";
 import Navbar from "@/components/navbar/Navbar";
 import Container from "@/components/global/Container";
 import { Outlet, useNavigation } from "react-router-dom";

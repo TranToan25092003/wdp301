@@ -17,4 +17,7 @@ export default defineConfig({
       usePolling: true,
     },
   },
+  build: {
+    target: "esnext", // 👈 thêm dòng này để hỗ trợ top-level await
+  },
 });
