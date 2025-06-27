@@ -35,6 +35,8 @@ const purchaseItem = async (req, res) => {
         const item = await Item.findById(itemId)
             .populate("typeId")
             .populate("statusId");
+        
+            console.log(item)
 
         if (!item) {
             return res.status(404).json({
