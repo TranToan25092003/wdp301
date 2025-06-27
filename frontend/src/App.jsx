@@ -27,6 +27,7 @@ import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
 import DashboardStats, {
   dashboardStatsLoader,
 } from "./pages/admin/DashboardStats";
+import About from "./pages/About";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -144,6 +145,10 @@ const router = createBrowserRouter([
             loader: contactLoader,
           },
         ],
+      },
+      {
+        path: "/about",
+        element: <About />,
       },
     ],
   },
