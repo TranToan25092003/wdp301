@@ -229,7 +229,7 @@ const CreatePost = () => {
       }
 
       message.success("Post created successfully!");
-      navigate("/");
+      navigate("/", { state: { created: true } });
     } catch (error) {
       console.error("Error creating post:", error);
       if (error.response) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Layout,
   Typography,
@@ -10,6 +10,7 @@ import {
   Col,
   Card,
   Tag,
+  notification,
 } from "antd";
 import {
   ShoppingOutlined,
@@ -24,10 +25,9 @@ import { CategorySection } from "@/components/item/category-card";
 import ProductList from "@/components/item/item-list";
 import Footer from "@/components/global/Footer";
 
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useLocation, useNavigate } from "react-router-dom";
 import { getAllItems, getRecentItems } from "@/API/duc.api/item.api";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
-import { useNavigate } from "react-router-dom";
 
 export const homepageLoader = async () => {
   try {
@@ -100,11 +100,26 @@ const HomePage = () => {
   // const { dataItems, dataCategories, recentItems } = useLoaderData();
   const { dataCategories, recentItems } = useLoaderData();
   const navigate = useNavigate();
+  const location = useLocation();
   const [recent, setRecent] = useState(recentItems.data);
   const [page, setPage] = useState(2); // Page 1 loaded
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(recentItems.data.length > 0);
   const [categories] = useState(dataCategories.data);
+  const [api, contextHolder] = notification.useNotification();
+
+  useEffect(() => {
+    if (location.state?.created) {
+      api.success({
+        message: "Tạo sản phẩm thành công!",
+        description: "Sản phẩm của bạn đã được đăng lên hệ thống.",
+        placement: "bottomRight",
+        duration: 4,
+      });
+      // Xóa state để reload không hiện lại
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, api]);
 
   const handleViewMore = async () => {
     setLoading(true);
@@ -125,6 +140,7 @@ const HomePage = () => {
 
   return (
     <Layout style={{ background: "#f6f9fc" }}>
+      {contextHolder}
       {/* Carousel Banner */}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 0" }}>
         <Carousel
