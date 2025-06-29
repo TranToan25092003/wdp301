@@ -184,6 +184,7 @@ const getItemDetailById = async (req, res) => {
 const filterItems = async (req, res) => {
   try {
     const {
+      search,
       name,
       minPrice,
       maxPrice,
@@ -195,10 +196,28 @@ const filterItems = async (req, res) => {
       startDate,
       endDate,
       page = 1,
-      pageSize = 10,
+      pageSize = 12,
     } = req.query;
 
     const query = {};
+
+    if (search) {
+      const searchWords = search
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length > 0);
+
+      if (searchWords.length > 0) {
+        const wordConditions = searchWords.map(word => ({
+          $or: [
+            { name: { $regex: word, $options: 'i' } },
+            { description: { $regex: word, $options: 'i' } }
+          ]
+        }));
+        query.$and = wordConditions;
+      }
+    }
 
     if (name) {
       query.name = { $regex: name, $options: "i" };
@@ -242,7 +261,7 @@ const filterItems = async (req, res) => {
 
     // Calculate skip and limit for pagination
     const pageNum = parseInt(page) || 1;
-    const pageSizeNum = parseInt(pageSize) || 10;
+    const pageSizeNum = parseInt(pageSize) || 12;
     const skip = (pageNum - 1) * pageSizeNum;
 
 
@@ -250,9 +269,10 @@ const filterItems = async (req, res) => {
     const [items, totalItems] = await Promise.all([
       Item.find(query)
         .populate("typeId categoryId statusId")
-        .sort({ createdAt: -1 })
+        .sort(search ? { score: { $meta: "textScore" } } : { createdAt: -1 })
         .skip(skip)
-        .limit(pageSizeNum),
+        .limit(pageSizeNum)
+        .lean(),
       Item.countDocuments(query),
     ]);
 
