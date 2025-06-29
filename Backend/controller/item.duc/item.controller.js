@@ -209,18 +209,24 @@ const filterItems = async (req, res) => {
         .filter(word => word.length > 0);
 
       if (searchWords.length > 0) {
+        // Find category IDs where category name matches the search words
+        const categoryMatches = await Category.find({
+          name: { $regex: searchWords.join('|'), $options: 'i' }
+        }).distinct('_id'); // Get only the _id values of matching categories
+
         const wordConditions = searchWords.map(word => ({
           $or: [
             { name: { $regex: word, $options: 'i' } },
-            { description: { $regex: word, $options: 'i' } }
+            { description: { $regex: word, $options: 'i' } },
+            { categoryId: { $in: categoryMatches } } // Include items with matching category IDs
           ]
         }));
-        query.$and = wordConditions;
+        query.$or = wordConditions;
       }
     }
 
     if (name) {
-      query.name = { $regex: name, $options: "i" };
+      query.name = { $regex: name, $options: 'i' };
     }
 
     if (minPrice || maxPrice) {
@@ -264,12 +270,11 @@ const filterItems = async (req, res) => {
     const pageSizeNum = parseInt(pageSize) || 12;
     const skip = (pageNum - 1) * pageSizeNum;
 
-
     // Fetch paginated items and total count
     const [items, totalItems] = await Promise.all([
       Item.find(query)
-        .populate("typeId categoryId statusId")
-        .sort(search ? { score: { $meta: "textScore" } } : { createdAt: -1 })
+        .populate('typeId categoryId statusId')
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSizeNum)
         .lean(),
@@ -278,8 +283,8 @@ const filterItems = async (req, res) => {
 
     return res.status(200).json({ success: true, data: items, total: totalItems });
   } catch (error) {
-    console.error("Error filtering items:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error filtering items:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 

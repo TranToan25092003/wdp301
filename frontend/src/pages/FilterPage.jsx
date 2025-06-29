@@ -213,6 +213,10 @@ const FilterPage = () => {
           >
             <Title level={4}>Filter Products</Title>
             <Form layout="vertical" form={form} onFinish={onFinish}>
+              <Form.Item label="Search" name="search">
+                <Input placeholder="Search for products, categories, description, ..." />
+              </Form.Item>
+
               <Form.Item label="Name" name="name">
                 <Input placeholder="Product name" />
               </Form.Item>
@@ -236,12 +240,12 @@ const FilterPage = () => {
                 </Input.Group>
               </Form.Item>
 
-              <Form.Item label="Rate Price" name="ratePrice">               
-                  <Select
-                    options={rateOptions}
-                    placeholder="Select a rate type"
-                    allowClear
-                  />
+              <Form.Item label="Rate Price" name="ratePrice">
+                <Select
+                  options={rateOptions}
+                  placeholder="Select a rate type"
+                  allowClear
+                />
               </Form.Item>
 
               <Form.Item label="Owner ID" name="owner">
