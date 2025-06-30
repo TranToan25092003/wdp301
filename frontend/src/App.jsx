@@ -27,6 +27,7 @@ import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
 import DashboardStats, {
   dashboardStatsLoader,
 } from "./pages/admin/DashboardStats";
+import TransactionHistoryPage from "./pages/TransactionHistoryPage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -94,8 +95,12 @@ const router = createBrowserRouter([
         element: <CreatePost></CreatePost>,
       },
       {
-        path: "/report", // Đường dẫn bạn muốn sử dụng để truy cập trang tạo báo cáo
-        element: <CreateReportPage />, // Component CreateReportPage (chứa form)
+        path: "/report", 
+        element: <CreateReportPage />, 
+      },
+      {
+        path: "/history", 
+        element: <TransactionHistoryPage />, 
       },
 
       // admin routers
