@@ -25,7 +25,6 @@ const { RangePicker } = DatePicker;
 
 export const filterPageLoader = async () => {
   try {
-    console.log("2222222222222222222222222222");
     const [typesRes, categoriesRes, statusesRes] = await Promise.all([
       getAllTypes(),
       getAllCategoriesWithStats(),
@@ -56,7 +55,7 @@ const FilterPage = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
   const [pageSize, setPageSize] = useState(
-    Number(searchParams.get("pageSize")) || 10
+    Number(searchParams.get("pageSize")) || 12
   );
 
   const typeOptions = types.map((type) => ({
@@ -67,6 +66,12 @@ const FilterPage = () => {
     label: c.title,
     value: c._id,
   }));
+  const rateOptions = [
+    { label: "Hour", value: "hour" },
+    { label: "Day", value: "day" },
+    { label: "None", value: "no" },
+  ]
+
   const statusOptions = statuses.map((s) => ({ label: s.name, value: s._id }));
 
   const fetchFilteredItems = async (filters = {}) => {
@@ -168,10 +173,10 @@ const FilterPage = () => {
     if (!isValid) {
       console.warn("Invalid search parameters detected.");
       message.warning("One or more filter parameters are invalid.");
-      setSearchParams({ page: 1, pageSize: 10 });
+      setSearchParams({ page: 1, pageSize: 12 });
       setPage(1);
-      setPageSize(10);
-      fetchFilteredItems({ page: 1, pageSize: 10 });
+      setPageSize(12);
+      fetchFilteredItems({ page: 1, pageSize: 12 });
       return;
     }
 
@@ -187,7 +192,7 @@ const FilterPage = () => {
 
     form.setFieldsValue(formValues);
     const initialPage = Number(initialFilters.page) || 1;
-    const initialPageSize = Number(initialFilters.pageSize) || 10;
+    const initialPageSize = Number(initialFilters.pageSize) || 12;
     setPage(initialPage);
     setPageSize(initialPageSize);
     fetchFilteredItems({
@@ -208,6 +213,10 @@ const FilterPage = () => {
           >
             <Title level={4}>Filter Products</Title>
             <Form layout="vertical" form={form} onFinish={onFinish}>
+              <Form.Item label="Search" name="search">
+                <Input placeholder="Search for products, categories, description, ..." />
+              </Form.Item>
+
               <Form.Item label="Name" name="name">
                 <Input placeholder="Product name" />
               </Form.Item>
@@ -232,7 +241,11 @@ const FilterPage = () => {
               </Form.Item>
 
               <Form.Item label="Rate Price" name="ratePrice">
-                <Input type="number" placeholder="Rate Price" />
+                <Select
+                  options={rateOptions}
+                  placeholder="Select a rate type"
+                  allowClear
+                />
               </Form.Item>
 
               <Form.Item label="Owner ID" name="owner">
@@ -280,10 +293,10 @@ const FilterPage = () => {
                 htmlType="button"
                 onClick={() => {
                   form.resetFields();
-                  setSearchParams({ page: 1, pageSize: 10 });
+                  setSearchParams({ page: 1, pageSize: 12 });
                   setPage(1);
-                  setPageSize(10);
-                  fetchFilteredItems({ page: 1, pageSize: 10 });
+                  setPageSize(12);
+                  fetchFilteredItems({ page: 1, pageSize: 12 });
                 }}
                 block
               >

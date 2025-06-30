@@ -36,7 +36,7 @@ const ProductList = ({ title, products, onViewAll, loading = false, total, page,
               total={total}
               onChange={onPaginationChange}
               showSizeChanger
-              pageSizeOptions={[5, 10, 20, 50]}
+              pageSizeOptions={[8, 12, 16, 20]}
               showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
             />
           </Row>
