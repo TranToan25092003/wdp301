@@ -29,21 +29,25 @@ const BorrowModal = ({ open, onClose, product }) => {
         if (startTime && endTime) {
             const start = new Date(startTime);
             const end = new Date(endTime);
-            const now = new Date()
-            if (start < now) setTotalTime(0)
-            else {
-                const diffMs = end - start;
+            const now = new Date();
 
-                if (diffMs > 0) {
-                    const hours = diffMs / (1000 * 60 * 60);
-                    const time = isHourly ? hours : Math.ceil(hours / 24);
-                    setTotalTime(time);
-                } else {
-                    setTotalTime(0);
-                }
+            if (start < now) {
+                setTotalTime(0);
+                return;
             }
+
+            const diffMs = end - start;
+
+            if (diffMs <= 0) {
+                setTotalTime(0);
+                return;
+            }
+
+            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+            const time = isHourly ? hours : Math.ceil(hours / 24);
+            setTotalTime(time);
         }
-    }, [startTime, endTime, isHourly, isDaily]);
+    }, [startTime, endTime, isHourly]);
 
     const totalPrice = totalTime * product.price;
 

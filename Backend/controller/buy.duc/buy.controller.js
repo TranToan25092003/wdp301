@@ -1,6 +1,8 @@
 const Buy = require("../../model/buy.model");
 const Item = require("../../model/item.model");
 const Status = require("../../model/status.model");
+const Category = require("../../model/category.model");
+const Type = require("../../model/type.model");
 const { clerkClient } = require("../../config/clerk");
 
 /**
@@ -35,8 +37,8 @@ const purchaseItem = async (req, res) => {
         const item = await Item.findById(itemId)
             .populate("typeId")
             .populate("statusId");
-        
-            console.log(item)
+
+        console.log(item)
 
         if (!item) {
             return res.status(404).json({
@@ -134,6 +136,59 @@ const purchaseItem = async (req, res) => {
     }
 };
 
+const getAllBuyRecordByUserId = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required",
+            });
+        }
+
+        const buyRecords = await Buy.find({ buyer: userId })
+            .populate({
+                path: "itemId",
+                populate: [
+                    { path: "statusId", select: "name" },
+                    { path: "typeId", select: "name" },
+                    { path: "categoryId", select: "name" },
+                ],
+            })
+            .sort({ createdAt: -1 }); // Sort by creation date, newest first
+
+        // Check if records exist
+        if (!buyRecords || buyRecords.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No buy records found for this user",
+            });
+        }
+
+        // Map records to include the full item object with populated fields
+        const formattedRecords = buyRecords.map(record => ({
+            buyId: record._id,
+            item: record.itemId, 
+            total: record.total,
+            purchaseDate: record.createdAt,
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: "Buy history retrieved successfully",
+            data: formattedRecords,
+        });
+    } catch (error) {
+        console.error("Error fetching buy records:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+    }
+};
+
 module.exports = {
     purchaseItem,
+    getAllBuyRecordByUserId
 };
