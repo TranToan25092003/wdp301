@@ -1,10 +1,14 @@
 const Auction = require("../../model/auction.model");
 const Bid = require("../../model/bid.model");
 const { Status } = require("../../model/status.model");
+const { clerkClient } = require("../../config/clerk");
+const Item = require("../../model/item.model");
 
 exports.placeBid = async (req, res) => {
   try {
-    const { auctionId, amount, userId } = req.body;
+    // Lấy userId từ middleware authenticate (ưu tiên bảo mật)
+    const userId = req.userId || req.body.userId;
+    const { auctionId, amount } = req.body;
 
     if (!auctionId || !amount || !userId) {
       return res.status(400).json({ message: "All fields are required" });
@@ -16,9 +20,40 @@ exports.placeBid = async (req, res) => {
         .json({ message: "Amount must be a positive number" });
     }
 
+    // Kiểm tra đăng nhập
+    if (!userId) {
+      return res.status(401).json({ message: "Bạn cần đăng nhập để đặt giá!" });
+    }
+
+    // Lấy thông tin user từ Clerk
+    const user = await clerkClient.users.getUser(userId);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "Không tìm thấy thông tin người dùng" });
+    }
+    const userCoin = Number.parseInt(user.publicMetadata?.coin) || 0;
+
+    // Kiểm tra đủ coin
+    if (userCoin < amount) {
+      return res
+        .status(400)
+        .json({ message: "Bạn không đủ coin để đặt giá này!" });
+    }
+
     const auction = await Auction.findById(auctionId);
     if (!auction) {
       return res.status(404).json({ message: "Auction not found" });
+    }
+
+    // Không cho phép seller đặt giá sản phẩm của chính mình
+    const item = await Item.findById(auction.itemId);
+    if (item && item.owner && item.owner.toString() === userId.toString()) {
+      return res
+        .status(400)
+        .json({
+          message: "Bạn không thể đặt giá cho sản phẩm của chính mình.",
+        });
     }
 
     const now = new Date();
@@ -32,6 +67,7 @@ exports.placeBid = async (req, res) => {
         .json({ message: "Bid amount must be higher than current price" });
     }
 
+    // Không trừ coin ở đây, chỉ kiểm tra đủ điều kiện
     const bid = new Bid({
       amount,
       userId,
