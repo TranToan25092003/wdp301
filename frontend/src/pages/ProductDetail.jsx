@@ -4,7 +4,7 @@ import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import ProductList from "@/components/item/item-list";
 import { Tag } from "antd";
 import BorrowModal from "@/components/item/borrow-modal";
@@ -49,6 +49,7 @@ export default function ProductDetail() {
   const [borrowModalOpen, setBorrowModalOpen] = useState(false);
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const navigate = useNavigate();
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
@@ -133,9 +134,7 @@ export default function ProductDetail() {
             {product.owner && name && name !== "Anonymous Seller" && (
               <Button
                 type="primary"
-                onClick={() =>
-                  (window.location.href = `/chat?seller=${product.owner}`)
-                }
+                onClick={() => navigate(`/chat?seller=${product.owner}`)}
               >
                 Nhắn tin với người bán
               </Button>

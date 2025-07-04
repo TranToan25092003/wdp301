@@ -29,6 +29,7 @@ import DashboardStats, {
 } from "./pages/admin/DashboardStats";
 import About from "./pages/About";
 import TransactionHistoryPage from "./pages/TransactionHistoryPage";
+import ChatBox from "./pages/ChatBox";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -102,6 +103,10 @@ const router = createBrowserRouter([
       {
         path: "/history",
         element: <TransactionHistoryPage />,
+      },
+      {
+        path: "/chat",
+        element: <ChatBox />,
       },
 
       // admin routers
