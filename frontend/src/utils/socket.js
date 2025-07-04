@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 const socket = io(import.meta.env.VITE_API_URL, {
   reconnection: true,
   reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
+  reconnectionDelay: 500,
 });
 
 export const initializeSocket = () => {

@@ -1,53 +1,73 @@
 import React from "react";
-import { Card, Button, Typography } from "antd";
-import { deleteAuctionById } from "@/API/huynt.api/auction.api";
+import { Card, Button, Tag } from "antd";
+import CountdownTimer from "./CountdownTimer";
 
-const { Title, Text } = Typography;
-
-const AuctionCard = ({ auction, onDelete, onViewDetails }) => {
-  const handleDelete = async () => {
-    try {
-      await deleteAuctionById(auction._id);
-      onDelete(auction._id);
-    } catch (error) {
-      console.error("Error deleting auction:", error);
-    }
-  };
-
-  // Get the first image from item's images array, or use a default image
-  const itemImage = auction.itemId?.images?.[0] || "/assets/sample.jpg";
-
+const AuctionCard = ({ auction, bidCount, onViewDetails }) => {
   return (
     <Card
       hoverable
-      style={{ width: "100%" }}
+      style={{
+        borderRadius: 18,
+        boxShadow: "0 4px 24px rgba(34,197,94,0.10)",
+        border: "1px solid #e5e7eb",
+        padding: 0,
+        margin: 0,
+        transition: "all 0.2s",
+        overflow: "visible",
+        background: "#fff",
+      }}
+      bodyStyle={{ padding: 18 }}
       cover={
         <img
-          alt={auction.itemId?.name || "Auction item"}
-          src={itemImage}
-          style={{ height: 200, objectFit: "cover" }}
+          alt={auction.itemId?.name}
+          src={auction.itemId?.images?.[0] || "/assets/fallback.png"}
+          style={{
+            height: 180,
+            objectFit: "cover",
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+          }}
         />
       }
+      onClick={onViewDetails}
     >
-      <Title level={4}>{auction.itemId?.name}</Title>
-      <Text>{auction.itemId?.description}</Text>
-      <br />
-      <Text strong>Current Price: </Text>${auction.currentPrice}
-      <br />
-      <Text strong>End Time: </Text>
-      {new Date(auction.endTime).toLocaleString()}
-      <div style={{ marginTop: "10px" }}>
-        <Button
-          type="primary"
-          onClick={onViewDetails}
-          style={{ marginRight: "10px" }}
-        >
-          View Details
-        </Button>
-        <Button type="danger" onClick={handleDelete}>
-          Delete
-        </Button>
+      <div style={{ minHeight: 60 }}>
+        <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>
+          {auction.itemId?.name}
+        </h3>
+        <div style={{ color: "#64748b", fontSize: 13, marginBottom: 8 }}>
+          {auction.itemId?.description?.slice(0, 60) || ""}
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <Tag color="green">Hiện tại: {auction.currentPrice} đ</Tag>
+          {/* <Tag color="blue">
+            {typeof bidCount === "number"
+              ? bidCount
+              : auction.bids?.length || 0}{" "}
+            lượt bid
+          </Tag> */}
+        </div>
+        <div>
+          <span style={{ fontSize: 14, color: "#64748b" }}>Kết thúc sau: </span>
+          <CountdownTimer endTime={auction.endTime} />
+        </div>
       </div>
+      <Button
+        type="primary"
+        style={{
+          marginTop: 16,
+          width: "100%",
+          background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+          border: "none",
+          fontWeight: 600,
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onViewDetails();
+        }}
+      >
+        Xem chi tiết
+      </Button>
     </Card>
   );
 };

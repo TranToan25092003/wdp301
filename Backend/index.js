@@ -88,6 +88,12 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.id} joined auction ${auctionId}`);
   });
 
+  // Leave auction room
+  socket.on("leaveAuction", (auctionId) => {
+    socket.leave(auctionId);
+    console.log(`User ${socket.id} left auction ${auctionId}`);
+  });
+
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
@@ -95,6 +101,6 @@ io.on("connection", (socket) => {
 });
 
 // run server
-app.listen(port, () => {
-  console.log(`server is running at port ${port}`);
+server.listen(port, () => {
+  console.log(`Server is running at port ${port} with Socket.IO enabled`);
 });
