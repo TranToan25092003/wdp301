@@ -28,6 +28,7 @@ import DashboardStats, {
   dashboardStatsLoader,
 } from "./pages/admin/DashboardStats";
 import TransactionHistoryPage from "./pages/TransactionHistoryPage";
+import AuctionAdmin, { auctionAdminLoader } from "./pages/admin/AuctionAdmin";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -95,12 +96,12 @@ const router = createBrowserRouter([
         element: <CreatePost></CreatePost>,
       },
       {
-        path: "/report", 
-        element: <CreateReportPage />, 
+        path: "/report",
+        element: <CreateReportPage />,
       },
       {
-        path: "/history", 
-        element: <TransactionHistoryPage />, 
+        path: "/history",
+        element: <TransactionHistoryPage />,
       },
 
       // admin routers
@@ -147,6 +148,13 @@ const router = createBrowserRouter([
             path: "contact",
             element: <EditContact></EditContact>,
             loader: contactLoader,
+          },
+
+          // auction
+          {
+            path: "auction-items",
+            element: <AuctionAdmin></AuctionAdmin>,
+            loader: auctionAdminLoader,
           },
         ],
       },

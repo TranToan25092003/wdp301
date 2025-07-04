@@ -14,6 +14,7 @@ export const adminLinks = [
   { href: "/admin/items", label: "items" },
   { href: "/admin/browse", label: "Waiting items" },
   { href: "/admin/report", label: "report" },
+  { href: "/admin/auction-items", label: "auction items" },
   {
     href: "/admin/contact",
     label: "contact info",
