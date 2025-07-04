@@ -2,6 +2,7 @@ const { Mongoose, default: mongoose } = require("mongoose");
 const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
 const { clerkClient } = require("../../config/clerk");
+const Buy = require("../../model/buy.model");
 
 const getAllItems = async (req, res) => {
   try {
@@ -390,6 +391,72 @@ const createItem = async (req, res) => {
   }
 };
 
+
+const getUserUploadedItems = async (req, res) => {
+  try {
+    const userId = req.userId; // Assuming middleware sets req.userId
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'No user ID provided' });
+    }
+
+    // Query database for items uploaded by the user
+    const items = await Item.find({ owner: userId })
+      .populate('typeId', 'name')
+      .populate('categoryId', 'name')
+      .populate('statusId', 'name')
+      .sort({createdAt: -1})
+      .lean();
+
+    // Transform data to include relevant fields
+    const formattedItems = await Promise.all(items.map(async (item) => {
+      const baseItem = {
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        images: item.images,
+        ratePrice: item.ratePrice,
+        type: item.typeId.name,
+        category: item.categoryId.name,
+        status: item.statusId.name,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      };
+
+      // Sold item
+      if (item.typeId.name === 'Sell' && item.statusId.name === 'Sold') {
+        const buyRecord = await Buy.findOne({ itemId: item._id }).lean();
+        if (buyRecord) {
+          baseItem.purchaseDate = buyRecord.createdAt;
+          baseItem.buyerId = buyRecord.buyer;
+          try {
+            const buyerInfo = await clerkClient.users.getUser(buyRecord.buyer);
+            if (buyerInfo) {
+              baseItem.buyer = {
+                name: `${buyerInfo.firstName || ''} ${buyerInfo.lastName || ''}`.trim(),
+                imageUrl: buyerInfo.imageUrl || '',
+                hasImage: buyerInfo.hasImage || false,
+                emailAddresses: buyerInfo.emailAddresses.map(email => email.emailAddress) || [],
+                phoneNumbers: buyerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
+              };
+            }
+          } catch (buyerError) {
+            console.error(`Error fetching buyer details for ${buyRecord.buyer}:`, buyerError);
+            baseItem.buyer = { name: 'Unknown', imageUrl: '', hasImage: false, emailAddresses: [], phoneNumbers: [] };
+          }
+        }
+      }
+
+      return baseItem;
+    }));
+
+    return res.status(200).json({ success: true, data: formattedItems });
+  } catch (error) {
+    console.error('Error fetching user uploaded items:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+
 module.exports = {
   getAllItems,
   getItemsByCategory,
@@ -398,4 +465,5 @@ module.exports = {
   getRecentItems,
   filterItems,
   createItem,
+  getUserUploadedItems
 };
