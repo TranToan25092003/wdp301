@@ -13,11 +13,18 @@ import {
   Select,
   Spin,
   notification,
+  Card,
+  Steps,
+  Typography,
+  Space,
 } from "antd";
 import {
   UploadOutlined,
-  VideoCameraOutlined,
   ExclamationCircleOutlined,
+  PlusOutlined,
+  ShoppingOutlined,
+  FireOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ImgCrop from "antd-img-crop";
@@ -26,11 +33,11 @@ import { getAllTypes } from "@/API/duc.api/type.api";
 import { getAllStatuses } from "@/API/duc.api/status.api";
 import { createItem } from "@/API/duc.api/item.api";
 import { createAuction } from "@/API/huynt.api/auction.api";
-import { createBorrow } from "@/API/duc.api/borrow.api";
 import { useAuth } from "@clerk/clerk-react";
 
 const { TextArea } = Input;
 const { Option } = Select;
+const { Title, Text } = Typography;
 
 const CreatePost = () => {
   const [form] = Form.useForm();
@@ -97,12 +104,12 @@ const CreatePost = () => {
   const uploadImage = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "huynt7104"); // Replace with your upload preset
-    formData.append("cloud_name", "db4tuojnn"); // Replace with your cloud name
+    formData.append("upload_preset", "huynt7104");
+    formData.append("cloud_name", "db4tuojnn");
 
     try {
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/db4tuojnn/image/upload`, // Replace with your cloud name
+        `https://api.cloudinary.com/v1_1/db4tuojnn/image/upload`,
         {
           method: "POST",
           body: formData,
@@ -116,18 +123,20 @@ const CreatePost = () => {
     }
   };
 
+  const handleTypeSelect = (type) => {
+    setSelectedType(type);
+    setPostType(type.name.toLowerCase());
+    setCurrentStep(2);
+    form.resetFields();
+  };
+
   const handleFirstStepSubmit = (values) => {
     if (fileList.length === 0) {
       message.error("Please upload at least 1 image");
       return;
     }
-    console.log("First step submitted with values:", values);
+    console.log("Second step submitted with values:", values);
     setFirstStepData(values);
-    setCurrentStep(2);
-  };
-
-  const handlePostTypeSelect = (type) => {
-    setPostType(type);
     setIsModalVisible(true);
     modalForm.resetFields();
   };
@@ -137,7 +146,7 @@ const CreatePost = () => {
       setUploading(true);
 
       if (!firstStepData) {
-        throw new Error("First step data is missing");
+        throw new Error("Second step data is missing");
       }
 
       if (!userId) {
@@ -159,9 +168,15 @@ const CreatePost = () => {
         throw new Error("Approved status not found");
       }
 
-      console.log("First step data:", firstStepData);
-      console.log("Second step (modal) values:", values);
+      console.log("Second step data:", firstStepData);
+      console.log("Third step (modal) values:", values);
       console.log("User ID:", userId);
+
+      // Determine ratePrice based on post type
+      let ratePrice = "no"; // Default for auction and sell
+      if (postType === "borrow") {
+        ratePrice = firstStepData.ratePrice;
+      }
 
       // First create the item
       const itemData = {
@@ -169,7 +184,7 @@ const CreatePost = () => {
         description: firstStepData.description,
         price: Number(values.price),
         images: imageUrls,
-        ratePrice: firstStepData.ratePrice,
+        ratePrice: ratePrice,
         owner: userId,
         typeId: selectedType._id,
         categoryId: firstStepData.categoryId,
@@ -181,7 +196,6 @@ const CreatePost = () => {
         "name",
         "description",
         "price",
-        "ratePrice",
         "owner",
         "typeId",
         "categoryId",
@@ -212,21 +226,10 @@ const CreatePost = () => {
         };
         console.log("Creating auction with data:", auctionData);
         await createAuction(auctionData);
-      } else if (postType === "borrow") {
-        const borrowData = {
-          totalPrice: Number(values.price),
-          totalTime: Number(values.totalTime),
-          borrowers: userId,
-          itemId: itemRes.data._id,
-          startTime: values.startTime.toISOString(),
-          endTime: values.endTime.toISOString(),
-        };
-        console.log("Creating borrow with data:", borrowData);
-        await createBorrow(borrowData);
       }
 
       message.success("Post created successfully!");
-      navigate("/");
+      navigate("/", { state: { created: true } });
     } catch (error) {
       console.error("Error creating post:", error);
       if (error.response) {
@@ -253,28 +256,20 @@ const CreatePost = () => {
     setFileList(newFileList);
   };
 
-  const handleVideoChange = (info) => {
-    if (info.file.status === "done") {
-      message.success(`${info.file.name} uploaded successfully`);
-    } else if (info.file.status === "error") {
-      message.error(`${info.file.name} upload failed.`);
-    }
+  const getTypeIcon = (typeName) => {
+    const name = typeName.toLowerCase();
+    if (name === "auction") return <FireOutlined />;
+    if (name === "sell") return <ShoppingOutlined />;
+    if (name === "borrow") return <SwapOutlined />;
+    return <PlusOutlined />;
   };
 
-  const beforeVideoUpload = (file) => {
-    const isVideo = file.type.startsWith("video/");
-    if (!isVideo) {
-      message.error("You can only upload video files!");
-      return false;
-    }
-
-    const isLt100M = file.size / 1024 / 1024 < 100;
-    if (!isLt100M) {
-      message.error("Video must be smaller than 100MB!");
-      return false;
-    }
-
-    return true;
+  const getTypeDescription = (typeName) => {
+    const name = typeName.toLowerCase();
+    if (name === "auction") return "Create an auction for your item";
+    if (name === "sell") return "Sell your item directly";
+    if (name === "borrow") return "Rent out your item";
+    return "Choose how to list your item";
   };
 
   const renderPriceModal = () => {
@@ -283,12 +278,25 @@ const CreatePost = () => {
 
     return (
       <Modal
-        title={`Set ${
-          isAuction ? "Auction" : isBorrow ? "Borrow" : "Sale"
-        } Price`}
+        title={
+          <div className="text-center">
+            <Title level={4} className="mb-0">
+              Set {isAuction ? "Auction" : isBorrow ? "Borrow" : "Sale"} Price
+            </Title>
+            <Text type="secondary">
+              {isAuction
+                ? "Set starting price and auction duration"
+                : isBorrow
+                ? "Set your rental price"
+                : "Set your selling price"}
+            </Text>
+          </div>
+        }
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
+        width={500}
+        centered
       >
         <Form form={modalForm} onFinish={handleModalSubmit} layout="vertical">
           <Form.Item
@@ -303,11 +311,13 @@ const CreatePost = () => {
               }
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
               addonAfter="VND"
+              size="large"
+              placeholder="Enter price"
             />
           </Form.Item>
 
           {isAuction && (
-            <>
+            <Space direction="vertical" style={{ width: "100%" }}>
               <Form.Item
                 name="auctionStartTime"
                 label="Start Time"
@@ -318,7 +328,12 @@ const CreatePost = () => {
                   },
                 ]}
               >
-                <DatePicker showTime style={{ width: "100%" }} />
+                <DatePicker
+                  showTime
+                  style={{ width: "100%" }}
+                  size="large"
+                  placeholder="Select start time"
+                />
               </Form.Item>
               <Form.Item
                 name="auctionEndTime"
@@ -330,54 +345,24 @@ const CreatePost = () => {
                   },
                 ]}
               >
-                <DatePicker showTime style={{ width: "100%" }} />
+                <DatePicker
+                  showTime
+                  style={{ width: "100%" }}
+                  size="large"
+                  placeholder="Select end time"
+                />
               </Form.Item>
-            </>
+            </Space>
           )}
 
-          {isBorrow && (
-            <>
-              <Form.Item
-                name="totalTime"
-                label="Total Time (hours)"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter total time",
-                  },
-                ]}
-              >
-                <InputNumber style={{ width: "100%" }} min={1} />
-              </Form.Item>
-              <Form.Item
-                name="startTime"
-                label="Start Time"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select start time",
-                  },
-                ]}
-              >
-                <DatePicker showTime style={{ width: "100%" }} />
-              </Form.Item>
-              <Form.Item
-                name="endTime"
-                label="End Time"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select end time",
-                  },
-                ]}
-              >
-                <DatePicker showTime style={{ width: "100%" }} />
-              </Form.Item>
-            </>
-          )}
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block loading={uploading}>
+          <Form.Item className="mt-6">
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={uploading}
+              size="large"
+            >
               Complete
             </Button>
           </Form.Item>
@@ -388,147 +373,253 @@ const CreatePost = () => {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <Spin size="large" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 ">
+        <div className="text-center">
+          <Spin size="large" />
+          <div className="mt-4">
+            <Text type="secondary">Loading...</Text>
+          </div>
+        </div>
       </div>
     );
   }
 
+  const steps = [
+    {
+      title: "Choose Type",
+      description: "Select how to list your item",
+    },
+    {
+      title: "Item Details",
+      description: "Add product information",
+    },
+    {
+      title: "Set Price",
+      description: "Configure pricing",
+    },
+  ];
+
   return (
     <>
       {contextHolder}
-      <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Create Post</h1>
+      <div className="min-h-screen bg-gradient-to-br ">
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <Title level={2} className="mb-2">
+              Create New Post
+            </Title>
+            <Text type="secondary" className="text-lg">
+              Share your items with the community
+            </Text>
+          </div>
 
-        {currentStep === 1 && (
-          <Form form={form} layout="vertical" onFinish={handleFirstStepSubmit}>
-            <Form.Item
-              name="name"
-              label="Title"
-              rules={[{ required: true, message: "Please enter title" }]}
-            >
-              <Input placeholder="Enter product title" />
-            </Form.Item>
+          {/* Progress Steps */}
+          <Card className="mb-8 shadow-sm">
+            <Steps current={currentStep - 1} items={steps} className="mb-6" />
+          </Card>
 
-            <Form.Item
-              name="description"
-              label="Description"
-              rules={[{ required: true, message: "Please enter description" }]}
-            >
-              <TextArea
-                rows={4}
-                placeholder="Detailed description of the product"
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="categoryId"
-              label="Category"
-              rules={[{ required: true, message: "Please select category" }]}
-            >
-              <Select placeholder="Select category">
-                {categories.map((category) => (
-                  <Option key={category._id} value={category._id}>
-                    {category.title}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="ratePrice"
-              label="Rate Price"
-              rules={[{ required: true, message: "Please select rate price" }]}
-            >
-              <Radio.Group>
-                <Radio.Button value="hour">Per Hour</Radio.Button>
-                <Radio.Button value="day">Per Day</Radio.Button>
-                <Radio.Button value="no">No Rate</Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-
-            <Divider>Images & Video</Divider>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="mb-2">
-                  Product Images (First image will be cover)
-                </h3>
-                <ImgCrop rotationSlider>
-                  <Upload
-                    listType="picture-card"
-                    fileList={fileList}
-                    onChange={handleImageChange}
-                    beforeUpload={() => false}
-                    multiple
-                    maxCount={10}
-                  >
-                    {fileList.length < 10 && (
-                      <div>
-                        <UploadOutlined />
-                        <div style={{ marginTop: 8 }}>Upload</div>
-                      </div>
-                    )}
-                  </Upload>
-                </ImgCrop>
-                <p className="text-gray-500 text-sm">
-                  Maximum 10 images, each less than 5MB
-                </p>
+          {/* Step 1: Choose Type */}
+          {currentStep === 1 && (
+            <Card className="shadow-lg border-0">
+              <div className="text-center mb-8">
+                <Title level={3} className="mb-2">
+                  How would you like to list your item?
+                </Title>
+                <Text type="secondary">
+                  Choose the best option for your needs
+                </Text>
               </div>
 
-              {/* <div>
-                <h3 className="mb-2">Product Video (optional)</h3>
-                <Upload
-                  maxCount={1}
-                  beforeUpload={beforeVideoUpload}
-                  onChange={handleVideoChange}
-                  listType="picture"
-                >
-                  <Button icon={<VideoCameraOutlined />}>Upload video</Button>
-                </Upload>
-                <p className="text-gray-500 text-sm">
-                  Maximum 1 video, less than 100MB
-                </p>
-              </div> */}
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {types.map((type) => (
+                  <Card
+                    key={type._id}
+                    hoverable
+                    className="text-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 hover:border-blue-400"
+                    onClick={() => handleTypeSelect(type)}
+                    bodyStyle={{ padding: "2rem 1rem" }}
+                  >
+                    <div className="text-4xl mb-4 text-blue-500">
+                      {getTypeIcon(type.name)}
+                    </div>
+                    <Title level={4} className="mb-2">
+                      {type.name}
+                    </Title>
+                    <Text type="secondary" className="text-sm">
+                      {getTypeDescription(type.name)}
+                    </Text>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+          )}
 
-            <Form.Item className="mt-6">
-              <Button type="primary" htmlType="submit" block>
-                Continue
-              </Button>
-            </Form.Item>
-          </Form>
-        )}
+          {/* Step 2: Item Details */}
+          {currentStep === 2 && (
+            <Card className="shadow-lg border-0">
+              <div className="text-center mb-8">
+                <Title level={3} className="mb-2">
+                  Tell us about your item
+                </Title>
+                <Text type="secondary">
+                  Provide detailed information to attract buyers
+                </Text>
+              </div>
 
-        {currentStep === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Choose Post Type</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {types.map((type) => (
-                <Button
-                  key={type._id}
-                  size="large"
-                  onClick={() => {
-                    setSelectedType(type);
-                    handlePostTypeSelect(type.name.toLowerCase());
-                  }}
-                  block
-                >
-                  {type.name}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFirstStepSubmit}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <Form.Item
+                      name="name"
+                      label={<Text strong>Title</Text>}
+                      rules={[
+                        { required: true, message: "Please enter title" },
+                      ]}
+                    >
+                      <Input
+                        size="large"
+                        placeholder="Enter product title"
+                        className="rounded-lg"
+                      />
+                    </Form.Item>
 
-        {renderPriceModal()}
+                    <Form.Item
+                      name="categoryId"
+                      label={<Text strong>Category</Text>}
+                      rules={[
+                        { required: true, message: "Please select category" },
+                      ]}
+                    >
+                      <Select
+                        size="large"
+                        placeholder="Select category"
+                        className="rounded-lg"
+                      >
+                        {categories.map((category) => (
+                          <Option key={category._id} value={category._id}>
+                            {category.title}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+
+                    {/* Only show ratePrice for borrow type */}
+                    {postType === "borrow" && (
+                      <Form.Item
+                        name="ratePrice"
+                        label={<Text strong>Rate Price</Text>}
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please select rate price",
+                          },
+                        ]}
+                      >
+                        <Radio.Group
+                          size="large"
+                          style={{ display: "flex", gap: 16 }}
+                        >
+                          <Radio.Button
+                            value="hour"
+                            style={{
+                              background: "#fff",
+                              borderRadius: 8,
+                              border: "1px solid #d9d9d9",
+                              minWidth: 100,
+                              textAlign: "center",
+                              boxShadow: "none",
+                            }}
+                          >
+                            Per Hour
+                          </Radio.Button>
+                          <Radio.Button
+                            value="day"
+                            style={{
+                              background: "#fff",
+                              borderRadius: 8,
+                              border: "1px solid #d9d9d9",
+                              minWidth: 100,
+                              textAlign: "center",
+                              boxShadow: "none",
+                            }}
+                          >
+                            Per Day
+                          </Radio.Button>
+                        </Radio.Group>
+                      </Form.Item>
+                    )}
+                  </div>
+
+                  <div>
+                    <Form.Item
+                      name="description"
+                      label={<Text strong>Description</Text>}
+                      rules={[
+                        { required: true, message: "Please enter description" },
+                      ]}
+                    >
+                      <TextArea
+                        rows={6}
+                        placeholder="Detailed description of the product"
+                        className="rounded-lg"
+                      />
+                    </Form.Item>
+                  </div>
+                </div>
+
+                <Divider>
+                  <Text strong>Product Images</Text>
+                </Divider>
+
+                <div className="text-center mb-4">
+                  <Text type="secondary">
+                    First image will be the cover photo (Maximum 10 images, each
+                    less than 5MB)
+                  </Text>
+                </div>
+
+                <div className="flex justify-center">
+                  <ImgCrop rotationSlider>
+                    <Upload
+                      listType="picture-card"
+                      fileList={fileList}
+                      onChange={handleImageChange}
+                      beforeUpload={() => false}
+                      multiple
+                      maxCount={10}
+                      className="w-full max-w-2xl"
+                    >
+                      {fileList.length < 10 && (
+                        <div className="flex flex-col items-center justify-center h-24">
+                          <UploadOutlined className="text-2xl text-blue-500 mb-2" />
+                          <div className="text-sm text-gray-600">Upload</div>
+                        </div>
+                      )}
+                    </Upload>
+                  </ImgCrop>
+                </div>
+
+                <Form.Item className="mt-8 text-center">
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    size="large"
+                    className="px-8 h-12 text-lg rounded-lg"
+                  >
+                    Continue to Pricing
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
+          )}
+
+          {renderPriceModal()}
+        </div>
       </div>
     </>
   );

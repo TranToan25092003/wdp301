@@ -37,6 +37,10 @@ const auctionSchema = new mongoose.Schema(
       ref: "Status", // Reference to the Status model
       required: [true, "Status ID is required"],
     },
+    settled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt
