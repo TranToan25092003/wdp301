@@ -39,18 +39,17 @@ const chatSchema = new mongoose.Schema({
 
 const Chat = mongoose.model("Chat", chatSchema);
 
-// check health
+// run cron tasks
+const { runCronTasks } = require("./utils/cronTasks");
 const cron = require("node-cron");
 cron.schedule("* * * * *", async () => {
   try {
-    await comp.Test.find({});
-
-    console.log("system is healthy 💪💪💪");
+   await runCronTasks();
   } catch (error) {
     console.log("System is broken 😰😰😰");
   }
 });
-// end check health
+// end run cron tasks
 
 // body parser
 const bodyParser = require("body-parser");

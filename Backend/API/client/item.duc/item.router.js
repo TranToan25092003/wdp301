@@ -7,6 +7,7 @@ const {
   getRecentItems,
   filterItems,
   createItem,
+  getUserUploadedItems,
 } = require("../../../controller/item.duc/item.controller");
 const validateFilterItems = require("../../../dto/item.dto");
 const { validationResult } = require("express-validator");
@@ -42,8 +43,17 @@ router.get(
   },
   filterItems
 );
+router.get("/uploaded", authenticate, async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    
+    return getUserUploadedItems(req, res, next);
+});
 router.get("/:itemId", getItemDetailById);
 router.get("/category/:categoryId", getItemsByCategory);
 router.get("/category/:categoryId/recent", getRecentItemsByCategory);
+
 
 module.exports = router;

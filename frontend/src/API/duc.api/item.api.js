@@ -22,6 +22,18 @@ export const getRecentItemsByCategory = async (categoryId) => {
   return res.data;
 };
 
+export const getUserUploadedItems = async (token) => {
+  const response = await customFetch.get(
+    "/items/uploaded",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
 export const getItemDetailById = async (itemId) => {
   const res = await customFetch.get(`/items/${itemId}`);
   return res.data;
