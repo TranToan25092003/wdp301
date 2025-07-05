@@ -3,6 +3,7 @@ const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
 const { clerkClient } = require("../../config/clerk");
 const Buy = require("../../model/buy.model");
+const Borrow = require("../../model/borrow.model");
 
 const getAllItems = async (req, res) => {
   try {
@@ -408,7 +409,7 @@ const getUserUploadedItems = async (req, res) => {
       .populate('typeId', 'name')
       .populate('categoryId', 'name')
       .populate('statusId', 'name')
-      .sort({createdAt: -1})
+      .sort({ createdAt: -1 })
       .lean();
 
     // Transform data to include relevant fields
@@ -447,6 +448,40 @@ const getUserUploadedItems = async (req, res) => {
             console.error(`Error fetching buyer details for ${buyRecord.buyer}:`, buyerError);
             baseItem.buyer = { name: 'Unknown', imageUrl: '', hasImage: false, emailAddresses: [], phoneNumbers: [] };
           }
+        }
+      }
+
+      if (item.typeId.name === 'Borrow' && item.statusId.name === 'Borrowed') {
+        const borrowRecords = await Borrow.find({ itemId: item._id})
+          .sort({ startTime: -1 }) // Latest borrowing first
+          .lean();
+
+        if (borrowRecords.length > 0) {
+          baseItem.borrowingHistory = await Promise.all(borrowRecords.map(async (borrow) => {
+            const history = {
+              totalPrice: borrow.totalPrice,
+              startTime: borrow.startTime,
+              endTime: borrow.endTime,
+              borrowerId: borrow.borrowers,
+              borrower: null
+            };
+            try {
+              const borrowerInfo = await clerkClient.users.getUser(borrow.borrowers);
+              if (borrowerInfo) {
+                history.borrower = {
+                  name: `${borrowerInfo.firstName || ''} ${borrowerInfo.lastName || ''}`.trim(),
+                  imageUrl: borrowerInfo.imageUrl || '',
+                  hasImage: borrowerInfo.hasImage || false,
+                  emailAddresses: borrowerInfo.emailAddresses.map(email => email.emailAddress) || [],
+                  phoneNumbers: borrowerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
+                };
+              }
+            } catch (borrowerError) {
+              console.error(`Error fetching borrower details for ${borrow.borrowers}:`, borrowerError);
+              history.borrower = { name: 'Unknown', imageUrl: '', hasImage: false, emailAddresses: [], phoneNumbers: [] };
+            }
+            return history;
+          }));
         }
       }
 
