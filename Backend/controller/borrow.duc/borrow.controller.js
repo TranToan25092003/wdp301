@@ -5,6 +5,8 @@ const Item = require("../../model/item.model");
 const Status = require("../../model/status.model");
 const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
+const Notification = require("../../model/notification.model");
+const nodemailer = require('nodemailer');
 
 const createBorrow = async (req, res) => {
   try {
@@ -112,63 +114,128 @@ const createBorrow = async (req, res) => {
 };
 
 const getAllBorrowRecordByUserId = async (req, res) => {
-    try {
-        const userId = req.userId;
+  try {
+    const userId = req.userId;
 
-        if (!userId) {
-            return res.status(400).json({
-                success: false,
-                message: "User ID is required",
-            });
-        }
-
-        const borrowRecords = await Borrow.find({ borrowers: userId })
-            .populate({
-                path: "itemId",
-                populate: [
-                    { path: "statusId", select: "name" },
-                    { path: "typeId", select: "name" },
-                    { path: "categoryId", select: "name" },
-                ],
-            })
-            .sort({ createdAt: -1 }); 
-
-        // Check if records exist
-        if (!borrowRecords || borrowRecords.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No borrow records found for this user",
-            });
-        }
-
-        const formattedRecords = borrowRecords.map(record => ({
-            borrowId: record._id,
-            item: record.itemId, 
-            totalPrice: record.totalPrice,
-            totalTime: record.totalTime,
-            startTime: record.startTime,
-            endTime: record.endTime,
-            status: record.status,
-            borrowDate: record.createdAt,
-        }));
-
-        return res.status(200).json({
-            success: true,
-            message: "Borrow history retrieved successfully",
-            data: formattedRecords,
-        });
-    } catch (error) {
-        console.error("Error fetching borrow records:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-        });
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
     }
+
+    const borrowRecords = await Borrow.find({ borrowers: userId })
+      .populate({
+        path: "itemId",
+        populate: [
+          { path: "statusId", select: "name" },
+          { path: "typeId", select: "name" },
+          { path: "categoryId", select: "name" },
+        ],
+      })
+      .sort({ createdAt: -1 });
+
+    // Check if records exist
+    if (!borrowRecords || borrowRecords.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No borrow records found for this user",
+      });
+    }
+
+    const formattedRecords = borrowRecords.map(record => ({
+      borrowId: record._id,
+      item: record.itemId,
+      totalPrice: record.totalPrice,
+      totalTime: record.totalTime,
+      startTime: record.startTime,
+      endTime: record.endTime,
+      status: record.status,
+      borrowDate: record.createdAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Borrow history retrieved successfully",
+      data: formattedRecords,
+    });
+  } catch (error) {
+    console.error("Error fetching borrow records:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 };
 
-module.exports = { getAllBorrowRecordByUserId };
+const requestForReturnBorrow = async (req, res) => {
+  try {
+    const borrowerId = req.userId; 
+    const { itemId, message } = req.body;
+    console.log(borrowerId)
+    console.log(itemId)
+    console.log(message)
+    if (!borrowerId || !itemId || !message) {
+      return res.status(400).json({ success: false, message: 'Borrower ID, item ID, and message are required' });
+    }
+
+    const item = await Item.findOne({ _id: itemId });
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Item not found or not borrowed by you' });
+    }
+
+    // Fetch owner information
+    const ownerInfo = await clerkClient.users.getUser(item.owner);
+    let ownerEmail = '';
+    let ownerPhone = '';
+    if (ownerInfo) {
+      const owner = {
+        name: `${ownerInfo.firstName || ''} ${ownerInfo.lastName || ''}`.trim(),
+        emailAddresses: ownerInfo.emailAddresses.map(email => email.emailAddress) || [],
+        phoneNumbers: ownerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
+      };
+      ownerEmail = owner.emailAddresses[0] || ''; 
+      ownerPhone = owner.phoneNumbers[0] || ''; 
+    }
+
+    // Create notification
+    const notification = new Notification({
+      sender: borrowerId,
+      receiver: item.owner, 
+      type: 'returnRequest',
+      content: `Borrower has requested to return item "${item.name}". Message: ${message}`,
+      link: `/history`, 
+    });
+    await notification.save();
+
+    // Email configuration
+    if(ownerEmail.length > 0){
+      const transporter = nodemailer.createTransport({
+      service: 'gmail', 
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: ownerEmail, 
+      subject: 'Return Request for Borrowed Item',
+      text: `Borrower ${borrowerId} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
+    };
+    await transporter.sendMail(mailOptions);
+    }
+  
+    return res.status(200).json({ success: true, message: 'Return request submitted and notifications sent', data: notification });
+  } catch (error) {
+    console.error('Error requesting return:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 
 module.exports = {
   createBorrow,
-  getAllBorrowRecordByUserId
+  getAllBorrowRecordByUserId,
+  requestForReturnBorrow
 };

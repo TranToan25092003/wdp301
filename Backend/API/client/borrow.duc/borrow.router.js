@@ -3,6 +3,7 @@ const validateBorrow = require("../../../dto/borrow.dto");
 const {
   createBorrow,
   getAllBorrowRecordByUserId,
+  requestForReturnBorrow,
 } = require("../../../controller/borrow.duc/borrow.controller");
 const {
   authenticate,
@@ -26,6 +27,15 @@ router.post("/", authenticate, validateBorrow, async (req, res, next) => {
   }
 
   return createBorrow(req, res, next);
+});
+
+router.post("/request-return", authenticate, async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  return requestForReturnBorrow(req, res, next);
 });
 
 module.exports = router;
