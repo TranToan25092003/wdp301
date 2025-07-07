@@ -2,6 +2,8 @@ const { Mongoose, default: mongoose } = require("mongoose");
 const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
 const { clerkClient } = require("../../config/clerk");
+const Buy = require("../../model/buy.model");
+const Borrow = require("../../model/borrow.model");
 
 const getAllItems = async (req, res) => {
   try {
@@ -156,11 +158,13 @@ const getItemDetailById = async (req, res) => {
       const user = await clerkClient.users.getUser(item.owner);
       if (user) {
         userInfo = {
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-          imageUrl: user.imageUrl || '',
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+          imageUrl: user.imageUrl || "",
           hasImage: user.hasImage || false,
-          emailAddresses: user.emailAddresses.map(email => email.emailAddress) || [],
-          phoneNumbers: user.phoneNumbers.map(phone => phone.phoneNumber) || []
+          emailAddresses:
+            user.emailAddresses.map((email) => email.emailAddress) || [],
+          phoneNumbers:
+            user.phoneNumbers.map((phone) => phone.phoneNumber) || [],
         };
       }
     }
@@ -206,27 +210,27 @@ const filterItems = async (req, res) => {
         .trim()
         .toLowerCase()
         .split(/\s+/)
-        .filter(word => word.length > 0);
+        .filter((word) => word.length > 0);
 
       if (searchWords.length > 0) {
         // Find category IDs where category name matches the search words
         const categoryMatches = await Category.find({
-          name: { $regex: searchWords.join('|'), $options: 'i' }
-        }).distinct('_id'); // Get only the _id values of matching categories
+          name: { $regex: searchWords.join("|"), $options: "i" },
+        }).distinct("_id"); // Get only the _id values of matching categories
 
-        const wordConditions = searchWords.map(word => ({
+        const wordConditions = searchWords.map((word) => ({
           $or: [
-            { name: { $regex: word, $options: 'i' } },
-            { description: { $regex: word, $options: 'i' } },
-            { categoryId: { $in: categoryMatches } } // Include items with matching category IDs
-          ]
+            { name: { $regex: word, $options: "i" } },
+            { description: { $regex: word, $options: "i" } },
+            { categoryId: { $in: categoryMatches } }, // Include items with matching category IDs
+          ],
         }));
         query.$or = wordConditions;
       }
     }
 
     if (name) {
-      query.name = { $regex: name, $options: 'i' };
+      query.name = { $regex: name, $options: "i" };
     }
 
     if (minPrice || maxPrice) {
@@ -273,7 +277,7 @@ const filterItems = async (req, res) => {
     // Fetch paginated items and total count
     const [items, totalItems] = await Promise.all([
       Item.find(query)
-        .populate('typeId categoryId statusId')
+        .populate("typeId categoryId statusId")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSizeNum)
@@ -281,10 +285,12 @@ const filterItems = async (req, res) => {
       Item.countDocuments(query),
     ]);
 
-    return res.status(200).json({ success: true, data: items, total: totalItems });
+    return res
+      .status(200)
+      .json({ success: true, data: items, total: totalItems });
   } catch (error) {
-    console.error('Error filtering items:', error);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error filtering items:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -390,6 +396,106 @@ const createItem = async (req, res) => {
   }
 };
 
+
+const getUserUploadedItems = async (req, res) => {
+  try {
+    const userId = req.userId; // Assuming middleware sets req.userId
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'No user ID provided' });
+    }
+
+    // Query database for items uploaded by the user
+    const items = await Item.find({ owner: userId })
+      .populate('typeId', 'name')
+      .populate('categoryId', 'name')
+      .populate('statusId', 'name')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Transform data to include relevant fields
+    const formattedItems = await Promise.all(items.map(async (item) => {
+      const baseItem = {
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        images: item.images,
+        ratePrice: item.ratePrice,
+        type: item.typeId.name,
+        category: item.categoryId.name,
+        status: item.statusId.name,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      };
+
+      // Sold item
+      if (item.typeId.name === 'Sell' && item.statusId.name === 'Sold') {
+        const buyRecord = await Buy.findOne({ itemId: item._id }).lean();
+        if (buyRecord) {
+          baseItem.purchaseDate = buyRecord.createdAt;
+          baseItem.buyerId = buyRecord.buyer;
+          try {
+            const buyerInfo = await clerkClient.users.getUser(buyRecord.buyer);
+            if (buyerInfo) {
+              baseItem.buyer = {
+                name: `${buyerInfo.firstName || ''} ${buyerInfo.lastName || ''}`.trim(),
+                imageUrl: buyerInfo.imageUrl || '',
+                hasImage: buyerInfo.hasImage || false,
+                emailAddresses: buyerInfo.emailAddresses.map(email => email.emailAddress) || [],
+                phoneNumbers: buyerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
+              };
+            }
+          } catch (buyerError) {
+            console.error(`Error fetching buyer details for ${buyRecord.buyer}:`, buyerError);
+            baseItem.buyer = { name: 'Unknown', imageUrl: '', hasImage: false, emailAddresses: [], phoneNumbers: [] };
+          }
+        }
+      }
+
+      if (item.typeId.name === 'Borrow' && item.statusId.name === 'Borrowed') {
+        const borrowRecords = await Borrow.find({ itemId: item._id})
+          .sort({ startTime: -1 }) // Latest borrowing first
+          .lean();
+
+        if (borrowRecords.length > 0) {
+          baseItem.borrowingHistory = await Promise.all(borrowRecords.map(async (borrow) => {
+            const history = {
+              totalPrice: borrow.totalPrice,
+              startTime: borrow.startTime,
+              endTime: borrow.endTime,
+              borrowerId: borrow.borrowers,
+              borrower: null
+            };
+            try {
+              const borrowerInfo = await clerkClient.users.getUser(borrow.borrowers);
+              if (borrowerInfo) {
+                history.borrower = {
+                  name: `${borrowerInfo.firstName || ''} ${borrowerInfo.lastName || ''}`.trim(),
+                  imageUrl: borrowerInfo.imageUrl || '',
+                  hasImage: borrowerInfo.hasImage || false,
+                  emailAddresses: borrowerInfo.emailAddresses.map(email => email.emailAddress) || [],
+                  phoneNumbers: borrowerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
+                };
+              }
+            } catch (borrowerError) {
+              console.error(`Error fetching borrower details for ${borrow.borrowers}:`, borrowerError);
+              history.borrower = { name: 'Unknown', imageUrl: '', hasImage: false, emailAddresses: [], phoneNumbers: [] };
+            }
+            return history;
+          }));
+        }
+      }
+
+      return baseItem;
+    }));
+
+    return res.status(200).json({ success: true, data: formattedItems });
+  } catch (error) {
+    console.error('Error fetching user uploaded items:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+
 module.exports = {
   getAllItems,
   getItemsByCategory,
@@ -398,4 +504,5 @@ module.exports = {
   getRecentItems,
   filterItems,
   createItem,
+  getUserUploadedItems
 };

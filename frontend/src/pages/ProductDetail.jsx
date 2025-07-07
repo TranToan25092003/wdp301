@@ -4,7 +4,7 @@ import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
-import { useLoaderData } from 'react-router-dom';
+import { useLoaderData, useNavigate } from "react-router-dom";
 import ProductList from "@/components/item/item-list";
 import { Tag } from "antd";
 import BorrowModal from "@/components/item/borrow-modal";
@@ -17,21 +17,23 @@ import { RotateCcw } from "lucide-react";
 import { Gavel } from "lucide-react";
 
 const statusConfig = {
-  Available: { icon: CheckCircle, color: 'text-green-600', label: 'Available' },
-  Pending: { icon: Clock, color: 'text-yellow-600', label: 'Pending' },
-  Approved: { icon: CheckSquare, color: 'text-blue-600', label: 'Approved' },
-  Rejected: { icon: XCircle, color: 'text-red-600', label: 'Rejected' },
-  Sold: { icon: Tag, color: 'text-purple-600', label: 'Sold' },
-  Borrowed: { icon: RotateCcw, color: 'text-orange-600', label: 'Borrowed' },
-  Returned: { icon: CheckCircle, color: 'text-teal-600', label: 'Returned' },
-  Auctioning: { icon: Gavel, color: 'text-indigo-600', label: 'Auctioning' },
+  Available: { icon: CheckCircle, color: "text-green-600", label: "Available" },
+  Pending: { icon: Clock, color: "text-yellow-600", label: "Pending" },
+  Approved: { icon: CheckSquare, color: "text-blue-600", label: "Approved" },
+  Rejected: { icon: XCircle, color: "text-red-600", label: "Rejected" },
+  Sold: { icon: Tag, color: "text-purple-600", label: "Sold" },
+  Borrowed: { icon: RotateCcw, color: "text-orange-600", label: "Borrowed" },
+  Returned: { icon: CheckCircle, color: "text-teal-600", label: "Returned" },
+  Auctioning: { icon: Gavel, color: "text-indigo-600", label: "Auctioning" },
 };
 
 export const productDetailLoader = async ({ params }) => {
   try {
     const data = await getItemDetailById(params.itemId);
     const relatedItemsData = await getItemsByCategory(data.data.categoryId._id);
-    const relatedItems = relatedItemsData.data.filter(i => i._id !== data.data._id);
+    const relatedItems = relatedItemsData.data.filter(
+      (i) => i._id !== data.data._id
+    );
     return {
       product: data.data,
       relatedItems,
@@ -47,6 +49,7 @@ export default function ProductDetail() {
   const [borrowModalOpen, setBorrowModalOpen] = useState(false);
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const navigate = useNavigate();
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
@@ -99,10 +102,15 @@ export default function ProductDetail() {
   // Render seller information
   const renderSellerInfo = () => {
     if (!product.ownerInfo) {
-      return <p className="text-sm text-gray-700">No seller information available.</p>;
+      return (
+        <p className="text-sm text-gray-700">
+          No seller information available.
+        </p>
+      );
     }
 
-    const { name, imageUrl, hasImage, emailAddresses, phoneNumbers } = product.ownerInfo;
+    const { name, imageUrl, hasImage, emailAddresses, phoneNumbers } =
+      product.ownerInfo;
 
     return (
       <div className="space-y-2">
@@ -114,14 +122,27 @@ export default function ProductDetail() {
               className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-
-            </div>
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"></div>
           )}
-          <div>
-            <p className="text-lg font-semibold">{name || "Anonymous Seller"}</p>
+
+          {/* Tên người bán và nút nhắn tin */}
+          <div className="flex-1 flex justify-between items-center">
+            <p className="text-lg font-semibold">
+              {name || "Anonymous Seller"}
+            </p>
+            {/* Nút nhắn tin nếu có product.owner và name khác "Anonymous Seller" */}
+            {product.owner && name && name !== "Anonymous Seller" && (
+              <Button
+                type="primary"
+                onClick={() => navigate(`/chat?seller=${product.owner}`)}
+              >
+                Nhắn tin với người bán
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Email */}
         <div>
           <p className="text-sm text-gray-700 font-medium">Email:</p>
           {emailAddresses?.length > 0 ? (
@@ -131,13 +152,13 @@ export default function ProductDetail() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-700">
-              <ul className="text-sm text-gray-700 list-disc pl-5">
-                <li>Unknown</li>
-              </ul>
-            </p>
+            <ul className="text-sm text-gray-700 list-disc pl-5">
+              <li>Unknown</li>
+            </ul>
           )}
         </div>
+
+        {/* Phone */}
         <div>
           <p className="text-sm text-gray-700 font-medium">Phone:</p>
           {phoneNumbers?.length > 0 ? (
@@ -147,30 +168,30 @@ export default function ProductDetail() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-700">
-              <ul className="text-sm text-gray-700 list-disc pl-5">
-                <li>Unknown</li>
-              </ul>
-            </p>
+            <ul className="text-sm text-gray-700 list-disc pl-5">
+              <li>Unknown</li>
+            </ul>
           )}
         </div>
       </div>
     );
   };
 
-  const status = product.statusId?.name || 'Unknown';
-  const { icon: StatusIcon, color: statusColor, label: statusLabel } = statusConfig[status] || {
+  const status = product.statusId?.name || "Unknown";
+  const {
+    icon: StatusIcon,
+    color: statusColor,
+    label: statusLabel,
+  } = statusConfig[status] || {
     icon: XCircle,
-    color: 'text-gray-600',
-    label: 'Unknown',
+    color: "text-gray-600",
+    label: "Unknown",
   };
 
   return (
     <div className="container mx-auto p-6">
       <Card className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-        <div>
-          {renderImages()}
-        </div>
+        <div>{renderImages()}</div>
 
         <div className="space-y-4">
           <h1 className="text-2xl font-bold">{product.name}</h1>
@@ -200,48 +221,53 @@ export default function ProductDetail() {
 
           {/* Display button */}
           <div className="pt-4">
-            {product.typeId?.name === "Sell" && (product.statusId?.name === "Available" || product.statusId?.name === "Approved") && (
-              <>
-                <Button
-                  className="flex items-center gap-2"
-                  onClick={() => setBuyModalOpen(true)}
-                  disabled={isPurchasing}
-                >
-                  <ShoppingCart size={18} />
-                  Buy Now
-                </Button>
-                <BuyModal
-                  open={buyModalOpen}
-                  onClose={() => setBuyModalOpen(false)}
-                  product={product}
-                  setIsPurchasing={setIsPurchasing}
-                />
-              </>
-            )}
+            {product.typeId?.name === "Sell" &&
+              (product.statusId?.name === "Available" ||
+                product.statusId?.name === "Approved") && (
+                <>
+                  <Button
+                    className="flex items-center gap-2"
+                    onClick={() => setBuyModalOpen(true)}
+                    disabled={isPurchasing}
+                  >
+                    <ShoppingCart size={18} />
+                    Buy Now
+                  </Button>
+                  <BuyModal
+                    open={buyModalOpen}
+                    onClose={() => setBuyModalOpen(false)}
+                    product={product}
+                    setIsPurchasing={setIsPurchasing}
+                  />
+                </>
+              )}
 
-            {product.typeId?.name === "Borrow" && (product.statusId?.name === "Available" || product.statusId?.name === "Approved") && (
-              <>
-                <Button
-                  className="flex items-center gap-2"
-                  onClick={() => setBorrowModalOpen(true)}
-                >
-                  <ShoppingCart size={18} /> Borrow now
-                </Button>
-                <BorrowModal
-                  open={borrowModalOpen}
-                  onClose={() => setBorrowModalOpen(false)}
-                  product={product}
-                />
-              </>
-            )}
+            {product.typeId?.name === "Borrow" &&
+              (product.statusId?.name === "Available" ||
+                product.statusId?.name === "Approved") && (
+                <>
+                  <Button
+                    className="flex items-center gap-2"
+                    onClick={() => setBorrowModalOpen(true)}
+                  >
+                    <ShoppingCart size={18} /> Borrow now
+                  </Button>
+                  <BorrowModal
+                    open={borrowModalOpen}
+                    onClose={() => setBorrowModalOpen(false)}
+                    product={product}
+                  />
+                </>
+              )}
 
-            {product.typeId?.name === "Auction" && product.statusId?.name === "Available" && (
-              <>
-                <Button className="flex items-center gap-2">
-                  <ShoppingCart size={18} /> Place Bid
-                </Button>
-              </>
-            )}
+            {product.typeId?.name === "Auction" &&
+              product.statusId?.name === "Available" && (
+                <>
+                  <Button className="flex items-center gap-2">
+                    <ShoppingCart size={18} /> Place Bid
+                  </Button>
+                </>
+              )}
           </div>
         </div>
       </Card>

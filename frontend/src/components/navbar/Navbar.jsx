@@ -3,10 +3,11 @@ import LinkDropdown from "./LinksDropdown";
 import logo from "../../assets/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ShoppingCart, Plus, MessageCircle, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { TbCoinFilled } from "react-icons/tb";
 import { useUser } from "@clerk/clerk-react";
 import { Input } from "antd";
+import ChatList from "./ChatList";
 
 const Navbar = () => {
   const { user } = useUser();
@@ -68,16 +69,10 @@ const Navbar = () => {
         </div>
 
         <div className="flex gap-4 items-center">
-          {/* Chat Icon */}
-          <div className="relative cursor-pointer">
-            <MessageCircle className="w-6 h-6" />
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              2
-            </span>
-          </div>
+          {/* Chat List */}
+          <ChatList />
 
-          {/* Cart Icon with badge */}
-
+          {/* Coin display */}
           <Link to={"/topup"}>
             <div className="flex items-center mx-2">
               <TbCoinFilled size={30} color="#ebb410" />
@@ -87,6 +82,7 @@ const Navbar = () => {
 
           {/* Dropdown menu */}
           <LinkDropdown />
+
           {/* Post listing button */}
           <Link to="/create-post">
             <button
