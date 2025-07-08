@@ -2,7 +2,7 @@ import React from "react";
 import { Clock, CheckCircle, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { customFetch } from "@/utils/customAxios";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 
 export const auctionAdminLoader = async () => {
   try {
@@ -19,6 +19,7 @@ export const auctionAdminLoader = async () => {
 
 const AuctionAdmin = () => {
   const { auctionData } = useLoaderData();
+  const navigate = useNavigate();
 
   const data = auctionData;
 
@@ -175,17 +176,22 @@ const AuctionAdmin = () => {
                   </div>
 
                   {/* ID */}
-                  {/* <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="mt-3 pt-3 border-t border-gray-100">
                     <div className="text-xs text-gray-500">
                       ID: {auction.id}
                     </div>
-                  </div> */}
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="px-4 pb-4">
                   <div className="flex gap-2">
-                    <button className="cursor-pointer flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                    <button
+                      className="cursor-pointer flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      onClick={() => {
+                        navigate(`/admin/auction/detail/${auction.id}`);
+                      }}
+                    >
                       View Details
                     </button>
                     {/* <button className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">

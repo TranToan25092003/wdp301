@@ -33,7 +33,7 @@ import { useState } from "react";
 export const browseLoader = async () => {
   try {
     const browseItemData = await customFetch("/admin/items/browse");
-
+    console.log(browseItemData.data.data);
     return {
       data: browseItemData.data.data,
     };
@@ -57,11 +57,13 @@ export const BrowseItem = () => {
 
   const { message, data } = useLoaderData();
 
+  console.log(data);
+
   if (message) {
     return <ErrorPage errorCode={"400"} message={message}></ErrorPage>;
   }
 
-  const products = data;
+  const products = data.data;
 
   return (
     <div className="min-h-screen  p-4">

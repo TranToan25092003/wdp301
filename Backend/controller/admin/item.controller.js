@@ -2,10 +2,15 @@ const { default: mongoose } = require("mongoose");
 const { Item, Status } = require("../../model");
 
 // get items by condition
-const getItems = async (condition) => {
-  const rawData = await Item.find(condition).populate(
-    "typeId categoryId statusId"
-  );
+const getItems = async (condition, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+
+  const rawData = await Item.find(condition)
+    .populate("typeId categoryId statusId")
+    .skip(skip)
+    .limit(limit);
+
+  const totalItems = await Item.countDocuments(condition);
 
   const returnData = rawData.map(
     ({ _id, name, price, images, typeId, statusId, categoryId }) => {
@@ -21,7 +26,12 @@ const getItems = async (condition) => {
     }
   );
 
-  return returnData;
+  return {
+    data: returnData,
+    totalItems,
+    currentPage: page,
+    totalPages: Math.ceil(totalItems / limit),
+  };
 };
 
 // check item exist
@@ -39,6 +49,43 @@ const checkExistItem = async (condition) => {
   }
 };
 
+// [GET] /admin/items
+module.exports.getAllItems = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status } = req.query;
+
+    // Build condition object
+    const condition = {};
+
+    // Only add status filter if provided
+    if (status) {
+      const statusDoc = await Status.findOne({
+        name: { $regex: status, $options: "i" },
+      });
+      if (statusDoc) {
+        condition.statusId = statusDoc._id;
+      }
+    }
+
+    const result = await getItems(condition, parseInt(page), parseInt(limit));
+
+    return res.json({
+      data: result.data,
+      pagination: {
+        totalItems: result.totalItems,
+        currentPage: result.currentPage,
+        totalPages: result.totalPages,
+        limit: parseInt(limit),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error in getting items",
+      error: error.message,
+    });
+  }
+};
+
 // check valid mongo id
 const checkValidMongoId = (id) => {
   if (mongoose.Types.ObjectId.isValid(id)) {
@@ -49,19 +96,19 @@ const checkValidMongoId = (id) => {
 };
 
 // [GET] /admin/items
-module.exports.getAllItems = async (req, res) => {
-  try {
-    const returnData = await getItems({});
+// module.exports.getAllItems = async (req, res) => {
+//   try {
+//     const returnData = await getItems({});
 
-    return res.json({
-      data: returnData,
-    });
-  } catch (error) {
-    return res.json({
-      message: "errors in get items admin",
-    });
-  }
-};
+//     return res.json({
+//       data: returnData,
+//     });
+//   } catch (error) {
+//     return res.json({
+//       message: "errors in get items admin",
+//     });
+//   }
+// };
 
 // [GET] /admin/items/browse
 module.exports.getBrowseItem = async (req, res) => {
