@@ -40,6 +40,10 @@ import {
   ItemDetailDashboard,
   itemDetailDashboardLoader,
 } from "./pages/admin/ItemDetailDashboard";
+import {
+  TransactionAdminDashboard,
+  transactionAdminDashboardLoader,
+} from "./pages/admin/TransactionAdmin";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -119,9 +123,9 @@ const router = createBrowserRouter([
         element: <ChatBox />,
       },
       {
-  path: "/sellers",
-  element: <SellerList />,
-},
+        path: "/sellers",
+        element: <SellerList />,
+      },
 
       // admin routers
       {
@@ -187,6 +191,11 @@ const router = createBrowserRouter([
             path: "items/detail/:id",
             element: <ItemDetailDashboard></ItemDetailDashboard>,
             loader: itemDetailDashboardLoader,
+          },
+          {
+            path: "transaction",
+            element: <TransactionAdminDashboard></TransactionAdminDashboard>,
+            loader: transactionAdminDashboardLoader,
           },
         ],
       },
