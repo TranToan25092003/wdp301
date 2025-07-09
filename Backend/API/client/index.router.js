@@ -10,9 +10,11 @@ const buyRouter = require("./buy.duc/buy.router");
 const coinRouter = require("./coin.router");
 const reportRouter = require("./report.duy/report.router");
 const { authenticate } = require("../../middleware/guards/authen.middleware");
-
+const testRouter = require("./test.router");
 module.exports = (app) => {
-  // -------------------------------
+  // this router only for testing app do not use this router to write data ok
+  app.use("/test", authenticate, testRouter);
+  // ----------------------------------------------
 
   app.use("/items", itemRouter);
   app.use("/categories", categoryRouter);

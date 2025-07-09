@@ -29,7 +29,10 @@ module.exports.roleProtected = async (req, res, next) => {
     await clerkClient.users.getOrganizationMembershipList({ userId: userId });
 
   // console.log(roleUserInOrganization.data[0]?.role);
-  if (roleUserInOrganization.data[0]?.role != "org:admin") {
+  if (
+    roleUserInOrganization.data[0]?.role != "org:admin" &&
+    roleUserInOrganization.data[0]?.role != "org:admin_secondary"
+  ) {
     return res.status(403).json({
       error: "forbidden resource",
     });

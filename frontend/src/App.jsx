@@ -30,6 +30,15 @@ import DashboardStats, {
 import About from "./pages/About";
 import TransactionHistoryPage from "./pages/TransactionHistoryPage";
 import ChatBox from "./pages/ChatBox";
+import AuctionAdmin, { auctionAdminLoader } from "./pages/admin/AuctionAdmin";
+import {
+  AuctionAdminDetail,
+  auctionAdminDetailLoader,
+} from "./pages/admin/AuctionDetail.admin";
+import {
+  ItemDetailDashboard,
+  itemDetailDashboardLoader,
+} from "./pages/admin/ItemDetailDashboard";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -153,6 +162,26 @@ const router = createBrowserRouter([
             path: "contact",
             element: <EditContact></EditContact>,
             loader: contactLoader,
+          },
+
+          // auction
+          {
+            path: "auction-items",
+            element: <AuctionAdmin></AuctionAdmin>,
+            loader: auctionAdminLoader,
+          },
+
+          // auction detail
+          {
+            path: "auction/detail/:id",
+            element: <AuctionAdminDetail></AuctionAdminDetail>,
+            loader: auctionAdminDetailLoader,
+          },
+
+          {
+            path: "items/detail/:id",
+            element: <ItemDetailDashboard></ItemDetailDashboard>,
+            loader: itemDetailDashboardLoader,
           },
         ],
       },
