@@ -23,6 +23,7 @@ import EditContact, { contactLoader } from "./pages/admin/ContactInfo";
 import FilterPage, { filterPageLoader } from "./pages/FilterPage";
 import CreateReportPage from "./pages/CreateReportPage";
 import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
+import SellerList from "./pages/SellerList";
 // IMPORT COMPONENT VÀ LOADER MỚI CHO THỐNG KÊ
 import DashboardStats, {
   dashboardStatsLoader,
@@ -97,6 +98,10 @@ const router = createBrowserRouter([
         path: "/report", // Đường dẫn bạn muốn sử dụng để truy cập trang tạo báo cáo
         element: <CreateReportPage />, // Component CreateReportPage (chứa form)
       },
+      {
+  path: "/sellers",
+  element: <SellerList />,
+},
 
       // admin routers
       {

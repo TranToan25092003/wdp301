@@ -82,19 +82,19 @@ app.set("socketio", io);
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  // Join auction room
-  socket.on("joinAuction", (auctionId) => {
-    socket.join(auctionId);
-    console.log(`User ${socket.id} joined auction ${auctionId}`);
+  // ✅ Thêm sự kiện join theo userId
+  socket.on("join", (userId) => {
+    socket.join(userId);
+    console.log(`User ${userId} joined their personal room`);
   });
 
-  // Handle disconnection
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
 
+
 // run server
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`server is running at port ${port}`);
 });

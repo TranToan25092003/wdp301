@@ -7,9 +7,10 @@ const {
   authenticate,
 } = require("../../../middleware/guards/authen.middleware");
 const { validationResult } = require("express-validator");
+const { checkBanStatus } = require("../../../middleware/ban.middleware");
 const router = express.Router();
 
-router.post("/", authenticate, validateBorrow, async (req, res, next) => {
+router.post("/", authenticate, checkBanStatus, validateBorrow, async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });

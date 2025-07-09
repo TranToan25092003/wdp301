@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import LinkDropdown from "./LinksDropdown";
 import logo from "../../assets/logo.png";
-import { Link } from "react-router-dom";
-import { useState } from "react";
 import { ShoppingCart, Plus, MessageCircle, Search } from "lucide-react";
 import { TbCoinFilled } from "react-icons/tb";
 import { useUser } from "@clerk/clerk-react";
+import NotificationBell from "../global/NotificationBell"; // ✅ Đã import chuông thông báo
 
 const Navbar = () => {
   const { user } = useUser();
@@ -22,23 +22,17 @@ const Navbar = () => {
 
           {/* Navigation tabs */}
           <nav className="hidden md:flex items-center gap-6 ml-8">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-            >
+            <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Trang chủ
             </Link>
-            <Link
-              to="/auctions"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-            >
+            <Link to="/auctions" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Auctions
             </Link>
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-            >
+            <Link to="/about" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Thông tin
+            </Link>
+            <Link to="/sellers" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              Người đăng
             </Link>
           </nav>
         </div>
@@ -66,8 +60,10 @@ const Navbar = () => {
             </span>
           </div>
 
-          {/* Cart Icon with badge */}
-          
+          {/* Notification Bell ✅ */}
+          <NotificationBell />
+
+          {/* Coin */}
           <Link to={"/topup"}>
             <div className="flex items-center mx-2">
               <TbCoinFilled size={30} color="#ebb410" />
@@ -77,6 +73,7 @@ const Navbar = () => {
 
           {/* Dropdown menu */}
           <LinkDropdown />
+
           {/* Post listing button */}
           <Link to="/create-post">
             <button
