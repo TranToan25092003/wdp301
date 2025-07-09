@@ -475,6 +475,7 @@ const getUserUploadedItems = async (req, res) => {
     // Transform data to include relevant fields
     const formattedItems = await Promise.all(items.map(async (item) => {
       const baseItem = {
+        id: item._id,
         name: item.name,
         description: item.description,
         price: item.price,
