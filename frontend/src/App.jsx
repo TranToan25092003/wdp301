@@ -35,6 +35,10 @@ import {
   AuctionAdminDetail,
   auctionAdminDetailLoader,
 } from "./pages/admin/AuctionDetail.admin";
+import {
+  ItemDetailDashboard,
+  itemDetailDashboardLoader,
+} from "./pages/admin/ItemDetailDashboard";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -172,6 +176,12 @@ const router = createBrowserRouter([
             path: "auction/detail/:id",
             element: <AuctionAdminDetail></AuctionAdminDetail>,
             loader: auctionAdminDetailLoader,
+          },
+
+          {
+            path: "items/detail/:id",
+            element: <ItemDetailDashboard></ItemDetailDashboard>,
+            loader: itemDetailDashboardLoader,
           },
         ],
       },

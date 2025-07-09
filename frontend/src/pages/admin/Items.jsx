@@ -45,7 +45,7 @@ export const itemsAdminLoader = async ({ request, params }) => {
 
     const returnItemsData = data;
 
-    console.log(returnItemsData);
+    console.log(rawItemsData);
 
     return {
       data: returnItemsData,
@@ -53,7 +53,9 @@ export const itemsAdminLoader = async ({ request, params }) => {
       status,
       pagination,
     };
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const Items = () => {
@@ -128,7 +130,9 @@ const Items = () => {
                   <div className="flex justify-center ">
                     <Button
                       className="bg-[#169976] text-white hover:bg-[#1DCD9F] px-4 py-2 rounded-md"
-                      onClick={() => alert(`View ${product.name}`)}
+                      onClick={() => {
+                        navigate(`detail/${product._id}`);
+                      }}
                     >
                       View
                     </Button>

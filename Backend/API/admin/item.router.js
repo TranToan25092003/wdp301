@@ -147,4 +147,28 @@ router.get("/browse", itemController.getBrowseItem);
  */
 router.post("/approve", itemController.approveItem);
 
+/**
+ * @swagger
+ * /admin/items/{id}/detail:
+ *   get:
+ *     summary: Get item by ID
+ *     tags:
+ *       - admin/items
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the item to retrieve
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the item
+ *       404:
+ *         description: Item not found
+ */
+router.get("/:id/detail", itemController.getItemById);
+
 module.exports = router;

@@ -50,7 +50,6 @@ const LinkDropdown = () => {
         </SignedOut>
         <SignedIn>
           {links.map((link) => {
-            console.log(orgRole);
             if (link.href.includes("/admin")) {
               if (orgRole == "org:admin" || orgRole == "org:admin_secondary") {
                 return (

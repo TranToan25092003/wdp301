@@ -1,5 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const { Item, Status } = require("../../model");
+const { clerkClient } = require("../../config/clerk");
 
 // get items by condition
 const getItems = async (condition, page = 1, limit = 10) => {
@@ -95,21 +96,6 @@ const checkValidMongoId = (id) => {
   return false;
 };
 
-// [GET] /admin/items
-// module.exports.getAllItems = async (req, res) => {
-//   try {
-//     const returnData = await getItems({});
-
-//     return res.json({
-//       data: returnData,
-//     });
-//   } catch (error) {
-//     return res.json({
-//       message: "errors in get items admin",
-//     });
-//   }
-// };
-
 // [GET] /admin/items/browse
 module.exports.getBrowseItem = async (req, res) => {
   try {
@@ -178,6 +164,68 @@ module.exports.approveItem = async (req, res) => {
   } catch (error) {
     return res.json({
       message: "error in approve items",
+    });
+  }
+};
+
+/**
+ * ====================================
+ * [GET] /get/items/:id
+ * ====================================
+ */
+module.exports.getItemById = async (req, res) => {
+  try {
+    const itemId = req.params.id;
+
+    const isValidId = checkValidMongoId(itemId);
+
+    if (!isValidId) {
+      return res.json({
+        message: "Item does not exist",
+      });
+    }
+
+    const itemDetail = await Item.findById(itemId)
+      .select("name description price images owner typeId categoryId statusId")
+      .populate("typeId categoryId statusId")
+      .lean();
+
+    if (!itemDetail) {
+      return res.json({
+        message: "Item does not exist",
+      });
+    }
+
+    const owner = await clerkClient.users.getUser(itemDetail.owner);
+
+    const formatted = {
+      _id: itemDetail._id,
+      name: itemDetail.name,
+      description: itemDetail.description,
+      price: itemDetail.price,
+      images: itemDetail.images,
+      type: itemDetail.typeId?.name,
+      category: {
+        name: itemDetail.categoryId?.name,
+        image: itemDetail.categoryId?.image,
+      },
+      status: itemDetail.statusId?.name,
+      owner: {
+        id: owner.id,
+        firstName: owner.firstName,
+        lastName: owner.lastName,
+        email: owner.emailAddresses[0]?.emailAddress || null,
+        image: owner.imageUrl,
+      },
+    };
+
+    return res.json({
+      data: formatted,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.json({
+      message: "error in get item by id items",
     });
   }
 };
