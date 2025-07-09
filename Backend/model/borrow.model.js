@@ -30,46 +30,17 @@ const borrowSchema = new mongoose.Schema(
       type: Date,
       required: [true, "End time is required"],
     },
-    // *** THÊM MỚI QUAN TRỌNG: Trạng thái của giao dịch mượn ***
     status: {
       type: String,
-      enum: ['pending', 'approved', 'declined', 'borrowed', 'returned', 'late', 'unreturned', 'canceled'],
+      enum: ['borrowed', 'returned', 'late'],
       default: 'pending',
       required: true,
     },
-    // *** THÊM MỚI QUAN TRỌNG: Thời gian trả thực tế (nếu có) ***
-    actualReturnTime: {
-      type: Date,
-      required: false, // Chỉ có nếu trạng thái là 'returned' hoặc 'late'
-    },
-    // *** THÊM MỚI QUAN TRỌNG: Chủ sở hữu của Item được mượn (Owner) ***
-    // Điều này sẽ giúp dễ dàng tính toán "Người bán uy tín"
-    owner: {
-      type: String,
-      required: [true, "Item owner ID is required"],
-    }
   },
   {
     timestamps: true,
   }
 );
-
-// Middleware để tự động lấy owner từ Item và gán vào Borrow trước khi lưu
-borrowSchema.pre('save', async function(next) {
-  // Chỉ chạy nếu đây là bản ghi mới hoặc itemId đã thay đổi
-  if (this.isNew || this.isModified('itemId')) {
-    // Để tránh lỗi circular dependency, cần import Model tại chỗ
-    const Item = mongoose.model('Item');
-    const item = await Item.findById(this.itemId);
-    if (item) {
-      this.owner = item.owner;
-    } else {
-      // Xử lý lỗi nếu item không tìm thấy
-      return next(new Error('Item not found for borrow transaction. Cannot set owner.'));
-    }
-  }
-  next();
-});
 
 const Borrow = mongoose.model("Borrow", borrowSchema);
 

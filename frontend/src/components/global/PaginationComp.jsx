@@ -6,6 +6,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  useLoaderData,
+  useSearchParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
 export function PaginationDemo({ currentPage, totalPages, onPageChange }) {
   const pages = [];

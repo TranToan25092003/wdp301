@@ -5,6 +5,8 @@ const userAdminRouter = require("./userAdmin.router");
 const contactRouter = require("./contact.router");
 const reportRouter = require("./report.router");
 const statsRouter = require("./stats.router");
+const auctionRouter = require("./auction.router");
+
 module.exports = (app) => {
   app.use("/admin/items", authenticate, roleProtected, itemRouter);
 
@@ -13,4 +15,5 @@ module.exports = (app) => {
   app.use("/admin/reports", authenticate, roleProtected, reportRouter);
   app.use("/admin/stats", authenticate, roleProtected, statsRouter);
   app.use("/admin/users", authenticate, roleProtected, userAdminRouter);
+  app.use("/admin/auction", authenticate, roleProtected, auctionRouter);
 };

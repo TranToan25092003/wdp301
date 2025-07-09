@@ -1,15 +1,25 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { MessageCircle } from "lucide-react";
 import LinkDropdown from "./LinksDropdown";
 import logo from "../../assets/logo.png";
-import { ShoppingCart, Plus, MessageCircle, Search } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { TbCoinFilled } from "react-icons/tb";
 import { useUser } from "@clerk/clerk-react";
+import { Input } from "antd";
+import ChatList from "./ChatList";
 import NotificationBell from "../global/NotificationBell"; // ✅ Đã import chuông thông báo
 
 const Navbar = () => {
   const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/filter?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <div className="border-b w-full">
@@ -39,16 +49,18 @@ const Navbar = () => {
 
         {/* Search Bar */}
         <div className="flex-1 max-w-md mx-4 order-last lg:order-none w-full lg:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+          <Input.Search
+            placeholder="Tìm kiếm sản phẩm..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onSearch={handleSearch}
+            enterButton={<span className="hidden sm:inline">Tìm</span>}
+            size="large"
+            style={{
+              "--antd-wave-shadow-color": "#0F7A5A",
+            }}
+            className="custom-antd-search"
+          />
         </div>
 
         <div className="flex gap-4 items-center">
@@ -73,6 +85,7 @@ const Navbar = () => {
 
           {/* Dropdown menu */}
           <LinkDropdown />
+
 
           {/* Post listing button */}
           <Link to="/create-post">

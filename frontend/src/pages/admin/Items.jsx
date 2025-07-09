@@ -18,125 +18,79 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import React from "react";
-import { Pagination } from "@/components/ui/pagination";
 import { PaginationDemo } from "@/components/global/PaginationComp";
-import { FaBan } from "react-icons/fa6";
-import { useLoaderData } from "react-router-dom";
+import {
+  useLoaderData,
+  useSearchParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { customFetch } from "@/utils/customAxios";
-export const itemsAdminLoader = async () => {
-  try {
-    const rawItemsData = await customFetch("/admin/items");
 
-    const returnItemsData = rawItemsData.data.data;
+import SheetComponent from "@/components/item/SheetComponent";
+export const itemsAdminLoader = async ({ request, params }) => {
+  try {
+    const url = new URL(request.url);
+
+    // const fullUrl = url.toString();
+
+    const page = url.searchParams.get("page") ?? 1;
+    const status = url.searchParams.get("status") ?? "";
+
+    const query = `?page=${parseInt(page)}&status=${status}`;
+
+    const rawItemsData = await customFetch("/admin/items" + query);
+
+    const { pagination, data } = rawItemsData.data;
+
+    const returnItemsData = data;
+
+    console.log(rawItemsData);
 
     return {
       data: returnItemsData,
+      page,
+      status,
+      pagination,
     };
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-// const products = [
-//   {
-//     _id: "682ff1114a0495973b61df65",
-//     name: "Dell Laptop XPS 13",
-//     price: 500,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-//   {
-//     _id: "682ff1244a0495973b61df66",
-//     name: "Wooden Dining Table Set",
-//     price: 100,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Furniture",
-//   },
-//   {
-//     _id: "682ff13c4a0495973b61df67",
-//     name: "Samsung Galaxy Tab S6",
-//     price: 20,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-//   {
-//     _id: "682ff13c4a0495973b61df67",
-//     name: "Samsung Galaxy Tab S6",
-//     price: 20,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-//   {
-//     _id: "682ff13c4a0495973b61df67",
-//     name: "Samsung Galaxy Tab S6",
-//     price: 20,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-//   {
-//     _id: "682ff13c4a0495973b61df67",
-//     name: "Samsung Galaxy Tab S6",
-//     price: 20,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-//   {
-//     _id: "682ff13c4a0495973b61df67",
-//     name: "Samsung Galaxy Tab S6",
-//     price: 20,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-//   {
-//     _id: "682ff13c4a0495973b61df67",
-//     name: "Samsung Galaxy Tab S6",
-//     price: 20,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-//   {
-//     _id: "682ff13c4a0495973b61df67",
-//     name: "Samsung Galaxy Tab S6",
-//     price: 20,
-//     image: "/assets/sample.jpg",
-//     type: "Borrow",
-//     status: "Available",
-//     category: "Electronics",
-//   },
-// ];
 const Items = () => {
-  const { data } = useLoaderData();
+  const { data, page, status, pagination } = useLoaderData();
   const products = data;
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen  p-4">
       <div className="grid justify-items-end mb-2">
-        <Select className="border-2 border-red-60 ">
+        <Select
+          onValueChange={(value) => {
+            const params = new URLSearchParams(searchParams);
+            params.set("status", value);
+
+            navigate(`${location.pathname}?${params.toString()}`);
+          }}
+          value={status}
+          className="border-2 border-red-60 "
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Fruits</SelectLabel>
-              <SelectItem value="apple">Apple</SelectItem>
-              <SelectItem value="banana">Banana</SelectItem>
-              <SelectItem value="blueberry">Blueberry</SelectItem>
-              <SelectItem value="grapes">Grapes</SelectItem>
-              <SelectItem value="pineapple">Pineapple</SelectItem>
+              <SelectItem value=" ">All</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="Approved">Approved</SelectItem>
+              <SelectItem value="Rejected">Rejected</SelectItem>
+              <SelectItem value="Sold">Sold</SelectItem>
+              <SelectItem value="Borrowed">Borrowed</SelectItem>
+              <SelectItem value="Auctioning">Auctioning</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -176,18 +130,18 @@ const Items = () => {
                   <div className="flex justify-center ">
                     <Button
                       className="bg-[#169976] text-white hover:bg-[#1DCD9F] px-4 py-2 rounded-md"
-                      onClick={() => alert(`View ${product.name}`)}
+                      onClick={() => {
+                        navigate(`detail/${product._id}`);
+                      }}
                     >
                       View
                     </Button>
-                    <Button
-                      size={"icon"}
-                      className={"hover:bg-white hover:text-red-700 ml-2 mr-0"}
-                      variant={"destructive"}
-                      onClick={() => alert(`View ${product.name}`)}
-                    >
-                      <FaBan></FaBan>
-                    </Button>
+                    {product.status != "Rejected" &&
+                    product.status != "Sold" ? (
+                      <SheetComponent itemId={product._id}></SheetComponent>
+                    ) : (
+                      ""
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -196,7 +150,7 @@ const Items = () => {
         </Table>
       </div>{" "}
       <div className="mt-2">
-        <PaginationDemo></PaginationDemo>
+        <PaginationDemo pagination={pagination}></PaginationDemo>
       </div>
     </div>
   );
