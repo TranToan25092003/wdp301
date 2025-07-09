@@ -23,6 +23,7 @@ import EditContact, { contactLoader } from "./pages/admin/ContactInfo";
 import FilterPage, { filterPageLoader } from "./pages/FilterPage";
 import CreateReportPage from "./pages/CreateReportPage";
 import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
+import SellerList from "./pages/SellerList";
 // IMPORT COMPONENT VÀ LOADER MỚI CHO THỐNG KÊ
 import DashboardStats, {
   dashboardStatsLoader,
@@ -117,6 +118,10 @@ const router = createBrowserRouter([
         path: "/chat",
         element: <ChatBox />,
       },
+      {
+  path: "/sellers",
+  element: <SellerList />,
+},
 
       // admin routers
       {

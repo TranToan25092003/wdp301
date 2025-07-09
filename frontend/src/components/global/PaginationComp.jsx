@@ -1,7 +1,6 @@
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -14,64 +13,50 @@ import {
   useLocation,
 } from "react-router-dom";
 
-export function PaginationDemo({ pagination }) {
-  const { currentPage, totalPages } = pagination;
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
+export function PaginationDemo({ currentPage, totalPages, onPageChange }) {
+  const pages = [];
 
-  const firstPageUrl = () => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", currentPage - 1);
-
-    const url = `${location.pathname}?${params.toString()}`;
-
-    return url;
-  };
-
-  const lastPageUrl = () => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", currentPage + 1);
-
-    const url = `${location.pathname}?${params.toString()}`;
-
-    return url;
-  };
+  for (let i = 1; i <= totalPages; i++) {
+    pages.push(
+      <PaginationItem key={i}>
+        <PaginationLink
+          href="#"
+          isActive={i === currentPage}
+          onClick={(e) => {
+            e.preventDefault();
+            onPageChange(i);
+          }}
+        >
+          {i}
+        </PaginationLink>
+      </PaginationItem>
+    );
+  }
 
   return (
     <Pagination>
       <PaginationContent>
-        {currentPage <= 1 ? (
-          ""
-        ) : (
-          <PaginationItem>
-            <PaginationPrevious href={firstPageUrl()} />
-          </PaginationItem>
-        )}
-        {[...Array(totalPages)].map((_, i) => {
-          const params = new URLSearchParams(searchParams);
-          params.set("page", i + 1);
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage > 1) onPageChange(currentPage - 1);
+            }}
+          />
+        </PaginationItem>
 
-          const url = `${location.pathname}?${params.toString()}`;
+        {pages}
 
-          return (
-            <PaginationItem>
-              <PaginationLink
-                href={url}
-                isActive={currentPage == i + 1 ? true : false}
-              >
-                {i + 1}{" "}
-              </PaginationLink>
-            </PaginationItem>
-          );
-        })}
-        {currentPage >= totalPages ? (
-          ""
-        ) : (
-          <PaginationItem>
-            <PaginationNext href={lastPageUrl()} />
-          </PaginationItem>
-        )}
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage < totalPages) onPageChange(currentPage + 1);
+            }}
+          />
+        </PaginationItem>
       </PaginationContent>
     </Pagination>
   );

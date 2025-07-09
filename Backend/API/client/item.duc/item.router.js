@@ -8,6 +8,7 @@ const {
   filterItems,
   createItem,
   getUserUploadedItems,
+  getItemsByOwner
 } = require("../../../controller/item.duc/item.controller");
 const validateFilterItems = require("../../../dto/item.dto");
 const { validationResult } = require("express-validator");
@@ -20,7 +21,7 @@ const { checkBanStatus } = require("../../../middleware/ban.middleware"); // <--
 
 router.get("/", getAllItems);
 router.get("/recent", getRecentItems);
-
+router.get('/by-owner/:ownerId', getItemsByOwner);
 router.post(
   "/",
   authenticate, // Đã có middleware xác thực

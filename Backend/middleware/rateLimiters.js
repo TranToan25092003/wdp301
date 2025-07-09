@@ -65,7 +65,7 @@ const onLimitReached = async (req, res, options) => {
   const statusCode = options.statusCode || 429;
   res.status(statusCode).json({
     success: false,
-    message: options.message || 'Too many requests, please try again later.',
+    message: options.message || 'Bạn đang đăng tin quá nhanh. Vui lòng đợi một lát rồi thử lại.',
     violationDetected: true,
   });
 };

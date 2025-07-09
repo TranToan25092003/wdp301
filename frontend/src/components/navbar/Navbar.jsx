@@ -1,4 +1,4 @@
-import React from "react";
+import { MessageCircle } from "lucide-react";
 import LinkDropdown from "./LinksDropdown";
 import logo from "../../assets/logo.png";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ import { TbCoinFilled } from "react-icons/tb";
 import { useUser } from "@clerk/clerk-react";
 import { Input } from "antd";
 import ChatList from "./ChatList";
+import NotificationBell from "../global/NotificationBell"; // ✅ Đã import chuông thông báo
 
 const Navbar = () => {
   const { user } = useUser();
@@ -31,23 +32,17 @@ const Navbar = () => {
 
           {/* Navigation tabs */}
           <nav className="hidden md:flex items-center gap-6 ml-8">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-            >
+            <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Trang chủ
             </Link>
-            <Link
-              to="/auctions"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-            >
+            <Link to="/auctions" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Auctions
             </Link>
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-            >
+            <Link to="/about" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Thông tin
+            </Link>
+            <Link to="/sellers" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              Người đăng
             </Link>
           </nav>
         </div>
@@ -69,10 +64,18 @@ const Navbar = () => {
         </div>
 
         <div className="flex gap-4 items-center">
-          {/* Chat List */}
-          <ChatList />
+          {/* Chat Icon */}
+          <div className="relative cursor-pointer">
+            <MessageCircle className="w-6 h-6" />
+            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              2
+            </span>
+          </div>
 
-          {/* Coin display */}
+          {/* Notification Bell ✅ */}
+          <NotificationBell />
+
+          {/* Coin */}
           <Link to={"/topup"}>
             <div className="flex items-center mx-2">
               <TbCoinFilled size={30} color="#ebb410" />
@@ -82,6 +85,7 @@ const Navbar = () => {
 
           {/* Dropdown menu */}
           <LinkDropdown />
+
 
           {/* Post listing button */}
           <Link to="/create-post">

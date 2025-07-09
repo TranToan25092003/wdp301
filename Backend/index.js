@@ -110,10 +110,10 @@ io.on("connection", (socket) => {
     console.error("Socket error:", error);
   });
 
-  // Join auction room
-  socket.on("joinAuction", (auctionId) => {
-    socket.join(auctionId);
-    console.log(`User ${socket.id} joined auction ${auctionId}`);
+  // ✅ Thêm sự kiện join theo userId
+  socket.on("join", (userId) => {
+    socket.join(userId);
+    console.log(`User ${userId} joined their personal room`);
   });
 
   // Leave auction room
@@ -250,6 +250,7 @@ io.on("connection", (socket) => {
     console.log("User disconnected:", socket.id, "Reason:", reason);
   });
 });
+
 
 // run server
 server.listen(port, () => {

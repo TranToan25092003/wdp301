@@ -12,5 +12,7 @@ const notificationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const Notification = mongoose.model("Notification", notificationSchema);
+// ✅ Tránh lỗi overwrite khi model đã tồn tại
+const Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
+
 module.exports = Notification;

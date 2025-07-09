@@ -16,12 +16,26 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PaginationDemo } from "@/components/global/PaginationComp";
-import { Search, Calendar, User, Package, TrendingUp, AlertTriangle, DollarSign, Users, Crown, Clock } from "lucide-react";
+import { Search, Calendar, User, Package, TrendingUp, AlertTriangle, DollarSign, Users, Crown, Clock, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const adminReportLoader = async ({ request }) => {
   const params = Object.fromEntries([
     ...new URL(request.url).searchParams.entries(),
   ]);
+
+  // Đặt giới hạn mặc định là 6 sản phẩm mỗi trang
+  params.limit = params.limit || 6;
 
   try {
     const response = await customFetch.get("/admin/reports", { params });
@@ -31,24 +45,26 @@ export const adminReportLoader = async ({ request }) => {
       searchParams: params,
     };
   } catch (error) {
-    toast.error("Error fetching admin report");
+    toast.error("Lỗi khi tải báo cáo quản trị");
     console.error("Loader Error:", error);
     return {
       transactions: { data: [], totalItems: 0, totalPages: 0, currentPage: 1 },
       statistics: {
         topTransactingUsers: [],
-        reputableSellers: [],
+        reliableSellers: [],
         mostReportedUsers: [],
         mostProblematicBorrowers: [],
+        otherReportStats: {},
       },
       searchParams: params,
-      error: "Failed to load report data.",
+      error: "Không thể tải dữ liệu báo cáo.",
     };
   }
 };
 
 const AdminReport = () => {
   const { transactions, statistics, searchParams, error } = useLoaderData();
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,12 +77,15 @@ const AdminReport = () => {
     e.preventDefault();
     const currentParams = new URLSearchParams(location.search);
 
+    // Giữ nguyên limit đã được đặt trong loader hoặc từ URL
+    currentParams.set("limit", searchParams.limit || 6);
+
     if (localStartDate) currentParams.set("startDate", localStartDate); else currentParams.delete("startDate");
     if (localEndDate) currentParams.set("endDate", localEndDate); else currentParams.delete("endDate");
     if (localSearchUser) currentParams.set("searchUser", localSearchUser); else currentParams.delete("searchUser");
     if (localSearchItem) currentParams.set("searchItem", localSearchItem); else currentParams.delete("searchItem");
 
-    currentParams.set("page", 1);
+    currentParams.set("page", 1); // Reset về trang 1 khi áp dụng bộ lọc mới
     navigate(`${location.pathname}?${currentParams.toString()}`);
   };
 
@@ -81,7 +100,23 @@ const AdminReport = () => {
     setLocalEndDate("");
     setLocalSearchUser("");
     setLocalSearchItem("");
-    navigate(location.pathname);
+    // Khi xóa bộ lọc, cũng reset về trang 1 và xóa các tham số tìm kiếm, giữ nguyên limit
+    const newSearchParams = new URLSearchParams();
+    newSearchParams.set("limit", searchParams.limit || 6);
+    navigate(`${location.pathname}?${newSearchParams.toString()}`);
+  };
+
+  const handleDeleteReport = async (reportId) => {
+
+    try {
+      await customFetch.delete(`/admin/reports/${reportId}`);
+      toast.success("Đã xóa báo cáo thành công");
+      // Reload trang để cập nhật dữ liệu
+      window.location.reload();
+    } catch (error) {
+      console.error("Lỗi khi xóa báo cáo:", error);
+      toast.error("Không thể xóa báo cáo. Vui lòng thử lại.");
+    }
   };
 
   if (error) {
@@ -91,7 +126,7 @@ const AdminReport = () => {
           <CardHeader>
             <CardTitle className="text-red-600 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
-              Error
+              Lỗi
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -106,25 +141,55 @@ const AdminReport = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Comprehensive reporting and analytics</p>
+          <h1 className="text-3xl font-bold text-gray-900">Bảng Điều Khiển Quản Trị</h1>
+          <p className="text-gray-600">Báo cáo và phân tích toàn diện</p>
         </div>
 
+        {/* Filters & Search Section */}
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <Search className="w-5 h-5" />
-              Filters & Search
+              Bộ Lọc & Tìm Kiếm
             </CardTitle>
-            <CardDescription>Filter transactions by date range, user, or item</CardDescription>
+            <CardDescription>Lọc giao dịch theo khoảng thời gian, người dùng hoặc sản phẩm</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="space-y-4">
+            <form onSubmit={handleSearch} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Search Inputs */}
+                <div className="space-y-2">
+                  <Label htmlFor="searchUser" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <User className="w-4 h-4" />
+                    Tìm Người Dùng
+                  </Label>
+                  <Input
+                    id="searchUser"
+                    type="text"
+                    placeholder="Tên hoặc email người dùng"
+                    value={localSearchUser}
+                    onChange={(e) => setLocalSearchUser(e.target.value)}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="searchItem" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <Package className="w-4 h-4" />
+                    Tìm Sản Phẩm
+                  </Label>
+                  <Input
+                    id="searchItem"
+                    type="text"
+                    placeholder="Tên sản phẩm"
+                    value={localSearchItem}
+                    onChange={(e) => setLocalSearchItem(e.target.value)}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="startDate" className="flex items-center gap-2 text-sm font-medium text-gray-700">
                     <Calendar className="w-4 h-4" />
-                    Start Date
+                    Ngày Bắt Đầu
                   </Label>
                   <Input
                     id="startDate"
@@ -137,7 +202,7 @@ const AdminReport = () => {
                 <div className="space-y-2">
                   <Label htmlFor="endDate" className="flex items-center gap-2 text-sm font-medium text-gray-700">
                     <Calendar className="w-4 h-4" />
-                    End Date
+                    Ngày Kết Thúc
                   </Label>
                   <Input
                     id="endDate"
@@ -147,63 +212,36 @@ const AdminReport = () => {
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="searchUser" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <User className="w-4 h-4" />
-                    Search User
-                  </Label>
-                  <Input
-                    id="searchUser"
-                    type="text"
-                    placeholder="User name or email"
-                    value={localSearchUser}
-                    onChange={(e) => setLocalSearchUser(e.target.value)}
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="searchItem" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Package className="w-4 h-4" />
-                    Search Item
-                  </Label>
-                  <Input
-                    id="searchItem"
-                    type="text"
-                    placeholder="Item name"
-                    value={localSearchItem}
-                    onChange={(e) => setLocalSearchItem(e.target.value)}
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 mt-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={clearFilters}
                   className="border-gray-300 text-gray-600 hover:bg-gray-100"
                 >
-                  Clear Filters
+                  Xóa Bộ Lọc
                 </Button>
                 <Button
                   type="submit"
                   className="bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  Apply Filters
+                  Áp Dụng Bộ Lọc
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Top Transacting Users */}
           <Card className="shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-700">
                 <TrendingUp className="w-5 h-5" />
-                Top Transacting Users
+                Người Dùng Giao Dịch Nhiều Nhất
               </CardTitle>
-              <CardDescription>Users with the highest transaction volumes</CardDescription>
+              <CardDescription>Những người dùng có khối lượng giao dịch cao nhất</CardDescription>
             </CardHeader>
             <CardContent>
               {statistics.topTransactingUsers.length > 0 ? (
@@ -228,25 +266,26 @@ const AdminReport = () => {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">No transaction data available</p>
-                  <p className="text-sm">Transaction data will appear here once available</p>
+                  <p className="font-medium">Không có dữ liệu giao dịch</p>
+                  <p className="text-sm">Dữ liệu giao dịch sẽ xuất hiện ở đây khi có</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
+          {/* Reputable Sellers */}
           <Card className="shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700">
                 <Crown className="w-5 h-5" />
-                Reputable Sellers
+                Người Bán Uy Tín
               </CardTitle>
-              <CardDescription>Sellers with high success rates and positive standing</CardDescription>
+              <CardDescription>Những người bán có tỷ lệ thành công cao và danh tiếng tốt</CardDescription>
             </CardHeader>
             <CardContent>
-              {statistics.reputableSellers && statistics.reputableSellers.length > 0 ? (
+              {statistics.reliableSellers && statistics.reliableSellers.length > 0 ? (
                 <div className="space-y-3">
-                  {statistics.reputableSellers.map((sellerStat, index) => (
+                  {statistics.reliableSellers.map((sellerStat, index) => (
                     <div key={sellerStat.user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-100">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
@@ -266,20 +305,21 @@ const AdminReport = () => {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Crown className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">No reputable sellers data available</p>
-                  <p className="text-sm">Seller reputation data will appear here</p>
+                  <p className="font-medium">Không có dữ liệu người bán uy tín</p>
+                  <p className="text-sm">Dữ liệu danh tiếng người bán sẽ xuất hiện ở đây</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
+          {/* Most Reported Users */}
           <Card className="shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-orange-700">
                 <AlertTriangle className="w-5 h-5" />
-                Most Reported Users
+                Người Dùng Bị Báo Cáo Nhiều Nhất
               </CardTitle>
-              <CardDescription>Users who have been reported multiple times</CardDescription>
+              <CardDescription>Những người dùng đã bị báo cáo nhiều lần</CardDescription>
             </CardHeader>
             <CardContent>
               {statistics.mostReportedUsers && statistics.mostReportedUsers.length > 0 ? (
@@ -297,24 +337,52 @@ const AdminReport = () => {
                           </div>
                         </div>
                         <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                          {reportedUserStat.reportCount} Reports
+                          {reportedUserStat.reportCount} Báo Cáo
                         </Badge>
                       </div>
                       <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-700">Reports:</p>
+                        <p className="text-sm font-medium text-gray-700">Báo cáo:</p>
                         {reportedUserStat.reports.map(report => (
                           <div key={report._id} className="flex items-center justify-between mt-1 pl-4 border-l-2 border-orange-200">
                             <p className="text-sm text-gray-600 truncate">
                               {report.title} ({new Date(report.createdAt).toLocaleDateString()})
                             </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/admin/reports/${report._id}`)}
-                              className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                            >
-                              View Details
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/admin/reports/${report._id}`)}
+                                className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                              >
+                                Xem Chi Tiết
+                              </Button>
+                              <AlertDialog>
+  <AlertDialogTrigger asChild>
+    <Button
+      variant="outline"
+      size="sm"
+      className="text-red-600 border-red-300 hover:bg-red-50"
+    >
+      <Trash2 className="w-4 h-4" />
+    </Button>
+  </AlertDialogTrigger>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Xác nhận xóa báo cáo?</AlertDialogTitle>
+      <AlertDialogDescription>
+        Bạn có chắc chắn muốn xóa báo cáo này? Hành động này không thể hoàn tác.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Hủy</AlertDialogCancel>
+      <AlertDialogAction onClick={() => handleDeleteReport(report._id)}>
+        Xóa
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
+
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -324,8 +392,8 @@ const AdminReport = () => {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <AlertTriangle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">No reported users data available</p>
-                  <p className="text-sm">Users with multiple reports will appear here</p>
+                  <p className="font-medium">Không có dữ liệu người dùng bị báo cáo</p>
+                  <p className="text-sm">Người dùng có nhiều báo cáo sẽ xuất hiện ở đây</p>
                 </div>
               )}
             </CardContent>
@@ -335,9 +403,9 @@ const AdminReport = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-700">
                 <Clock className="w-5 h-5" />
-                Most Problematic Borrowers
+                Người Mượn Có Vấn Đề Nhất
               </CardTitle>
-              <CardDescription>Borrowers with late or unreturned items</CardDescription>
+              <CardDescription>Những người mượn có sản phẩm trả muộn hoặc không trả</CardDescription>
             </CardHeader>
             <CardContent>
               {statistics.mostProblematicBorrowers && statistics.mostProblematicBorrowers.length > 0 ? (
@@ -355,12 +423,12 @@ const AdminReport = () => {
                           </div>
                         </div>
                         <Badge variant="secondary" className="bg-red-100 text-red-800">
-                          {borrowerStat.totalViolations} Violations
+                          {borrowerStat.totalViolations} Vi Phạm
                         </Badge>
                       </div>
                       <div className="text-sm text-gray-600">
-                        <p>Late Returns: {borrowerStat.lateCount}</p>
-                        <p>Unreturned Items: {borrowerStat.unreturnedCount}</p>
+                        <p>Trả Muộn: {borrowerStat.lateCount}</p>
+                        <p>Không Trả: {borrowerStat.unreturnedCount}</p>
                       </div>
                       <Button
                         variant="outline"
@@ -368,7 +436,7 @@ const AdminReport = () => {
                         onClick={() => navigate(`/admin/reports/user/${borrowerStat.user.id}`)}
                         className="mt-2 text-red-600 border-red-300 hover:bg-red-50"
                       >
-                        View User Details
+                        Xem Chi Tiết Người Dùng
                       </Button>
                     </div>
                   ))}
@@ -376,36 +444,37 @@ const AdminReport = () => {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">No problematic borrowers data available</p>
-                  <p className="text-sm">Borrowers with late or unreturned items will appear here</p>
+                  <p className="font-medium">Không có dữ liệu người mượn có vấn đề</p>
+                  <p className="text-sm">Người mượn có sản phẩm trả muộn hoặc không trả sẽ xuất hiện ở đây</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
+        {/* Transaction History Section */}
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <DollarSign className="w-5 h-5" />
-              Transaction History
+              Lịch Sử Giao Dịch
               <Badge variant="outline" className="ml-2">
-                {transactions.totalItems} total
+                {transactions.totalItems} tổng cộng
               </Badge>
             </CardTitle>
-            <CardDescription>Complete transaction records with user and item details</CardDescription>
+            <CardDescription>Bản ghi giao dịch đầy đủ với thông tin người dùng và sản phẩm</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="rounded-md border border-gray-200 overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                    <TableHead className="font-semibold text-gray-700">Item</TableHead>
-                    <TableHead className="font-semibold text-gray-700">User</TableHead>
-                    <TableHead className="font-semibold text-gray-700">Amount</TableHead>
-                    <TableHead className="font-semibold text-gray-700">Date</TableHead>
-                    <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Loại</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Sản Phẩm</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Người Dùng</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Số Tiền</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Ngày</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Trạng Thái</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -417,7 +486,7 @@ const AdminReport = () => {
                             variant={txn.type === 'Buy' ? 'default' : 'secondary'}
                             className={txn.type === 'Buy' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}
                           >
-                            {txn.type}
+                            {txn.type === 'Buy' ? 'Mua' : txn.type === 'Borrow' ? 'Mượn' : txn.type}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -443,10 +512,10 @@ const AdminReport = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="font-bold text-green-600">${txn.totalAmount.toFixed(2)}</span>
+                          <span className="font-bold text-green-600">{txn.totalAmount.toLocaleString('vi-VN')} VND</span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-gray-600">{new Date(txn.date).toLocaleDateString()}</span>
+                          <span className="text-gray-600">{new Date(txn.date).toLocaleDateString('vi-VN')}</span>
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -462,7 +531,11 @@ const AdminReport = () => {
                               'bg-gray-100 text-gray-800'
                             }
                           >
-                            {txn.status || 'N/A'}
+                            {txn.status === 'completed' ? 'Hoàn Thành' :
+                             txn.status === 'late' ? 'Trễ Hạn' :
+                             txn.status === 'unreturned' ? 'Chưa Trả' :
+                             txn.status === 'pending' ? 'Chờ Xử Lý' :
+                             txn.status || 'N/A'}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -472,8 +545,8 @@ const AdminReport = () => {
                       <TableCell colSpan={6} className="text-center py-8">
                         <div className="space-y-2">
                           <Package className="w-10 h-10 mx-auto text-gray-300" />
-                          <p className="text-gray-500 font-medium">No transactions found</p>
-                          <p className="text-sm text-gray-400">Try adjusting your search filters</p>
+                          <p className="text-gray-500 font-medium">Không tìm thấy giao dịch nào</p>
+                          <p className="text-sm text-gray-400">Thử điều chỉnh bộ lọc tìm kiếm</p>
                         </div>
                       </TableCell>
                     </TableRow>
