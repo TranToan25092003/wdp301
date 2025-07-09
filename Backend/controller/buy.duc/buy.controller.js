@@ -4,6 +4,7 @@ const Status = require("../../model/status.model");
 const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
 const { clerkClient } = require("../../config/clerk");
+const mongoose = require('mongoose');
 
 /**
  * ====================================
@@ -26,6 +27,14 @@ const purchaseItem = async (req, res) => {
         const { itemId } = req.body;
         const buyerId = req.userId;
 
+        // Validate itemId as a MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(itemId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Item ID format",
+            });
+        }
+
         if (!itemId) {
             return res.status(400).json({
                 success: false,
@@ -38,7 +47,7 @@ const purchaseItem = async (req, res) => {
             .populate("typeId")
             .populate("statusId");
 
-        console.log(item)
+        console.log('Fetched item:', item);
 
         if (!item) {
             return res.status(404).json({
@@ -47,7 +56,7 @@ const purchaseItem = async (req, res) => {
             });
         }
 
-        // Verify item is of type "Sell" and status "Available"
+        // Verify item is of type "Sell" and status "Available" or "Approved"
         if (item.typeId?.name !== "Sell") {
             return res.status(400).json({
                 success: false,
@@ -63,26 +72,36 @@ const purchaseItem = async (req, res) => {
         }
 
         // Prevent buyer from purchasing their own item
-        if (item.owner === buyerId) {
+        if (item.owner.toString() === buyerId) {
             return res.status(400).json({
                 success: false,
                 message: "You cannot purchase your own item",
             });
         }
 
-        // Fetch buyer's coin balance from Clerk
-        const user = await clerkClient.users.getUser(buyerId);
-        if (!user) {
+        // Fetch buyer and seller
+        const buyer = await clerkClient.users.getUser(buyerId);
+        if (!buyer) {
             return res.status(400).json({
                 success: false,
                 message: "BuyerId is not exist in the system",
             });
         }
 
-        const currentCoins = Number.parseInt(user.publicMetadata?.coin) || 0;
+        const seller = await clerkClient.users.getUser(item.owner);
+        if (!seller) {
+            return res.status(400).json({
+                success: false,
+                message: "SellerId is not exist in the system",
+            });
+        }
+
+        const currentBuyerCoins = Number.parseInt(buyer.publicMetadata?.coin) || 0;
+        const currentSellerCoins = Number.parseInt(seller.publicMetadata?.coin) || 0;
 
         // Verify sufficient coins
-        if (currentCoins < item.price) {
+        const requiredCoins = item.price;
+        if (currentBuyerCoins < requiredCoins) {
             return res.status(400).json({
                 success: false,
                 message: "Insufficient coins to purchase this item",
@@ -90,19 +109,27 @@ const purchaseItem = async (req, res) => {
         }
 
         // Find the "Sold" status
-        const notAvailableStatus = await Status.findOne({ name: "Sold" });
-        if (!notAvailableStatus) {
+        const soldStatus = await Status.findOne({ name: "Sold" });
+        if (!soldStatus) {
             return res.status(500).json({
                 success: false,
                 message: "Server error: Status configuration missing",
             });
         }
 
-        // Deduct coins and update user's metadata
-        const newCoinBalance = currentCoins - item.price;
+        // Update seller's coins
+        const newSellerCoinBalance = currentSellerCoins + item.price;
+        await clerkClient.users.updateUserMetadata(item.owner, {
+            publicMetadata: {
+                coin: newSellerCoinBalance,
+            },
+        });
+
+        // Update buyer's coins
+        const newBuyerCoinBalance = currentBuyerCoins - item.price;
         await clerkClient.users.updateUserMetadata(buyerId, {
             publicMetadata: {
-                coin: newCoinBalance,
+                coin: newBuyerCoinBalance,
             },
         });
 
@@ -113,8 +140,8 @@ const purchaseItem = async (req, res) => {
             itemId,
         });
 
-        // Update item status to "Not Available"
-        item.statusId = notAvailableStatus._id;
+        // Update item status to "Sold"
+        item.statusId = soldStatus._id;
         await item.save();
 
         return res.status(200).json({
@@ -124,7 +151,7 @@ const purchaseItem = async (req, res) => {
                 buyId: buy._id,
                 itemId,
                 total: item.price,
-                remainingCoins: newCoinBalance,
+                remainingCoins: newBuyerCoinBalance,
             },
         });
     } catch (error) {
