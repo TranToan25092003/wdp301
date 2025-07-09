@@ -2,7 +2,7 @@ const { Mongoose, default: mongoose } = require("mongoose");
 const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
 const { clerkClient } = require("../../config/clerk");
-const { Follow } = require("../../model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL FOLLOW
+const { Follow, Borrow, Buy } = require("../../model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL FOLLOW
 const {
   createNotification,
 } = require("../notification.duy/notificationController"); // THÊM DÒNG NÀY ĐỂ IMPORT HÀM GỬI THÔNG BÁO

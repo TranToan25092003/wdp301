@@ -5,7 +5,7 @@ const Item = require("../../model/item.model");
 const Status = require("../../model/status.model");
 const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
-const Notification = require("../../model/notification.model");
+const Notification = require("../../model/Notification.model");
 const nodemailer = require('nodemailer');
 
 const createBorrow = async (req, res) => {
@@ -171,6 +171,8 @@ const getAllBorrowRecordByUserId = async (req, res) => {
 const requestForReturnBorrow = async (req, res) => {
   try {
     const borrowerId = req.userId; 
+    const user = req.user;
+    console.log("User info", user)
     const { itemId, message } = req.body;
     console.log(borrowerId)
     console.log(itemId)
@@ -200,10 +202,9 @@ const requestForReturnBorrow = async (req, res) => {
 
     // Create notification
     const notification = new Notification({
-      sender: borrowerId,
-      receiver: item.owner, 
-      type: 'returnRequest',
-      content: `Borrower has requested to return item "${item.name}". Message: ${message}`,
+      recipientId: item.owner, 
+      type: 'borrow_confirm', 
+      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}`, 
       link: `/history`, 
     });
     await notification.save();
@@ -220,8 +221,8 @@ const requestForReturnBorrow = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: ownerEmail, 
-      subject: 'Return Request for Borrowed Item',
-      text: `Borrower ${borrowerId} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
+      subject: 'OLD MARKET - RETURN REQUEST FOR BORROWED ITEM',
+      text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
     };
     await transporter.sendMail(mailOptions);
     }
