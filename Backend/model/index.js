@@ -13,7 +13,7 @@ const Session = require("./session.model");
 const Contact = require("./contact.model");
 const userViolation = require("./userViolation.model");
 const Follow = require("./Follow.model");
-const Notification = require("./Notification.model");
+const Notification = require("./notification.model");
 module.exports = {
   Test,
   Report,
