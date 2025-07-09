@@ -1,18 +1,64 @@
-const mongoose = require('mongoose');
+// models/Notification.model.js
+const mongoose = require("mongoose");
 
 const notificationSchema = new mongoose.Schema(
-    {
-        sender: { type: String, default: 'System' },
-        receiver: { type: String, required: [true, 'Receiver is required'] },
-        type: { type: String, required: [true, 'Type is required'] },
-        content: { type: String, required: [true, 'Content is required'] },
-        link: { type: String, required: [true, 'Link is required'] },
-        isRead: { type: Boolean, default: false },
+  {
+    recipientId: {
+      type: String,
+      required: true,
     },
-    { timestamps: true }
+    type: {
+      type: String,
+      enum: [
+        "new_post",
+        "follow",
+        "message",
+        "system",
+        "buy_confirm",
+        "borrow_confirm",
+        "unreturned",
+        "admin_action",
+      ], 
+      required: [true, "Notification type is required"],
+      trim: true,
+    },
+    message: {
+      type: String,
+      required: [true, "Notification message is required"],
+      trim: true,
+      maxlength: [500, "Notification message cannot exceed 500 characters"],
+    },
+    link: {
+      type: String,
+      default: "#", 
+      trim: true,
+      maxlength: [200, "Notification link cannot exceed 200 characters"],
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+    sourceId: {
+      type: mongoose.Schema.Types.ObjectId, 
+      refPath: "sourceModel", 
+      required: false, 
+    },
+    sourceModel: {
+      type: String,
+      required: function () {
+        return this.sourceId != null;
+      },
+      enum: ["Item", "User", "Buy", "Borrow", "Report"], 
+      trim: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
 );
 
-// ✅ Tránh lỗi overwrite khi model đã tồn tại
-const Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
+notificationSchema.index({ recipientId: 1, isRead: 1, createdAt: -1 });
+
+const Notification = mongoose.models.Notification || mongoose.model('Notification', notificationSchema);
 
 module.exports = Notification;

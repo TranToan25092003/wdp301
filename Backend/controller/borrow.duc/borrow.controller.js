@@ -5,7 +5,7 @@ const Item = require("../../model/item.model");
 const Status = require("../../model/status.model");
 const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
-const Notification = require("../../model/notification.model");
+const Notification = require("../../model/Notification.model");
 const nodemailer = require('nodemailer');
 
 const createBorrow = async (req, res) => {
@@ -200,10 +200,9 @@ const requestForReturnBorrow = async (req, res) => {
 
     // Create notification
     const notification = new Notification({
-      sender: borrowerId,
-      receiver: item.owner, 
-      type: 'returnRequest',
-      content: `Borrower has requested to return item "${item.name}". Message: ${message}`,
+      recipientId: item.owner, 
+      type: 'borrow_confirm', 
+      message: `A borrower has requested to return item "${item.name}". Message: ${message}`, 
       link: `/history`, 
     });
     await notification.save();
