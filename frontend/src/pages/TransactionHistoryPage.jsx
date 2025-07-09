@@ -205,7 +205,7 @@ const TransactionHistoryPage = () => {
                                             <Text className="text-green-600 font-bold">{formatPrice(record.item?.price)}</Text>
                                         </td>
                                         <td className="px-4 py-2 border">
-                                            {new Date(record.item.createdAt).toLocaleDateString()}
+                                            {new Date(record.purchaseDate).toLocaleDateString()}
                                         </td>
                                     </tr>
                                 ))}
