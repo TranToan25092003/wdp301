@@ -59,11 +59,11 @@ const NotificationBell = () => {
     const socket = io(API_URL, { transports: ["websocket"] });
     socket.emit("join", userId);
 
-    socket.on("notification", (newNotification) => {
-      setAllNotifications((prev) => [newNotification, ...prev]);
-      setUnreadNotifications((prev) => [newNotification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-    });
+    socket.on("new_notification", (newNotification) => {
+  setAllNotifications((prev) => [newNotification, ...prev]);
+  setUnreadNotifications((prev) => [newNotification, ...prev]);
+  setUnreadCount((prev) => prev + 1);
+});
 
     return () => socket.disconnect();
   }, [userId]);

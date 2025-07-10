@@ -101,6 +101,7 @@ const io = new Server(server, {
   connectTimeout: 10000,
   path: "/socket.io",
 });
+app.set("socketio", io);
 
 // Make io available to the Express app
 app.set("socketio", io);
