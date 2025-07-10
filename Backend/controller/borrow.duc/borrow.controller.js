@@ -258,9 +258,161 @@ const requestForReturnBorrow = async (req, res) => {
   }
 };
 
+const confirmReturnBorrow = async (req, res) => {
+  try {
+    const ownerId = req.userId; 
+    const { borrowId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(borrowId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Borrow ID format",
+      });
+    }
+
+    if (!borrowId) {
+      return res.status(400).json({
+        success: false,
+        message: "Borrow ID is required",
+      });
+    }
+
+    // Find the borrow record with populated item
+    const borrow = await Borrow.findById(borrowId)
+      .populate('itemId'); 
+
+    if (!borrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Borrow record not found",
+      });
+    }
+
+    // Verify the owner is authorized
+    if (borrow.itemId.owner.toString() !== ownerId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to confirm this return",
+      });
+    }
+
+    // Check if the item is already returned
+    if (borrow.status === 'returned') {
+      return res.status(400).json({
+        success: false,
+        message: "This item has already been returned",
+      });
+    }
+
+    // Set actual return time
+    const actualTime = new Date();
+    const isLate = actualTime > borrow.endTime;
+    const newStatus = isLate ? 'late' : 'returned';
+
+    // Calculate late fee if applicable
+    let lateFee = 0;
+    if (isLate && borrow.itemId.ratePrice !== 'no') {
+      const timeDiffMs = actualTime - borrow.endTime; // Difference in milliseconds
+      if (borrow.itemId.ratePrice === 'hour') {
+        const hoursLate = Math.ceil(timeDiffMs / (1000 * 60 * 60)); // Convert to hours
+        lateFee = borrow.itemId.price * hoursLate;
+      } else if (borrow.itemId.ratePrice === 'day') {
+        const daysLate = Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)); // Convert to days
+        lateFee = borrow.itemId.price * daysLate;
+      }
+    }
+
+    // Update borrow record
+    borrow.actualTime = actualTime;
+    borrow.status = newStatus;
+    await borrow.save();
+
+    // Update item status to "Available"
+    const availableStatus = await Status.findOne({ name: "Available" });
+    if (!availableStatus) {
+      return res.status(500).json({
+        success: false,
+        message: "Server error: Available status configuration missing",
+      });
+    }
+    borrow.itemId.statusId = availableStatus._id;
+    await borrow.itemId.save();
+
+    // Notify borrower and handle late fee
+    const borrower = await clerkClient.users.getUser(borrow.borrowers);
+    if (borrower) {
+      const borrowerEmail = borrower.emailAddresses[0]?.emailAddress || '';
+      if (borrowerEmail) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: borrowerEmail,
+          subject: 'OLD MARKET - RETURN CONFIRMED',
+          text: `Your return request for item "${borrow.itemId.name}" has been confirmed by the owner. Status: ${newStatus}. ${isLate ? `Late fee of ${lateFee} coins applied.` : ''}`,
+        };
+        await transporter.sendMail(mailOptions);
+      }
+
+      // Create notification
+      const notification = new Notification({
+        recipientId: borrow.borrowers,
+        type: 'system',
+        message: `Your return request for item "${borrow.itemId.name}" has been confirmed. Status: ${newStatus}. ${isLate ? `Late fee of ${lateFee} coins applied.` : ''}`,
+        link: `/history`,
+      });
+      await notification.save();
+
+      // Deduct late fee from borrower if applicable
+      if (isLate && lateFee > 0) {
+        const currentBorrowerCoins = Number.parseInt(borrower.publicMetadata?.coin) || 0;
+        const newBorrowerCoins = currentBorrowerCoins - lateFee;
+        if (newBorrowerCoins >= 0) {
+          await clerkClient.users.updateUserMetadata(borrow.borrowers, {
+            publicMetadata: {
+              coin: newBorrowerCoins,
+            },
+          });
+        } else {
+          // Handle insufficient funds (e.g., notify admin or borrower)
+          await clerkClient.users.updateUserMetadata(borrow.borrowers, {
+            publicMetadata: {
+              coin: 0,
+            },
+          });
+          console.warn(`Borrower ${borrow.borrowers} has insufficient coins to cover late fee of ${lateFee}`);
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Return confirmed. Status: ${newStatus}${isLate ? ` with late fee of ${lateFee} coins applied` : ''}`,
+      data: {
+        borrowId: borrow._id,
+        actualTime,
+        status: newStatus,
+        lateFee: isLate ? lateFee : 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error confirming return:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
 
 module.exports = {
   createBorrow,
   getAllBorrowRecordByUserId,
-  requestForReturnBorrow
+  requestForReturnBorrow,
+  confirmReturnBorrow
 };
