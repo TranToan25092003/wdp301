@@ -8,9 +8,11 @@ import { getAllBorrowRecord } from "@/API/duc.api/borrow.api";
 import { getAllBuyRecord } from "@/API/duc.api/buy.api";
 import erroImg from "../assets/error-image.png";
 import { getUserUploadedItems } from "@/API/duc.api/item.api";
+import { useNavigate, Link } from 'react-router-dom';
 
 const TransactionHistoryPage = () => {
-    const [activeTab, setActiveTab] = useState("buy");
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState("uploaded");
     const [buyRecords, setBuyRecords] = useState([]);
     const [borrowRecords, setBorrowRecords] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -55,6 +57,11 @@ const TransactionHistoryPage = () => {
         return data.slice(startIndex, endIndex);
     };
 
+    const handleItemClick = (item) => {
+        event.stopPropagation();
+        navigate(`/item/${item.id}`);
+    };
+
     const items = [
         {
             key: "uploaded",
@@ -68,7 +75,7 @@ const TransactionHistoryPage = () => {
             ) : (
                 <div>
                     {paginateData(uploadedItems, uploadedCurrentPage).map((item) => (
-                        <div key={item._id || item.name} className="mb-4">
+                        <div key={item.id || item.name} className="mb-4">
                             <Collapse
                                 accordion
                                 expandIconPosition="right"
@@ -84,7 +91,14 @@ const TransactionHistoryPage = () => {
                                                 className="w-12 h-12 object-cover rounded mr-4"
                                             />
                                             <div className="flex-1">
-                                                <p className="font-semibold">{item.name || "Unknown Item"}</p>
+                                                <p className="font-semibold">
+                                                    <span
+                                                        className="cursor-pointer hover:text-blue-600"
+                                                        onClick={(e) => handleItemClick(item, e)}
+                                                    >
+                                                        {item.name || "Unknown Item"}
+                                                    </span>
+                                                </p>
                                                 <p className="text-gray-600 text-sm">
                                                     {item.category || "N/A"} | {formatPrice(item.price)} | {item.type || "N/A"} | {item.status || "N/A"}
                                                 </p>
@@ -94,7 +108,7 @@ const TransactionHistoryPage = () => {
                                             </div>
                                         </div>
                                     }
-                                    key={item._id || item.name}
+                                    key={item.id || item.name}
                                 >
                                     {item.type === "Sell" && item.status === "Sold" && item.purchaseDate && (
                                         <div className="p-4">
@@ -199,8 +213,16 @@ const TransactionHistoryPage = () => {
                                                 className="w-12 h-12 object-cover"
                                             />
                                         </td>
-                                        <td className="px-4 py-2 border">{record.item?.name || "Unknown Item"}</td>
-                                        <td className="px-4 py-2 border">{record.item?.categoryId?.name || "N/A"}</td>
+                                        <td className="px-4 py-2 border">
+                                            <Link to={`/item/${record.item?._id}`}  style={{color: "black"}}>
+                                                {record.item?.name || "Unknown Item"}
+                                            </Link>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{color: "black"}}>
+                                                {record.item?.categoryId?.name|| "Unknown Category"}
+                                            </Link>
+                                        </td>
                                         <td className="px-4 py-2 border">
                                             <Text className="text-green-600 font-bold">{formatPrice(record.item?.price)}</Text>
                                         </td>
@@ -258,8 +280,16 @@ const TransactionHistoryPage = () => {
                                                 className="w-12 h-12 object-cover"
                                             />
                                         </td>
-                                        <td className="px-4 py-2 border">{record.item?.name || "Unknown Item"}</td>
-                                        <td className="px-4 py-2 border">{record.item?.categoryId?.name || "N/A"}</td>
+                                        <td className="px-4 py-2 border">
+                                             <Link to={`/item/${record.item?._id}`}  style={{color: "black"}}>
+                                                {record.item?.name || "Unknown Item"}
+                                            </Link>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                             <Link to={`/category/${record.item?.categoryId?._id}`}  style={{color: "black"}}>
+                                                {record.item?.categoryId?.name || "Unknown Category"}
+                                            </Link>
+                                        </td>
                                         <td className="px-4 py-2 border">
                                             <Text className="text-green-600 font-bold">{formatPrice(record.totalPrice)}</Text>
                                         </td>

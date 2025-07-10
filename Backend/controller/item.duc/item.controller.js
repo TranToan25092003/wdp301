@@ -463,20 +463,20 @@ const getUserUploadedItems = async (req, res) => {
       .lean();
 
     // Transform data to include relevant fields
-    const formattedItems = await Promise.all(
-      items.map(async (item) => {
-        const baseItem = {
-          name: item.name,
-          description: item.description,
-          price: item.price,
-          images: item.images,
-          ratePrice: item.ratePrice,
-          type: item.typeId.name,
-          category: item.categoryId.name,
-          status: item.statusId.name,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        };
+    const formattedItems = await Promise.all(items.map(async (item) => {
+      const baseItem = {
+        id: item._id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        images: item.images,
+        ratePrice: item.ratePrice,
+        type: item.typeId.name,
+        category: item.categoryId.name,
+        status: item.statusId.name,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      };
 
         // Sold item
         if (item.typeId.name === "Sell" && item.statusId.name === "Sold") {

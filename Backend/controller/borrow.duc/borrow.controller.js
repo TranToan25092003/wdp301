@@ -7,11 +7,19 @@ const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
 const Notification = require("../../model/Notification.model");
 const nodemailer = require('nodemailer');
+const mongoose = require('mongoose');
 
 const createBorrow = async (req, res) => {
   try {
     const { totalPrice, totalTime, borrowers, itemId, startTime, endTime } = req.body;
     const borrowerId = req.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Item ID format",
+      });
+    }
 
     if (!itemId || !totalPrice || !totalTime || !borrowers || !startTime || !endTime) {
       return res.status(400).json({
@@ -61,7 +69,16 @@ const createBorrow = async (req, res) => {
       });
     }
 
+    const seller = await clerkClient.users.getUser(item.owner);
+    if (!seller) {
+      return res.status(400).json({
+        success: false,
+        message: "SellerId is not exist in the system",
+      });
+    }
+
     const currentCoins = Number.parseInt(user.publicMetadata?.coin) || 0;
+    const currentSellerCoins = Number.parseInt(seller.publicMetadata?.coin) || 0;
 
     // Verify sufficient coins
     if (currentCoins < totalPrice) {
@@ -85,6 +102,13 @@ const createBorrow = async (req, res) => {
     await clerkClient.users.updateUserMetadata(borrowerId, {
       publicMetadata: {
         coin: newCoinBalance,
+      },
+    });
+
+    const newSellerCoinBalance = currentSellerCoins + totalPrice;
+    await clerkClient.users.updateUserMetadata(item.owner, {
+      publicMetadata: {
+        coin: newSellerCoinBalance,
       },
     });
 
@@ -170,7 +194,7 @@ const getAllBorrowRecordByUserId = async (req, res) => {
 
 const requestForReturnBorrow = async (req, res) => {
   try {
-    const borrowerId = req.userId; 
+    const borrowerId = req.userId;
     const user = req.user;
     console.log("User info", user)
     const { itemId, message } = req.body;
@@ -196,37 +220,37 @@ const requestForReturnBorrow = async (req, res) => {
         emailAddresses: ownerInfo.emailAddresses.map(email => email.emailAddress) || [],
         phoneNumbers: ownerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
       };
-      ownerEmail = owner.emailAddresses[0] || ''; 
-      ownerPhone = owner.phoneNumbers[0] || ''; 
+      ownerEmail = owner.emailAddresses[0] || '';
+      ownerPhone = owner.phoneNumbers[0] || '';
     }
 
     // Create notification
     const notification = new Notification({
-      recipientId: item.owner, 
-      type: 'borrow_confirm', 
-      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}`, 
-      link: `/history`, 
+      recipientId: item.owner,
+      type: 'borrow_confirm',
+      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}`,
+      link: `/history`,
     });
     await notification.save();
 
     // Email configuration
-    if(ownerEmail.length > 0){
+    if (ownerEmail.length > 0) {
       const transporter = nodemailer.createTransport({
-      service: 'gmail', 
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: ownerEmail, 
-      subject: 'OLD MARKET - RETURN REQUEST FOR BORROWED ITEM',
-      text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
-    };
-    await transporter.sendMail(mailOptions);
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: ownerEmail,
+        subject: 'OLD MARKET - RETURN REQUEST FOR BORROWED ITEM',
+        text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
+      };
+      await transporter.sendMail(mailOptions);
     }
-  
+
     return res.status(200).json({ success: true, message: 'Return request submitted and notifications sent', data: notification });
   } catch (error) {
     console.error('Error requesting return:', error);
