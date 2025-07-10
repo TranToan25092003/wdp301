@@ -2,7 +2,11 @@ import React from "react";
 import { Card, Button, Tag } from "antd";
 import CountdownTimer from "./CountdownTimer";
 
-const AuctionCard = ({ auction, bidCount, onViewDetails }) => {
+const AuctionCard = ({ auction, onViewDetails }) => {
+  const now = new Date();
+  const startTime = new Date(auction.startTime);
+  const isNotStarted = now < startTime;
+
   return (
     <Card
       hoverable
@@ -48,8 +52,13 @@ const AuctionCard = ({ auction, bidCount, onViewDetails }) => {
           </Tag> */}
         </div>
         <div>
-          <span style={{ fontSize: 14, color: "#64748b" }}>Kết thúc sau: </span>
-          <CountdownTimer endTime={auction.endTime} />
+          <span style={{ fontSize: 14, color: "#64748b" }}>
+            {isNotStarted ? "" : "Kết thúc sau: "}
+          </span>
+          <CountdownTimer
+            endTime={auction.endTime}
+            startTime={auction.startTime}
+          />
         </div>
       </div>
       <Button

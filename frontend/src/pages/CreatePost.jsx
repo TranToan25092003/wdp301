@@ -343,6 +343,20 @@ const CreatePost = () => {
                     required: true,
                     message: "Please select end time",
                   },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const startTime = getFieldValue("auctionStartTime");
+                      if (!value || !startTime) {
+                        return Promise.resolve();
+                      }
+                      if (value.isBefore(startTime)) {
+                        return Promise.reject(
+                          new Error("End time must be after start time")
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  }),
                 ]}
               >
                 <DatePicker

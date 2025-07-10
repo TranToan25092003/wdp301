@@ -60,6 +60,36 @@ const AuctionDetailPage = () => {
     amount: 0,
   });
 
+  // Add a new state to check if auction has started
+  const [auctionStatus, setAuctionStatus] = useState({
+    hasStarted: false,
+    hasEnded: false,
+  });
+
+  // Check auction status when auction data changes or at regular intervals
+  useEffect(() => {
+    if (!auction) return;
+
+    const checkAuctionStatus = () => {
+      const now = new Date();
+      const start = new Date(auction.startTime);
+      const end = new Date(auction.endTime);
+
+      setAuctionStatus({
+        hasStarted: now >= start,
+        hasEnded: now >= end,
+      });
+    };
+
+    // Check immediately
+    checkAuctionStatus();
+
+    // Set up interval to check status periodically (every 5 seconds)
+    const interval = setInterval(checkAuctionStatus, 5000);
+
+    return () => clearInterval(interval);
+  }, [auction]);
+
   // Kiểm tra auction đã kết thúc khi load trang
   useEffect(() => {
     if (!auction) return;
@@ -749,7 +779,10 @@ const AuctionDetailPage = () => {
                         textAlign: "left",
                       }}
                     >
-                      <CountdownTimer endTime={auction.endTime} />
+                      <CountdownTimer
+                        endTime={auction.endTime}
+                        startTime={auction.startTime}
+                      />
                     </div>
                   </Col>
                   <Col span={12}>
@@ -778,6 +811,27 @@ const AuctionDetailPage = () => {
                     onClose={() => setError(null)}
                   />
                 )}
+
+                {!auctionStatus.hasStarted ? (
+                  <Alert
+                    message="Auction has not started yet"
+                    description={`You can place bids once the auction begins at ${new Date(
+                      auction.startTime
+                    ).toLocaleString()}`}
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: "20px" }}
+                  />
+                ) : auctionStatus.hasEnded ? (
+                  <Alert
+                    message="Auction has ended"
+                    description="Bidding is no longer available for this auction"
+                    type="warning"
+                    showIcon
+                    style={{ marginBottom: "20px" }}
+                  />
+                ) : null}
+
                 <Form form={form} onFinish={onFinish} layout="vertical">
                   <Form.Item
                     name="bidIncrement"
@@ -827,6 +881,9 @@ const AuctionDetailPage = () => {
                       size="large"
                       onChange={(value) => setBidIncrement(value)}
                       addonBefore="+"
+                      disabled={
+                        !auctionStatus.hasStarted || auctionStatus.hasEnded
+                      }
                     />
                   </Form.Item>
 
@@ -872,7 +929,12 @@ const AuctionDetailPage = () => {
                       loading={loading}
                       size="large"
                       block
-                      disabled={!bidIncrement || bidIncrement <= 0}
+                      disabled={
+                        !bidIncrement ||
+                        bidIncrement <= 0 ||
+                        !auctionStatus.hasStarted ||
+                        auctionStatus.hasEnded
+                      }
                       style={{
                         background:
                           "linear-gradient(135deg, #1890ff 0%, #722ed1 100%)",
@@ -884,6 +946,10 @@ const AuctionDetailPage = () => {
                     >
                       {loading
                         ? "Placing Bid..."
+                        : !auctionStatus.hasStarted
+                        ? "Auction Not Started"
+                        : auctionStatus.hasEnded
+                        ? "Auction Ended"
                         : bidIncrement && bidIncrement > 0
                         ? `Place Bid: $${(
                             auction.currentPrice + bidIncrement
