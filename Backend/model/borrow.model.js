@@ -30,6 +30,9 @@ const borrowSchema = new mongoose.Schema(
       type: Date,
       required: [true, "End time is required"],
     },
+    actualTime: {
+      type: Date, 
+    },
     status: {
       type: String,
       enum: ['borrowed', 'returned', 'late'],
