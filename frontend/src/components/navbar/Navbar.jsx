@@ -32,17 +32,29 @@ const Navbar = () => {
 
           {/* Navigation tabs */}
           <nav className="hidden md:flex items-center gap-6 ml-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+            <Link
+              to="/"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+            >
               Trang chủ
             </Link>
-            <Link to="/auctions" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+            <Link
+              to="/auctions"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+            >
               Auctions
             </Link>
-            <Link to="/about" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-              Thông tin
-            </Link>
-            <Link to="/sellers" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+            <Link
+              to="/sellers"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+            >
               Người đăng
+            </Link>
+            <Link
+              to="/about"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+            >
+              Thông tin
             </Link>
           </nav>
         </div>
@@ -65,15 +77,14 @@ const Navbar = () => {
 
         <div className="flex gap-4 items-center">
           {/* Chat Icon */}
-          <div className="relative cursor-pointer">
-            <MessageCircle className="w-6 h-6" />
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              2
-            </span>
+          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+            <ChatList />
           </div>
 
           {/* Notification Bell ✅ */}
-          <NotificationBell />
+          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+            <NotificationBell />
+          </div>
 
           {/* Coin */}
           <Link to={"/topup"}>
@@ -85,7 +96,6 @@ const Navbar = () => {
 
           {/* Dropdown menu */}
           <LinkDropdown />
-
 
           {/* Post listing button */}
           <Link to="/create-post">

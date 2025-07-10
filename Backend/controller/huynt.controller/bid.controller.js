@@ -49,11 +49,9 @@ exports.placeBid = async (req, res) => {
     // Không cho phép seller đặt giá sản phẩm của chính mình
     const item = await Item.findById(auction.itemId);
     if (item && item.owner && item.owner.toString() === userId.toString()) {
-      return res
-        .status(400)
-        .json({
-          message: "Bạn không thể đặt giá cho sản phẩm của chính mình.",
-        });
+      return res.status(400).json({
+        message: "Bạn không thể đặt giá cho sản phẩm của chính mình.",
+      });
     }
 
     const now = new Date();
@@ -75,22 +73,43 @@ exports.placeBid = async (req, res) => {
     });
     await bid.save();
 
+    // Update current price in the auction
     auction.currentPrice = amount;
     await auction.save();
 
+    // Get updated bids list with newest first
     const updatedBids = await Bid.find({ auctionId }).sort({ createdAt: -1 });
 
+    // Get socket.io instance from the app
     const io = req.app.get("socketio");
     if (io) {
+      // Emit optimistic update with comprehensive information for real-time display
+      io.to(auctionId).emit("newBid", {
+        id: bid._id.toString(),
+        userId: userId,
+        amount: amount,
+        createdAt: bid.createdAt,
+        auctionId: auctionId,
+        userName:
+          `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Bidder",
+      });
+
+      // Also emit the full update for data consistency
       io.to(auctionId).emit("bidUpdate", {
-        auction: { ...auction.toObject(), currentPrice: amount },
+        auction: {
+          ...auction.toObject(),
+          currentPrice: amount,
+        },
         bids: updatedBids,
       });
     }
 
-    res
-      .status(201)
-      .json({ message: "Bid placed successfully", bid: bid.toObject() });
+    res.status(201).json({
+      message: "Bid placed successfully",
+      bid: bid.toObject(),
+      auction: auction.toObject(),
+      bids: updatedBids,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

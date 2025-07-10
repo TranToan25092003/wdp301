@@ -44,7 +44,7 @@ const { runCronTasks } = require("./utils/cronTasks");
 const cron = require("node-cron");
 cron.schedule("* * * * *", async () => {
   try {
-   await runCronTasks();
+    await runCronTasks();
   } catch (error) {
     console.log("System is broken 😰😰😰");
   }
@@ -103,6 +103,12 @@ const io = new Server(server, {
 });
 app.set("socketio", io);
 
+// Make io available to the Express app
+app.set("socketio", io);
+
+// Keep track of users viewing specific auctions for more efficient notifications
+const auctionViewers = new Map();
+
 // Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
@@ -111,16 +117,66 @@ io.on("connection", (socket) => {
     console.error("Socket error:", error);
   });
 
-  // ✅ Thêm sự kiện join theo userId
-  socket.on("join", (userId) => {
-    socket.join(userId);
-    console.log(`User ${userId} joined their personal room`);
+  // Join auction room
+  socket.on("joinAuction", (auctionId) => {
+    socket.join(auctionId);
+    console.log(`User ${socket.id} joined auction ${auctionId}`);
+
+    // Track users viewing this auction
+    if (!auctionViewers.has(auctionId)) {
+      auctionViewers.set(auctionId, new Set());
+    }
+    auctionViewers.get(auctionId).add(socket.id);
   });
 
   // Leave auction room
   socket.on("leaveAuction", (auctionId) => {
     socket.leave(auctionId);
     console.log(`User ${socket.id} left auction ${auctionId}`);
+
+    // Remove user from auction viewers
+    if (auctionViewers.has(auctionId)) {
+      auctionViewers.get(auctionId).delete(socket.id);
+    }
+  });
+
+  // Handle bid placement
+  socket.on("placeBid", async (bidData) => {
+    try {
+      console.log("Received bid from socket:", bidData);
+
+      // Format the bid for immediate display
+      const formattedBid = {
+        id: bidData.bidId || `temp-${Date.now()}`,
+        userId: bidData.userId,
+        amount: bidData.amount,
+        createdAt: bidData.createdAt || new Date().toISOString(),
+        auctionId: bidData.auctionId,
+      };
+
+      // Emit the bid to all users in the auction room immediately for real-time updates
+      io.to(bidData.auctionId).emit("newBid", formattedBid);
+
+      // Also emit an auction update to update the current price
+      io.to(bidData.auctionId).emit("bidUpdate", {
+        auction: {
+          _id: bidData.auctionId,
+          currentPrice: bidData.amount,
+        },
+      });
+    } catch (error) {
+      console.error("Error handling bid via socket:", error);
+      socket.emit("bidError", {
+        message: "Failed to process bid",
+        error: error.message,
+      });
+    }
+  });
+
+  // ✅ Thêm sự kiện join theo userId
+  socket.on("join", (userId) => {
+    socket.join(userId);
+    console.log(`User ${userId} joined their personal room`);
   });
 
   // Join chat room
@@ -249,9 +305,18 @@ io.on("connection", (socket) => {
   // Handle disconnection
   socket.on("disconnect", (reason) => {
     console.log("User disconnected:", socket.id, "Reason:", reason);
+
+    // Clean up auctionViewers when user disconnects
+    auctionViewers.forEach((viewers, auctionId) => {
+      if (viewers.has(socket.id)) {
+        viewers.delete(socket.id);
+        console.log(
+          `Removed user ${socket.id} from auction ${auctionId} viewers`
+        );
+      }
+    });
   });
 });
-
 
 // run server
 server.listen(port, () => {
