@@ -77,12 +77,14 @@ const Navbar = () => {
 
         <div className="flex gap-4 items-center">
           {/* Chat Icon */}
-          <div className="relative cursor-pointer">
+          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
             <ChatList />
           </div>
 
           {/* Notification Bell ✅ */}
-          <NotificationBell />
+          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+            <NotificationBell />
+          </div>
 
           {/* Coin */}
           <Link to={"/topup"}>

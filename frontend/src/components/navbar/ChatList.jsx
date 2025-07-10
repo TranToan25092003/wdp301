@@ -141,7 +141,7 @@ const ChatList = () => {
       placement="bottomRight"
       overlayStyle={{ width: 300 }}
     >
-      <div className="relative cursor-pointer">
+      <div className="flex items-center justify-center relative">
         <MessageCircle className="w-6 h-6" />
         {unreadCount > 0 && (
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
