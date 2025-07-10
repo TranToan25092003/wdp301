@@ -418,7 +418,7 @@ const HomePage = () => {
                   {cat.title}
                 </div>
                 <Text style={{ color: "#22c55e", fontSize: 13, marginTop: 2 }}>
-                  {cat.itemCount || 0} sản phẩm
+                  {cat.products || 0} sản phẩm
                 </Text>
               </Card>
             </Col>

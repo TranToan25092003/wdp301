@@ -59,11 +59,11 @@ const NotificationBell = () => {
     const socket = io(API_URL, { transports: ["websocket"] });
     socket.emit("join", userId);
 
-    socket.on("notification", (newNotification) => {
-      setAllNotifications((prev) => [newNotification, ...prev]);
-      setUnreadNotifications((prev) => [newNotification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-    });
+    socket.on("new_notification", (newNotification) => {
+  setAllNotifications((prev) => [newNotification, ...prev]);
+  setUnreadNotifications((prev) => [newNotification, ...prev]);
+  setUnreadCount((prev) => prev + 1);
+});
 
     return () => socket.disconnect();
   }, [userId]);
@@ -152,27 +152,29 @@ const NotificationBell = () => {
 
   const renderList = (data) =>
     data.length ? (
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
         {data.map((n) => (
           <div
             key={n._id}
-            className={`group relative flex items-start gap-3 p-4 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 border-l-4 ${getNotificationColor(n.type)} ${
-              !n.isRead ? "bg-blue-50/30" : ""
-            }`}
+            className={`group relative flex items-start gap-3 p-4 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 border-l-4 ${getNotificationColor(
+              n.type
+            )} ${!n.isRead ? "bg-blue-50/30" : ""}`}
           >
             {/* Icon thông báo */}
             <div className="flex-shrink-0 mt-1">
               {getNotificationIcon(n.type)}
             </div>
-            
+
             {/* Nội dung thông báo */}
             <div
               onClick={() => handleNotificationClick(n)}
               className="flex-1 cursor-pointer min-w-0"
             >
-              <div className={`text-sm leading-relaxed break-words ${
-                !n.isRead ? "font-semibold text-gray-900" : "text-gray-700"
-              }`}>
+              <div
+                className={`text-sm leading-relaxed break-words ${
+                  !n.isRead ? "font-semibold text-gray-900" : "text-gray-700"
+                }`}
+              >
                 {n.message}
               </div>
               <div className="flex items-center gap-2 mt-2">
@@ -247,52 +249,35 @@ const NotificationBell = () => {
                       <span>Tất cả</span>
                     </div>
                   ),
-                  children: (
-                    <div className="max-h-96 overflow-y-auto">
-                      {renderList(allNotifications)}
-                    </div>
-                  ),
+                  children: renderList(allNotifications),
                 },
                 {
                   key: "unread",
                   label: (
                     <div className="flex items-center gap-2 px-2">
-                      <div className="relative">
+                      <Badge count={unreadCount} size="small">
                         <Bell className="w-4 h-4" />
-                        {unreadCount > 0 && (
-                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-                        )}
-                      </div>
+                      </Badge>
                       <span>Chưa đọc</span>
                     </div>
                   ),
-                  children: (
-                    <div className="max-h-96 overflow-y-auto">
-                      {renderList(unreadNotifications)}
-                    </div>
-                  ),
+                  children: renderList(unreadNotifications),
                 },
               ]}
             />
           </div>
         </div>
       )}
+      trigger="click"
       placement="bottomRight"
-      trigger={["click"]}
-      overlayStyle={{ zIndex: 1050 }}
     >
-      <div className="relative cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
-        <Badge 
-          count={unreadCount} 
-          size="small"
-          className="notification-badge"
-          style={{ 
-            backgroundColor: '#ef4444',
-            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
-          }}
-        >
-          <Bell className="w-6 h-6 text-gray-600 hover:text-blue-500 transition-colors duration-200" />
-        </Badge>
+      <div className="flex items-center justify-center relative">
+        <Bell className="w-6 h-6" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {unreadCount}
+          </span>
+        )}
       </div>
     </Dropdown>
   );

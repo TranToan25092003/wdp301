@@ -8,9 +8,12 @@ import { getAllBorrowRecord } from "@/API/duc.api/borrow.api";
 import { getAllBuyRecord } from "@/API/duc.api/buy.api";
 import erroImg from "../assets/error-image.png";
 import { getUserUploadedItems } from "@/API/duc.api/item.api";
+import { useNavigate, Link } from 'react-router-dom';
+import ExtendBorrowModal from "@/components/item/extend-borrow-modal";
 
 const TransactionHistoryPage = () => {
-    const [activeTab, setActiveTab] = useState("buy");
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState("uploaded");
     const [buyRecords, setBuyRecords] = useState([]);
     const [borrowRecords, setBorrowRecords] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -21,6 +24,9 @@ const TransactionHistoryPage = () => {
     const [uploadedItems, setUploadedItems] = useState([]);
     const [uploadedCurrentPage, setUploadedCurrentPage] = useState(1);
     const pageSize = 10;
+
+    const [extendModalVisible, setExtendModalVisible] = useState(false);
+    const [selectedBorrowId, setSelectedBorrowId] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,6 +61,18 @@ const TransactionHistoryPage = () => {
         return data.slice(startIndex, endIndex);
     };
 
+    const handleExtendSuccess = async () => {
+        setExtendModalVisible(false);
+        const token = await getToken();
+        const borrowRes = await getAllBorrowRecord(token);
+        if (borrowRes.success) setBorrowRecords(borrowRes.data);
+    };
+
+    const handleItemClick = (item) => {
+        event.stopPropagation();
+        navigate(`/item/${item.id}`);
+    };
+
     const items = [
         {
             key: "uploaded",
@@ -68,7 +86,7 @@ const TransactionHistoryPage = () => {
             ) : (
                 <div>
                     {paginateData(uploadedItems, uploadedCurrentPage).map((item) => (
-                        <div key={item._id || item.name} className="mb-4">
+                        <div key={item.id || item.name} className="mb-4">
                             <Collapse
                                 accordion
                                 expandIconPosition="right"
@@ -84,7 +102,14 @@ const TransactionHistoryPage = () => {
                                                 className="w-12 h-12 object-cover rounded mr-4"
                                             />
                                             <div className="flex-1">
-                                                <p className="font-semibold">{item.name || "Unknown Item"}</p>
+                                                <p className="font-semibold">
+                                                    <span
+                                                        className="cursor-pointer hover:text-blue-600"
+                                                        onClick={(e) => handleItemClick(item, e)}
+                                                    >
+                                                        {item.name || "Unknown Item"}
+                                                    </span>
+                                                </p>
                                                 <p className="text-gray-600 text-sm">
                                                     {item.category || "N/A"} | {formatPrice(item.price)} | {item.type || "N/A"} | {item.status || "N/A"}
                                                 </p>
@@ -94,7 +119,7 @@ const TransactionHistoryPage = () => {
                                             </div>
                                         </div>
                                     }
-                                    key={item._id || item.name}
+                                    key={item.id || item.name}
                                 >
                                     {item.type === "Sell" && item.status === "Sold" && item.purchaseDate && (
                                         <div className="p-4">
@@ -199,8 +224,16 @@ const TransactionHistoryPage = () => {
                                                 className="w-12 h-12 object-cover"
                                             />
                                         </td>
-                                        <td className="px-4 py-2 border">{record.item?.name || "Unknown Item"}</td>
-                                        <td className="px-4 py-2 border">{record.item?.categoryId?.name || "N/A"}</td>
+                                        <td className="px-4 py-2 border">
+                                            <Link to={`/item/${record.item?._id}`} style={{ color: "black" }}>
+                                                {record.item?.name || "Unknown Item"}
+                                            </Link>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{ color: "black" }}>
+                                                {record.item?.categoryId?.name || "Unknown Category"}
+                                            </Link>
+                                        </td>
                                         <td className="px-4 py-2 border">
                                             <Text className="text-green-600 font-bold">{formatPrice(record.item?.price)}</Text>
                                         </td>
@@ -246,6 +279,7 @@ const TransactionHistoryPage = () => {
                                     <th className="px-4 py-2 border">Start Time</th>
                                     <th className="px-4 py-2 border">End Time</th>
                                     <th className="px-4 py-2 border">Status</th>
+                                    <th className="px-4 py-2 border">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -258,8 +292,16 @@ const TransactionHistoryPage = () => {
                                                 className="w-12 h-12 object-cover"
                                             />
                                         </td>
-                                        <td className="px-4 py-2 border">{record.item?.name || "Unknown Item"}</td>
-                                        <td className="px-4 py-2 border">{record.item?.categoryId?.name || "N/A"}</td>
+                                        <td className="px-4 py-2 border">
+                                            <Link to={`/item/${record.item?._id}`} style={{ color: "black" }}>
+                                                {record.item?.name || "Unknown Item"}
+                                            </Link>
+                                        </td>
+                                        <td className="px-4 py-2 border">
+                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{ color: "black" }}>
+                                                {record.item?.categoryId?.name || "Unknown Category"}
+                                            </Link>
+                                        </td>
                                         <td className="px-4 py-2 border">
                                             <Text className="text-green-600 font-bold">{formatPrice(record.totalPrice)}</Text>
                                         </td>
@@ -271,6 +313,19 @@ const TransactionHistoryPage = () => {
                                             {new Date(record.endTime).toLocaleDateString()}
                                         </td>
                                         <td className="px-4 py-2 border">{record.status}</td>
+                                        <td className="px-4 py-2 border">
+                                            {record.status === 'borrowed' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedBorrowId(record.borrowId);
+                                                        setExtendModalVisible(true);
+                                                    }}
+                                                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                                                >
+                                                    Extend
+                                                </button>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -284,6 +339,13 @@ const TransactionHistoryPage = () => {
                             onChange={setBorrowCurrentPage}
                         />
                     </div>
+                    <ExtendBorrowModal
+                        visible={extendModalVisible}
+                        onCancel={() => setExtendModalVisible(false)}
+                        borrowId={selectedBorrowId}
+                        onSuccess={handleExtendSuccess}
+                        borrowRecords={borrowRecords}
+                    />
                 </div>
             ),
         },

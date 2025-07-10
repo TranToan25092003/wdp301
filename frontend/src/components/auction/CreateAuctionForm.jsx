@@ -10,6 +10,7 @@ const CreateAuctionForm = ({ open, onCancel, onCreate }) => {
     try {
       const auctionData = {
         ...values,
+        startTime: values.startTime.toISOString(),
         endTime: values.endTime.toISOString(),
       };
       const response = await createAuction(auctionData);
@@ -58,9 +59,36 @@ const CreateAuctionForm = ({ open, onCancel, onCreate }) => {
           />
         </Form.Item>
         <Form.Item
+          name="startTime"
+          label="Start Time"
+          rules={[{ required: true, message: "Please select the start time" }]}
+        >
+          <DatePicker
+            showTime
+            format="YYYY-MM-DD HH:mm:ss"
+            style={{ width: "100%" }}
+          />
+        </Form.Item>
+        <Form.Item
           name="endTime"
           label="End Time"
-          rules={[{ required: true, message: "Please select the end time" }]}
+          rules={[
+            { required: true, message: "Please select the end time" },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const startTime = getFieldValue("startTime");
+                if (!value || !startTime) {
+                  return Promise.resolve();
+                }
+                if (value.isBefore(startTime)) {
+                  return Promise.reject(
+                    new Error("End time must be after start time")
+                  );
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
         >
           <DatePicker
             showTime
