@@ -111,6 +111,7 @@ const AuctionDetailPage = () => {
     }
   }, [auction, bids, userId, userNames]);
 
+  // Initialize socket connection with better real-time handling
   useEffect(() => {
     // Initialize socket connection
     const socketInstance = initializeSocket();
@@ -133,11 +134,11 @@ const AuctionDetailPage = () => {
       setSocketConnected(false);
     });
 
-    // Handle bid updates from other users
+    // Handle bid updates from other users - this is the main bidUpdate event
     socketInstance.on("bidUpdate", (data) => {
       console.log("Received bidUpdate:", data);
 
-      // Update auction data
+      // Update auction data when receiving comprehensive update
       if (data.auction) {
         console.log("Updating auction:", data.auction);
         setAuction((prev) => ({
@@ -147,29 +148,29 @@ const AuctionDetailPage = () => {
         }));
       }
 
-      // Update bids list
+      // Update bids list with full data refresh
       if (data.bids && Array.isArray(data.bids)) {
-        console.log("Updating bids:", data.bids);
+        console.log("Updating bids with full data:", data.bids);
         const sortedBids = [...data.bids].sort((a, b) => b.amount - a.amount);
         setBids(sortedBids);
       }
     });
 
-    // Handle new bid event (real-time update for all clients)
+    // Handle new individual bid event (real-time immediate update)
     socketInstance.on("newBid", (bidData) => {
-      console.log("Received newBid:", bidData);
+      console.log("Received newBid (immediate update):", bidData);
 
       if (bidData.auctionId === auctionId) {
-        // Update auction current price
+        // Optimistically update auction current price
         setAuction((prev) => ({
           ...prev,
           currentPrice: bidData.amount,
         }));
 
-        // Add new bid to the list
+        // Optimistically add new bid to the leaderboard immediately
         setBids((prev) => {
-          // Check if bid already exists to prevent duplicates
-          const existingBid = prev.find(
+          // Don't add duplicate bids
+          const existingBidIndex = prev.findIndex(
             (bid) =>
               bid.id === bidData.id ||
               (bid.userId === bidData.userId &&
@@ -179,13 +180,45 @@ const AuctionDetailPage = () => {
                 ) < 1000)
           );
 
-          if (existingBid) {
+          if (existingBidIndex !== -1) {
             return prev;
           }
 
-          const updatedBids = [bidData, ...prev];
-          return updatedBids.sort((a, b) => b.amount - a.amount);
+          // Add bid with animation highlight
+          const newBid = {
+            ...bidData,
+            isNew: true, // Flag for highlighting
+          };
+
+          // Add to list and re-sort
+          const updatedBids = [newBid, ...prev];
+          const sortedBids = updatedBids.sort((a, b) => b.amount - a.amount);
+
+          // Remove highlight after 3 seconds
+          setTimeout(() => {
+            setBids((current) =>
+              current.map((bid) =>
+                bid.id === newBid.id ? { ...bid, isNew: false } : bid
+              )
+            );
+          }, 3000);
+
+          return sortedBids;
         });
+
+        // Play a sound effect for new bids (optional)
+        // Only if this is not the current user's bid
+        if (bidData.userId !== userId) {
+          try {
+            const audio = new Audio("/notification-sound.mp3");
+            audio.volume = 0.5;
+            audio
+              .play()
+              .catch(() => console.log("Could not play notification sound"));
+          } catch (error) {
+            console.log("Sound notification not supported", error);
+          }
+        }
       }
     });
 
@@ -490,14 +523,15 @@ const AuctionDetailPage = () => {
                         size="small"
                         style={{
                           width: "100%",
-                          backgroundColor:
-                            index === 0
-                              ? "#f6ffed"
-                              : index === 1
-                              ? "#fff7e6"
-                              : index === 2
-                              ? "#fff1f0"
-                              : "#fafafa",
+                          backgroundColor: bid.isNew
+                            ? "#e6f7ff"
+                            : index === 0
+                            ? "#f6ffed"
+                            : index === 1
+                            ? "#fff7e6"
+                            : index === 2
+                            ? "#fff1f0"
+                            : "#fafafa",
                           border:
                             index === 0
                               ? "2px solid #52c41a"
