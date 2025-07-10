@@ -65,7 +65,8 @@ const followUser = async (req, res) => {
     // ✅ Gửi realtime qua socket nếu có
     const io = req.app.get("socketio");
     if (io) {
-      io.to(followedId).emit("notification", {
+      io.to(followedId).emit("new_notification", {
+        // Đổi từ "notification" thành "new_notification"
         ...newNotification._doc,
         sender: {
           id: followerUser?.id,
@@ -88,7 +89,6 @@ const followUser = async (req, res) => {
     });
   }
 };
-
 
 /**
  * ====================================
