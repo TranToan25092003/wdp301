@@ -9,6 +9,7 @@ import { getAllBuyRecord } from "@/API/duc.api/buy.api";
 import erroImg from "../assets/error-image.png";
 import { getUserUploadedItems } from "@/API/duc.api/item.api";
 import { useNavigate, Link } from 'react-router-dom';
+import ExtendBorrowModal from "@/components/item/extend-borrow-modal";
 
 const TransactionHistoryPage = () => {
     const navigate = useNavigate();
@@ -23,6 +24,9 @@ const TransactionHistoryPage = () => {
     const [uploadedItems, setUploadedItems] = useState([]);
     const [uploadedCurrentPage, setUploadedCurrentPage] = useState(1);
     const pageSize = 10;
+
+    const [extendModalVisible, setExtendModalVisible] = useState(false);
+    const [selectedBorrowId, setSelectedBorrowId] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,6 +59,13 @@ const TransactionHistoryPage = () => {
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         return data.slice(startIndex, endIndex);
+    };
+
+    const handleExtendSuccess = async () => {
+        setExtendModalVisible(false);
+        const token = await getToken();
+        const borrowRes = await getAllBorrowRecord(token);
+        if (borrowRes.success) setBorrowRecords(borrowRes.data);
     };
 
     const handleItemClick = (item) => {
@@ -214,13 +225,13 @@ const TransactionHistoryPage = () => {
                                             />
                                         </td>
                                         <td className="px-4 py-2 border">
-                                            <Link to={`/item/${record.item?._id}`}  style={{color: "black"}}>
+                                            <Link to={`/item/${record.item?._id}`} style={{ color: "black" }}>
                                                 {record.item?.name || "Unknown Item"}
                                             </Link>
                                         </td>
                                         <td className="px-4 py-2 border">
-                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{color: "black"}}>
-                                                {record.item?.categoryId?.name|| "Unknown Category"}
+                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{ color: "black" }}>
+                                                {record.item?.categoryId?.name || "Unknown Category"}
                                             </Link>
                                         </td>
                                         <td className="px-4 py-2 border">
@@ -268,6 +279,7 @@ const TransactionHistoryPage = () => {
                                     <th className="px-4 py-2 border">Start Time</th>
                                     <th className="px-4 py-2 border">End Time</th>
                                     <th className="px-4 py-2 border">Status</th>
+                                    <th className="px-4 py-2 border">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -281,12 +293,12 @@ const TransactionHistoryPage = () => {
                                             />
                                         </td>
                                         <td className="px-4 py-2 border">
-                                             <Link to={`/item/${record.item?._id}`}  style={{color: "black"}}>
+                                            <Link to={`/item/${record.item?._id}`} style={{ color: "black" }}>
                                                 {record.item?.name || "Unknown Item"}
                                             </Link>
                                         </td>
                                         <td className="px-4 py-2 border">
-                                             <Link to={`/category/${record.item?.categoryId?._id}`}  style={{color: "black"}}>
+                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{ color: "black" }}>
                                                 {record.item?.categoryId?.name || "Unknown Category"}
                                             </Link>
                                         </td>
@@ -301,6 +313,19 @@ const TransactionHistoryPage = () => {
                                             {new Date(record.endTime).toLocaleDateString()}
                                         </td>
                                         <td className="px-4 py-2 border">{record.status}</td>
+                                        <td className="px-4 py-2 border">
+                                            {record.status === 'borrowed' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedBorrowId(record.borrowId);
+                                                        setExtendModalVisible(true);
+                                                    }}
+                                                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                                                >
+                                                    Extend
+                                                </button>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -314,6 +339,13 @@ const TransactionHistoryPage = () => {
                             onChange={setBorrowCurrentPage}
                         />
                     </div>
+                    <ExtendBorrowModal
+                        visible={extendModalVisible}
+                        onCancel={() => setExtendModalVisible(false)}
+                        borrowId={selectedBorrowId}
+                        onSuccess={handleExtendSuccess}
+                        borrowRecords={borrowRecords}
+                    />
                 </div>
             ),
         },

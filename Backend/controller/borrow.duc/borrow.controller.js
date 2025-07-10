@@ -260,7 +260,7 @@ const requestForReturnBorrow = async (req, res) => {
 
 const confirmReturnBorrow = async (req, res) => {
   try {
-    const ownerId = req.userId; 
+    const ownerId = req.userId;
     const { borrowId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(borrowId)) {
@@ -279,7 +279,7 @@ const confirmReturnBorrow = async (req, res) => {
 
     // Find the borrow record with populated item
     const borrow = await Borrow.findById(borrowId)
-      .populate('itemId'); 
+      .populate('itemId');
 
     if (!borrow) {
       return res.status(404).json({
@@ -409,10 +409,184 @@ const confirmReturnBorrow = async (req, res) => {
   }
 };
 
+const extendBorrow = async (req, res) => {
+  try {
+    const borrowerId = req.userId;
+    const { borrowId, newEndTime } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(borrowId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Borrow ID format",
+      });
+    }
+
+    if (!borrowId || !newEndTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Borrow ID and new end time are required",
+      });
+    }
+
+    // Validate newEndTime is in the future
+    const newEndTimeDate = new Date(newEndTime);
+    if (isNaN(newEndTimeDate.getTime()) || newEndTimeDate <= new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "New end time must be a future date",
+      });
+    }
+
+
+    const borrow = await Borrow.findById(borrowId)
+      .populate('itemId');
+
+    if (!borrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Borrow record not found",
+      });
+    }
+
+    if (newEndTimeDate <= borrow.endTime) {
+      return res.status(400).json({
+        success: false,
+        message: "New end time must be after the current end time",
+      });
+    }
+
+
+    if (borrow.borrowers !== borrowerId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to extend this borrow",
+      });
+    }
+
+    // Prevent extension if already returned or late
+    if (borrow.status === 'returned' || borrow.status === 'late' || borrow.status === 'not_returned') {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot extend a returned, late, or not returned borrow",
+      });
+    }
+
+    // Calculate extension cost
+    const currentEndTime = borrow.endTime;
+    const timeDiffMs = newEndTimeDate - currentEndTime; // Difference in milliseconds
+    let extensionCost = 0;
+    if (borrow.itemId.ratePrice === 'hour') {
+      const hoursExtended = Math.ceil(timeDiffMs / (1000 * 60 * 60)); // Convert to hours
+      extensionCost = borrow.itemId.price * hoursExtended;
+    } else if (borrow.itemId.ratePrice === 'day') {
+      const daysExtended = Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)); // Convert to days
+      extensionCost = borrow.itemId.price * daysExtended;
+    } else if (borrow.itemId.ratePrice === 'no') {
+      return res.status(400).json({
+        success: false,
+        message: "Extension not allowed for items with no rate price",
+      });
+    }
+
+    // Verify borrower has sufficient coins
+    const borrower = await clerkClient.users.getUser(borrowerId);
+    if (!borrower) {
+      return res.status(400).json({
+        success: false,
+        message: "Borrower not found in the system",
+      });
+    }
+    const currentCoins = Number.parseInt(borrower.publicMetadata?.coin) || 0;
+    if (currentCoins < extensionCost) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient coins to extend the borrow",
+      });
+    }
+
+    // Deduct extension cost from borrower
+    const newCoinBalance = currentCoins - extensionCost;
+    await clerkClient.users.updateUserMetadata(borrowerId, {
+      publicMetadata: {
+        coin: newCoinBalance,
+      },
+    });
+
+    // Fetch seller information and add coint
+    const seller = await clerkClient.users.getUser(borrow.itemId.owner.toString());
+    if (!seller) {
+      return res.status(400).json({
+        success: false,
+        message: "Seller not found in the system",
+      });
+    }
+    const currentSellerCoins = Number.parseInt(seller.publicMetadata?.coin) || 0;
+    const newSellerCoinBalance = currentSellerCoins + extensionCost;
+    await clerkClient.users.updateUserMetadata(borrow.itemId.owner.toString(), {
+      publicMetadata: {
+        coin: newSellerCoinBalance,
+      },
+    });
+
+    // Update borrow end time
+    borrow.endTime = newEndTimeDate;
+    await borrow.save();
+
+    // Notify owner of extension request
+    const owner = await clerkClient.users.getUser(borrow.itemId.owner.toString());
+    if (owner) {
+      const ownerEmail = owner.emailAddresses[0]?.emailAddress || '';
+      if (ownerEmail) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: ownerEmail,
+          subject: 'OLD MARKET - BORROW EXTENSION REQUEST',
+          text: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${newEndTimeDate}. Extension cost: ${extensionCost} coins.`,
+        };
+        await transporter.sendMail(mailOptions);
+      }
+
+      // Create notification for owner
+      const notification = new Notification({
+        recipientId: borrow.itemId.owner,
+        type: 'system',
+        message: `Borrower has extended the borrow for item "${borrow.itemId.name}" until ${newEndTimeDate}. Cost: ${extensionCost} coins.`,
+        link: `/history`,
+      });
+      await notification.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Borrow extended until ${newEndTimeDate}. Extension cost: ${extensionCost} coins`,
+      data: {
+        borrowId: borrow._id,
+        newEndTime: newEndTimeDate,
+        extensionCost,
+        remainingCoins: newCoinBalance,
+      },
+    });
+  } catch (error) {
+    console.error('Error extending borrow:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
 
 module.exports = {
   createBorrow,
   getAllBorrowRecordByUserId,
   requestForReturnBorrow,
-  confirmReturnBorrow
+  confirmReturnBorrow,
+  extendBorrow
 };
