@@ -196,18 +196,24 @@ const requestForReturnBorrow = async (req, res) => {
   try {
     const borrowerId = req.userId;
     const user = req.user;
-    console.log("User info", user)
-    const { itemId, message } = req.body;
-    console.log(borrowerId)
-    console.log(itemId)
-    console.log(message)
-    if (!borrowerId || !itemId || !message) {
-      return res.status(400).json({ success: false, message: 'Borrower ID, item ID, and message are required' });
+    const { borrowId, message } = req.body;
+    if (!borrowerId || !borrowId || !message) {
+      return res.status(400).json({ success: false, message: 'Borrower ID, borrow ID, and message are required' });
     }
 
-    const item = await Item.findOne({ _id: itemId });
+    const borrowRecord = await Borrow.findOne({ _id: borrowId, borrowers: borrowerId });
+    if (!borrowRecord) {
+      return res.status(404).json({ success: false, message: 'Borrow record not found or not borrowed by you' });
+    }
+
+    if(borrowRecord.status === "returned"){
+      return res.status(400).json({ success: false, message: 'This item has been returned!' });
+    }
+
+
+    const item = await Item.findOne({ _id: borrowRecord.itemId });
     if (!item) {
-      return res.status(404).json({ success: false, message: 'Item not found or not borrowed by you' });
+      return res.status(404).json({ success: false, message: 'Item not found' });
     }
 
     // Fetch owner information
@@ -228,7 +234,7 @@ const requestForReturnBorrow = async (req, res) => {
     const notification = new Notification({
       recipientId: item.owner,
       type: 'borrow_confirm',
-      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}`,
+      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}" (Borrow ID: ${borrowId}). Message: ${message}`,
       link: `/history`,
     });
     await notification.save();
@@ -246,7 +252,7 @@ const requestForReturnBorrow = async (req, res) => {
         from: process.env.EMAIL_USER,
         to: ownerEmail,
         subject: 'OLD MARKET - RETURN REQUEST FOR BORROWED ITEM',
-        text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
+        text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}" (Borrow ID: ${borrowId}). Message: ${message}. Check your dashboard: ${notification.link}`,
       };
       await transporter.sendMail(mailOptions);
     }
@@ -496,6 +502,7 @@ const extendBorrow = async (req, res) => {
         message: "Borrower not found in the system",
       });
     }
+
     const currentCoins = Number.parseInt(borrower.publicMetadata?.coin) || 0;
     if (currentCoins < extensionCost) {
       return res.status(400).json({
@@ -548,7 +555,7 @@ const extendBorrow = async (req, res) => {
           from: process.env.EMAIL_USER,
           to: ownerEmail,
           subject: 'OLD MARKET - BORROW EXTENSION REQUEST',
-          text: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${newEndTimeDate}. Extension cost: ${extensionCost} coins.`,
+          text: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${formatReadableDate(newEndTimeDate)}. Extension cost: ${extensionCost} coins.`,
         };
         await transporter.sendMail(mailOptions);
       }
@@ -557,7 +564,7 @@ const extendBorrow = async (req, res) => {
       const notification = new Notification({
         recipientId: borrow.itemId.owner,
         type: 'system',
-        message: `Borrower has extended the borrow for item "${borrow.itemId.name}" until ${newEndTimeDate}. Cost: ${extensionCost} coins.`,
+        message: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${formatReadableDate(newEndTimeDate)}. Cost: ${extensionCost} coins.`,
         link: `/history`,
       });
       await notification.save();
@@ -565,7 +572,7 @@ const extendBorrow = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Borrow extended until ${newEndTimeDate}. Extension cost: ${extensionCost} coins`,
+      message: `Borrow extended until ${formatReadableDate(newEndTimeDate)}. Extension cost: ${extensionCost} coins`,
       data: {
         borrowId: borrow._id,
         newEndTime: newEndTimeDate,
@@ -580,6 +587,21 @@ const extendBorrow = async (req, res) => {
       message: 'Internal server error',
     });
   }
+};
+
+const formatReadableDate = (date) => {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) {
+    return "Invalid Date";
+  }
+
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
 

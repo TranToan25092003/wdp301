@@ -10,6 +10,8 @@ import erroImg from "../assets/error-image.png";
 import { getUserUploadedItems } from "@/API/duc.api/item.api";
 import { useNavigate, Link } from 'react-router-dom';
 import ExtendBorrowModal from "@/components/item/extend-borrow-modal";
+import RequestReturnModal from "@/components/item/request-return-borrow-modal";
+import ConfirmReturnModal from "@/components/item/confirm-return-borrow-modal";
 
 const TransactionHistoryPage = () => {
     const navigate = useNavigate();
@@ -27,6 +29,8 @@ const TransactionHistoryPage = () => {
 
     const [extendModalVisible, setExtendModalVisible] = useState(false);
     const [selectedBorrowId, setSelectedBorrowId] = useState(null);
+    const [returnModalVisible, setReturnModalVisible] = useState(false);
+    const [confirmModalVisible, setConfirmModalVisible] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -63,6 +67,13 @@ const TransactionHistoryPage = () => {
 
     const handleExtendSuccess = async () => {
         setExtendModalVisible(false);
+        const token = await getToken();
+        const borrowRes = await getAllBorrowRecord(token);
+        if (borrowRes.success) setBorrowRecords(borrowRes.data);
+    };
+
+    const handleReturnSuccess = async () => {
+        setReturnModalVisible(false);
         const token = await getToken();
         const borrowRes = await getAllBorrowRecord(token);
         if (borrowRes.success) setBorrowRecords(borrowRes.data);
@@ -171,6 +182,14 @@ const TransactionHistoryPage = () => {
                                                             ) : (
                                                                 <p><strong>Phone:</strong> None</p>
                                                             )}
+                                                            {/* Confirm Return Button with Modal */}
+                                                            <button
+                                                                onClick={() => setConfirmModalVisible({ visible: true, borrowId: history.borrowId })}
+                                                                className="mt-2 bg-blue-500 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-600 transition duration-200 ease-in-out"
+                                                                disabled={history.status === "returned" || history.status === "late"}
+                                                            >
+                                                                Confirm Return
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -189,6 +208,17 @@ const TransactionHistoryPage = () => {
                             onChange={setUploadedCurrentPage}
                         />
                     </div>
+                    <ConfirmReturnModal
+                        visible={confirmModalVisible?.visible || false}
+                        onCancel={() => setConfirmModalVisible(null)}
+                        onSuccess={async () => {
+                            const token = await getToken();
+                            const updatedRes = await getUserUploadedItems(token);
+                            if (updatedRes.success) setUploadedItems(updatedRes.data);
+                        }}
+                        borrowId={confirmModalVisible?.borrowId}
+                        borrowRecords={uploadedItems.flatMap(item => item.borrowingHistory || [])}
+                    />
                 </div>
             ),
         },
@@ -314,17 +344,28 @@ const TransactionHistoryPage = () => {
                                         </td>
                                         <td className="px-4 py-2 border">{record.status}</td>
                                         <td className="px-4 py-2 border">
-                                            {record.status === 'borrowed' && (
+                                            <div className="flex space-x-2 justify-center items-center w-full">
                                                 <button
                                                     onClick={() => {
                                                         setSelectedBorrowId(record.borrowId);
                                                         setExtendModalVisible(true);
                                                     }}
-                                                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                                                    className={`bg-yellow-500 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-600 transition duration-200 ease-in-out transform hover:-translate-y-0.5 ${record.status !== 'borrowed' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    disabled={record.status !== 'borrowed'}
                                                 >
                                                     Extend
                                                 </button>
-                                            )}
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedBorrowId(record.borrowId);
+                                                        setReturnModalVisible(true);
+                                                    }}
+                                                    className={`bg-green-700 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-green-600 transition duration-200 ease-in-out transform hover:-translate-y-0.5 ${record.status === 'returned' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    disabled={record.status === 'returned'}
+                                                >
+                                                    Request Return
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -346,20 +387,27 @@ const TransactionHistoryPage = () => {
                         onSuccess={handleExtendSuccess}
                         borrowRecords={borrowRecords}
                     />
+                    <RequestReturnModal
+                        visible={returnModalVisible}
+                        onCancel={() => setReturnModalVisible(false)}
+                        borrowId={selectedBorrowId}
+                        onSuccess={handleReturnSuccess}
+                        borrowRecords={borrowRecords}
+                    />
                 </div>
             ),
         },
     ];
 
     return (
-        <Layout style={{ backgroundColor: "#fff" }}>
-            <Content className="h-screen">
+        <Layout style={{ backgroundColor: "#fff", minHeight: "100vh" }}>
+            <Content className="flex-1 overflow-auto">
                 <Tabs
                     tabPosition="left"
                     activeKey={activeTab}
                     onChange={setActiveTab}
                     items={items}
-                    style={{ width: "100%", minHeight: "80vh" }}
+                    style={{ width: "100%", height: "100%" }}
                 />
             </Content>
         </Layout>
