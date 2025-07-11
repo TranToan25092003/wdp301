@@ -510,6 +510,7 @@ const getUserUploadedItems = async (req, res) => {
         if (borrowRecords.length > 0) {
           baseItem.borrowingHistory = await Promise.all(borrowRecords.map(async (borrow) => {
             const history = {
+              borrowId: borrow._id,
               totalPrice: borrow.totalPrice,
               startTime: borrow.startTime,
               endTime: borrow.endTime,

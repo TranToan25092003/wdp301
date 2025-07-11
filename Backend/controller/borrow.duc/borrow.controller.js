@@ -196,18 +196,24 @@ const requestForReturnBorrow = async (req, res) => {
   try {
     const borrowerId = req.userId;
     const user = req.user;
-    console.log("User info", user)
-    const { itemId, message } = req.body;
-    console.log(borrowerId)
-    console.log(itemId)
-    console.log(message)
-    if (!borrowerId || !itemId || !message) {
-      return res.status(400).json({ success: false, message: 'Borrower ID, item ID, and message are required' });
+    const { borrowId, message } = req.body;
+    if (!borrowerId || !borrowId || !message) {
+      return res.status(400).json({ success: false, message: 'Borrower ID, borrow ID, and message are required' });
     }
 
-    const item = await Item.findOne({ _id: itemId });
+    const borrowRecord = await Borrow.findOne({ _id: borrowId, borrowers: borrowerId });
+    if (!borrowRecord) {
+      return res.status(404).json({ success: false, message: 'Borrow record not found or not borrowed by you' });
+    }
+
+    if(borrowRecord.status === "returned"){
+      return res.status(400).json({ success: false, message: 'This item has been returned!' });
+    }
+
+
+    const item = await Item.findOne({ _id: borrowRecord.itemId });
     if (!item) {
-      return res.status(404).json({ success: false, message: 'Item not found or not borrowed by you' });
+      return res.status(404).json({ success: false, message: 'Item not found' });
     }
 
     // Fetch owner information
@@ -228,7 +234,7 @@ const requestForReturnBorrow = async (req, res) => {
     const notification = new Notification({
       recipientId: item.owner,
       type: 'borrow_confirm',
-      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}`,
+      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}" (Borrow ID: ${borrowId}). Message: ${message}`,
       link: `/history`,
     });
     await notification.save();
@@ -246,7 +252,7 @@ const requestForReturnBorrow = async (req, res) => {
         from: process.env.EMAIL_USER,
         to: ownerEmail,
         subject: 'OLD MARKET - RETURN REQUEST FOR BORROWED ITEM',
-        text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
+        text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}" (Borrow ID: ${borrowId}). Message: ${message}. Check your dashboard: ${notification.link}`,
       };
       await transporter.sendMail(mailOptions);
     }
