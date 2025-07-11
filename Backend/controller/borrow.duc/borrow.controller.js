@@ -496,6 +496,7 @@ const extendBorrow = async (req, res) => {
         message: "Borrower not found in the system",
       });
     }
+
     const currentCoins = Number.parseInt(borrower.publicMetadata?.coin) || 0;
     if (currentCoins < extensionCost) {
       return res.status(400).json({
@@ -548,7 +549,7 @@ const extendBorrow = async (req, res) => {
           from: process.env.EMAIL_USER,
           to: ownerEmail,
           subject: 'OLD MARKET - BORROW EXTENSION REQUEST',
-          text: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${newEndTimeDate}. Extension cost: ${extensionCost} coins.`,
+          text: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${formatReadableDate(newEndTimeDate)}. Extension cost: ${extensionCost} coins.`,
         };
         await transporter.sendMail(mailOptions);
       }
@@ -557,7 +558,7 @@ const extendBorrow = async (req, res) => {
       const notification = new Notification({
         recipientId: borrow.itemId.owner,
         type: 'system',
-        message: `Borrower has extended the borrow for item "${borrow.itemId.name}" until ${newEndTimeDate}. Cost: ${extensionCost} coins.`,
+        message: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${formatReadableDate(newEndTimeDate)}. Cost: ${extensionCost} coins.`,
         link: `/history`,
       });
       await notification.save();
@@ -565,7 +566,7 @@ const extendBorrow = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Borrow extended until ${newEndTimeDate}. Extension cost: ${extensionCost} coins`,
+      message: `Borrow extended until ${formatReadableDate(newEndTimeDate)}. Extension cost: ${extensionCost} coins`,
       data: {
         borrowId: borrow._id,
         newEndTime: newEndTimeDate,
@@ -580,6 +581,21 @@ const extendBorrow = async (req, res) => {
       message: 'Internal server error',
     });
   }
+};
+
+const formatReadableDate = (date) => {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) {
+    return "Invalid Date";
+  }
+
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
 
