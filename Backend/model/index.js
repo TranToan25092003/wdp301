@@ -30,5 +30,5 @@ module.exports = {
   Session,
   Contact,
   userViolation,
-  Notification
+  Notification,
 };

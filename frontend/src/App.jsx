@@ -44,7 +44,10 @@ import {
   TransactionAdminDashboard,
   transactionAdminDashboardLoader,
 } from "./pages/admin/TransactionAdmin";
-import { CategoryAdminDashboard } from "./pages/admin/CategoryAdminDashboard";
+import {
+  CategoryAdminDashboard,
+  categoryAdminDashboardLoader,
+} from "./pages/admin/CategoryAdminDashboard";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -201,6 +204,7 @@ const router = createBrowserRouter([
           {
             path: "category",
             element: <CategoryAdminDashboard></CategoryAdminDashboard>,
+            loader: categoryAdminDashboardLoader,
           },
         ],
       },
