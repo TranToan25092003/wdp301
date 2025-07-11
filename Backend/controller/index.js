@@ -5,6 +5,8 @@ const reportAdminController = require("./admin/reportAdminController");
 const adminStatsController = require("./admin/adminStatsController");
 const userAdminController = require("./admin/userAdminController"); // Import user admin controller
 const auctionAdminController = require("./admin/auction.controller");
+const transactionAdminController = require("./admin/transaction.controller");
+const categoryAdminController = require("./admin/category.controller");
 
 module.exports = {
   itemController,
@@ -14,4 +16,6 @@ module.exports = {
   adminStatsController,
   userAdminController,
   auctionAdminController,
+  transactionAdminController,
+  categoryAdminController,
 };

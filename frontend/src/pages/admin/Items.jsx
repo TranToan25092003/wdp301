@@ -28,6 +28,7 @@ import {
 import { customFetch } from "@/utils/customAxios";
 
 import SheetComponent from "@/components/item/SheetComponent";
+import { PaginationAdmin } from "@/components/global/AdminPagination";
 export const itemsAdminLoader = async ({ request, params }) => {
   try {
     const url = new URL(request.url);
@@ -150,7 +151,7 @@ const Items = () => {
         </Table>
       </div>{" "}
       <div className="mt-2">
-        <PaginationDemo pagination={pagination}></PaginationDemo>
+        <PaginationAdmin pagination={pagination}></PaginationAdmin>
       </div>
     </div>
   );
