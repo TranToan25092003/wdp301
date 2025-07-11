@@ -18,7 +18,7 @@ const notificationSchema = new mongoose.Schema(
         "borrow_confirm",
         "unreturned",
         "admin_action",
-      ], 
+      ],
       required: [true, "Notification type is required"],
       trim: true,
     },
@@ -30,7 +30,7 @@ const notificationSchema = new mongoose.Schema(
     },
     link: {
       type: String,
-      default: "#", 
+      default: "#",
       trim: true,
       maxlength: [200, "Notification link cannot exceed 200 characters"],
     },
@@ -39,16 +39,16 @@ const notificationSchema = new mongoose.Schema(
       default: false,
     },
     sourceId: {
-      type: mongoose.Schema.Types.ObjectId, 
-      refPath: "sourceModel", 
-      required: false, 
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "sourceModel",
+      required: false,
     },
     sourceModel: {
       type: String,
       required: function () {
         return this.sourceId != null;
       },
-      enum: ["Item", "User", "Buy", "Borrow", "Report"], 
+      enum: ["Item", "User", "Buy", "Borrow", "Report"],
       trim: true,
     },
   },
@@ -59,6 +59,8 @@ const notificationSchema = new mongoose.Schema(
 
 notificationSchema.index({ recipientId: 1, isRead: 1, createdAt: -1 });
 
-const Notification = mongoose.models.Notification || mongoose.model('Notification', notificationSchema);
+const Notification =
+  mongoose.models.Notification ||
+  mongoose.model("Notification", notificationSchema);
 
 module.exports = Notification;
