@@ -1,36 +1,73 @@
 import React, { useEffect, useState } from "react";
 
-const CountdownTimer = ({ endTime }) => {
+const CountdownTimer = ({ endTime, startTime }) => {
   const calculateTimeLeft = () => {
-    const difference = new Date(endTime) - new Date();
-    let timeLeft = {};
-    if (difference > 0) {
-      timeLeft = {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    // If start time is in the future, count down to start time
+    if (now < start) {
+      const difference = start - now;
+      if (difference > 0) {
+        return {
+          isStarted: false,
+          timeLeft: {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60),
+          },
+        };
+      }
     }
-    return timeLeft;
+
+    // If started but not ended, count down to end time
+    if (now >= start && now < end) {
+      const difference = end - now;
+      if (difference > 0) {
+        return {
+          isStarted: true,
+          timeLeft: {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60),
+          },
+        };
+      }
+    }
+
+    // If already ended
+    return { isStarted: true, timeLeft: {} };
   };
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeInfo, setTimeInfo] = useState(calculateTimeLeft());
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
+      setTimeInfo(calculateTimeLeft());
     }, 1000);
     return () => clearInterval(timer);
-  }, [endTime]);
+  }, [startTime, endTime]);
 
-  if (!timeLeft || Object.keys(timeLeft).length === 0) {
+  if (!timeInfo.timeLeft || Object.keys(timeInfo.timeLeft).length === 0) {
     return <span style={{ color: "#f87171" }}>Đã kết thúc</span>;
   }
 
   return (
-    <span style={{ color: "#16a34a", fontWeight: 600 }}>
-      {timeLeft.days > 0 && `${timeLeft.days}d `}
-      {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+    <span
+      style={{
+        color: timeInfo.isStarted ? "#16a34a" : "#0284c7",
+        fontWeight: 600,
+      }}
+    >
+      {!timeInfo.isStarted && (
+        <span style={{ marginRight: 4 }}>Bắt đầu sau: </span>
+      )}
+      {timeInfo.timeLeft.days > 0 && `${timeInfo.timeLeft.days}d `}
+      {timeInfo.timeLeft.hours}h {timeInfo.timeLeft.minutes}m{" "}
+      {timeInfo.timeLeft.seconds}s
     </span>
   );
 };

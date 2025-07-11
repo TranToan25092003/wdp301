@@ -11,6 +11,7 @@ const AddAuction = () => {
     itemId: "",
     statusId: "",
   });
+  const [error, setError] = useState("");
 
   React.useEffect(() => {
     if (actionData?.success) {
@@ -20,13 +21,36 @@ const AddAuction = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error when user changes inputs
+    setError("");
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Validate that endTime is after startTime
+    const startDate = new Date(formData.startTime);
+    const endDate = new Date(formData.endTime);
+
+    if (endDate <= startDate) {
+      setError("End time must be after start time");
+      return;
+    }
+
+    // If validation passes, submit the form
+    e.target.submit();
   };
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Add New Auction</h1>
       {actionData?.error && <p className="text-red-500">{actionData.error}</p>}
-      <Form method="post" className="flex flex-col gap-2 max-w-md">
+      {error && <p className="text-red-500">{error}</p>}
+      <Form
+        method="post"
+        className="flex flex-col gap-2 max-w-md"
+        onSubmit={handleSubmit}
+      >
         <input
           type="datetime-local"
           name="startTime"

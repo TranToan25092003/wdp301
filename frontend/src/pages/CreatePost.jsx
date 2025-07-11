@@ -160,12 +160,12 @@ const CreatePost = () => {
       );
       const imageUrls = await Promise.all(uploadPromises);
 
-      // Find approved status
-      const approvedStatus = statuses.find(
-        (status) => status.name.toLowerCase() === "approved"
+      // Find pending status (changed from approved to pending)
+      const pendingStatus = statuses.find(
+        (status) => status.name.toLowerCase() === "pending"
       );
-      if (!approvedStatus) {
-        throw new Error("Approved status not found");
+      if (!pendingStatus) {
+        throw new Error("Pending status not found");
       }
 
       console.log("Second step data:", firstStepData);
@@ -188,7 +188,7 @@ const CreatePost = () => {
         owner: userId,
         typeId: selectedType._id,
         categoryId: firstStepData.categoryId,
-        statusId: approvedStatus._id,
+        statusId: pendingStatus._id,
       };
 
       // Validate required fields before sending
@@ -222,7 +222,7 @@ const CreatePost = () => {
           startPrice: Number(values.price),
           currentPrice: Number(values.price),
           itemId: itemRes.data._id,
-          statusId: approvedStatus._id,
+          statusId: pendingStatus._id,
         };
         console.log("Creating auction with data:", auctionData);
         await createAuction(auctionData);
@@ -343,6 +343,20 @@ const CreatePost = () => {
                     required: true,
                     message: "Please select end time",
                   },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const startTime = getFieldValue("auctionStartTime");
+                      if (!value || !startTime) {
+                        return Promise.resolve();
+                      }
+                      if (value.isBefore(startTime)) {
+                        return Promise.reject(
+                          new Error("End time must be after start time")
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  }),
                 ]}
               >
                 <DatePicker
