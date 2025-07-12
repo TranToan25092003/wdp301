@@ -16,7 +16,6 @@ import { CheckSquare } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Gavel } from "lucide-react";
 
-
 const statusConfig = {
   Available: { icon: CheckCircle, color: "text-green-600", label: "Available" },
   Pending: { icon: Clock, color: "text-yellow-600", label: "Pending" },
@@ -140,7 +139,6 @@ export default function ProductDetail() {
                 Nhắn tin với người bán
               </Button>
             )}
-            
           </div>
         </div>
 

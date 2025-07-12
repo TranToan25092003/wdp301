@@ -119,9 +119,9 @@ const router = createBrowserRouter([
         element: <ChatBox />,
       },
       {
-  path: "/sellers",
-  element: <SellerList />,
-},
+        path: "/sellers",
+        element: <SellerList />,
+      },
 
       // admin routers
       {
