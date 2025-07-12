@@ -311,17 +311,6 @@ const createItem = async (req, res) => {
       statusId,
     } = req.body;
 
-    console.log("Received item data:", {
-      name,
-      description,
-      price,
-      images,
-      ratePrice,
-      owner,
-      typeId,
-      categoryId,
-      statusId,
-    });
 
     // Validate required fields
     if (
@@ -419,11 +408,12 @@ const createItem = async (req, res) => {
             link: `/item/${item._id}`, // ✅ Chính xác với route
             sourceId: item._id,
             sourceModel: "Item",
+              io: io,
           });
 
           // ✅ Gửi qua socket nếu có
           if (io) {
-            io.to(follower.followerId).emit("notification", {
+            io.to(follower.followerId).emit("new_notification", {
               ...newNotification._doc,
               sender: {
                 id: ownerUser?.id,
@@ -520,6 +510,7 @@ const getUserUploadedItems = async (req, res) => {
         if (borrowRecords.length > 0) {
           baseItem.borrowingHistory = await Promise.all(borrowRecords.map(async (borrow) => {
             const history = {
+              borrowId: borrow._id,
               totalPrice: borrow.totalPrice,
               startTime: borrow.startTime,
               endTime: borrow.endTime,

@@ -34,10 +34,15 @@ import { getAllStatuses } from "@/API/duc.api/status.api";
 import { createItem } from "@/API/duc.api/item.api";
 import { createAuction } from "@/API/huynt.api/auction.api";
 import { useAuth } from "@clerk/clerk-react";
+import axios from "axios";
+import { toast } from "sonner";
+import { Switch } from "antd";
 
 const { TextArea } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
+
+const AI_WEBHOOK_URL = import.meta.env.VITE_AI_WEBHOOK;
 
 const CreatePost = () => {
   const [form] = Form.useForm();
@@ -57,6 +62,7 @@ const CreatePost = () => {
   const [firstStepData, setFirstStepData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [shouldShowNotification, setShouldShowNotification] = useState(false);
+  const [aiChecking, setAiChecking] = useState(false);
 
   useEffect(() => {
     if (shouldShowNotification) {
@@ -211,22 +217,62 @@ const CreatePost = () => {
 
       console.log("Sending item data:", itemData);
 
-      const itemRes = await createItem(itemData);
-      console.log("Item creation response:", itemRes);
+      // =====================================
+      // AI checking
+      console.log(AI_WEBHOOK_URL);
+      if (aiChecking && AI_WEBHOOK_URL) {
+        const toastLoading = toast.loading(
+          "checking by AI please waiting 😊😊😊"
+        );
 
-      // Based on post type, create additional records
-      if (postType === "auction") {
-        const auctionData = {
-          startTime: values.auctionStartTime.toISOString(),
-          endTime: values.auctionEndTime.toISOString(),
-          startPrice: Number(values.price),
-          currentPrice: Number(values.price),
-          itemId: itemRes.data._id,
-          statusId: pendingStatus._id,
-        };
-        console.log("Creating auction with data:", auctionData);
-        await createAuction(auctionData);
+        try {
+          const checkingAiResponse = (
+            await axios.post(
+              "https://biduck5.app.n8n.cloud/webhook/d07d78a8-888d-45dc-ae10-d532de50d67b",
+
+              {
+                name: itemData.name,
+                description: itemData.description,
+                image: itemData.images[0],
+              }
+            )
+          ).data;
+
+          const { isAccept, rejectReason } = checkingAiResponse;
+
+          if (!isAccept) {
+            toast.error(rejectReason, {
+              id: toastLoading,
+            });
+            return;
+          }
+          toast.success("Pass AI checking", {
+            id: toastLoading,
+          });
+        } catch (error) {
+          toast.error("Something wrong with AI please try later 😅😅😅", {
+            id: toastLoading,
+          });
+        }
       }
+      // =====================================
+
+      // const itemRes = await createItem(itemData);
+      // console.log("Item creation response:", itemRes);
+
+      // // Based on post type, create additional records
+      // if (postType === "auction") {
+      //   const auctionData = {
+      //     startTime: values.auctionStartTime.toISOString(),
+      //     endTime: values.auctionEndTime.toISOString(),
+      //     startPrice: Number(values.price),
+      //     currentPrice: Number(values.price),
+      //     itemId: itemRes.data._id,
+      //     statusId: pendingStatus._id,
+      //   };
+      //   console.log("Creating auction with data:", auctionData);
+      //   await createAuction(auctionData);
+      // }
 
       message.success("Post created successfully!");
       navigate("/", { state: { created: true } });
@@ -426,6 +472,48 @@ const CreatePost = () => {
             <Text type="secondary" className="text-lg">
               Share your items with the community
             </Text>
+
+            {/* START Toggle AI button */}
+            <div className=" flex items-center justify-center">
+              <div className="relative p-1.5 animated-border rounded-xl">
+                <div className="p-4 rounded-lg flex gap-2 items-center">
+                  <Text className="text-white">AI checking</Text>
+                  <Switch
+                    checked={aiChecking}
+                    onChange={() => setAiChecking(!aiChecking)}
+                    checkedChildren="Enabled"
+                    unCheckedChildren="Disabled"
+                    style={{ background: aiChecking ? "#4ae23a" : "#d9d9d9" }}
+                  />
+                </div>
+              </div>
+              <style jsx>{`
+                @keyframes gradient {
+                  0% {
+                    background-position: 0% 50%;
+                  }
+                  50% {
+                    background-position: 100% 50%;
+                  }
+                  100% {
+                    background-position: 0% 50%;
+                  }
+                }
+                .animated-border {
+                  background: linear-gradient(
+                    45deg,
+                    #8b5cf6,
+                    #ec4899,
+                    #3b82f6,
+                    #22d3ee
+                  );
+                  background-size: 400%;
+                  animation: gradient 15s ease infinite;
+                }
+              `}</style>
+            </div>
+
+            {/* END Toggle AI button */}
           </div>
 
           {/* Progress Steps */}

@@ -9,6 +9,9 @@ import { getAllBuyRecord } from "@/API/duc.api/buy.api";
 import erroImg from "../assets/error-image.png";
 import { getUserUploadedItems } from "@/API/duc.api/item.api";
 import { useNavigate, Link } from 'react-router-dom';
+import ExtendBorrowModal from "@/components/item/extend-borrow-modal";
+import RequestReturnModal from "@/components/item/request-return-borrow-modal";
+import ConfirmReturnModal from "@/components/item/confirm-return-borrow-modal";
 
 const TransactionHistoryPage = () => {
     const navigate = useNavigate();
@@ -23,6 +26,11 @@ const TransactionHistoryPage = () => {
     const [uploadedItems, setUploadedItems] = useState([]);
     const [uploadedCurrentPage, setUploadedCurrentPage] = useState(1);
     const pageSize = 10;
+
+    const [extendModalVisible, setExtendModalVisible] = useState(false);
+    const [selectedBorrowId, setSelectedBorrowId] = useState(null);
+    const [returnModalVisible, setReturnModalVisible] = useState(false);
+    const [confirmModalVisible, setConfirmModalVisible] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,6 +63,20 @@ const TransactionHistoryPage = () => {
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         return data.slice(startIndex, endIndex);
+    };
+
+    const handleExtendSuccess = async () => {
+        setExtendModalVisible(false);
+        const token = await getToken();
+        const borrowRes = await getAllBorrowRecord(token);
+        if (borrowRes.success) setBorrowRecords(borrowRes.data);
+    };
+
+    const handleReturnSuccess = async () => {
+        setReturnModalVisible(false);
+        const token = await getToken();
+        const borrowRes = await getAllBorrowRecord(token);
+        if (borrowRes.success) setBorrowRecords(borrowRes.data);
     };
 
     const handleItemClick = (item) => {
@@ -160,6 +182,14 @@ const TransactionHistoryPage = () => {
                                                             ) : (
                                                                 <p><strong>Phone:</strong> None</p>
                                                             )}
+                                                            {/* Confirm Return Button with Modal */}
+                                                            <button
+                                                                onClick={() => setConfirmModalVisible({ visible: true, borrowId: history.borrowId })}
+                                                                className="mt-2 bg-blue-500 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-600 transition duration-200 ease-in-out"
+                                                                disabled={history.status === "returned" || history.status === "late"}
+                                                            >
+                                                                Confirm Return
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -178,6 +208,17 @@ const TransactionHistoryPage = () => {
                             onChange={setUploadedCurrentPage}
                         />
                     </div>
+                    <ConfirmReturnModal
+                        visible={confirmModalVisible?.visible || false}
+                        onCancel={() => setConfirmModalVisible(null)}
+                        onSuccess={async () => {
+                            const token = await getToken();
+                            const updatedRes = await getUserUploadedItems(token);
+                            if (updatedRes.success) setUploadedItems(updatedRes.data);
+                        }}
+                        borrowId={confirmModalVisible?.borrowId}
+                        borrowRecords={uploadedItems.flatMap(item => item.borrowingHistory || [])}
+                    />
                 </div>
             ),
         },
@@ -214,13 +255,13 @@ const TransactionHistoryPage = () => {
                                             />
                                         </td>
                                         <td className="px-4 py-2 border">
-                                            <Link to={`/item/${record.item?._id}`}  style={{color: "black"}}>
+                                            <Link to={`/item/${record.item?._id}`} style={{ color: "black" }}>
                                                 {record.item?.name || "Unknown Item"}
                                             </Link>
                                         </td>
                                         <td className="px-4 py-2 border">
-                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{color: "black"}}>
-                                                {record.item?.categoryId?.name|| "Unknown Category"}
+                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{ color: "black" }}>
+                                                {record.item?.categoryId?.name || "Unknown Category"}
                                             </Link>
                                         </td>
                                         <td className="px-4 py-2 border">
@@ -268,6 +309,7 @@ const TransactionHistoryPage = () => {
                                     <th className="px-4 py-2 border">Start Time</th>
                                     <th className="px-4 py-2 border">End Time</th>
                                     <th className="px-4 py-2 border">Status</th>
+                                    <th className="px-4 py-2 border">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -281,12 +323,12 @@ const TransactionHistoryPage = () => {
                                             />
                                         </td>
                                         <td className="px-4 py-2 border">
-                                             <Link to={`/item/${record.item?._id}`}  style={{color: "black"}}>
+                                            <Link to={`/item/${record.item?._id}`} style={{ color: "black" }}>
                                                 {record.item?.name || "Unknown Item"}
                                             </Link>
                                         </td>
                                         <td className="px-4 py-2 border">
-                                             <Link to={`/category/${record.item?.categoryId?._id}`}  style={{color: "black"}}>
+                                            <Link to={`/category/${record.item?.categoryId?._id}`} style={{ color: "black" }}>
                                                 {record.item?.categoryId?.name || "Unknown Category"}
                                             </Link>
                                         </td>
@@ -301,6 +343,30 @@ const TransactionHistoryPage = () => {
                                             {new Date(record.endTime).toLocaleDateString()}
                                         </td>
                                         <td className="px-4 py-2 border">{record.status}</td>
+                                        <td className="px-4 py-2 border">
+                                            <div className="flex space-x-2 justify-center items-center w-full">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedBorrowId(record.borrowId);
+                                                        setExtendModalVisible(true);
+                                                    }}
+                                                    className={`bg-yellow-500 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-600 transition duration-200 ease-in-out transform hover:-translate-y-0.5 ${record.status !== 'borrowed' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    disabled={record.status !== 'borrowed'}
+                                                >
+                                                    Extend
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedBorrowId(record.borrowId);
+                                                        setReturnModalVisible(true);
+                                                    }}
+                                                    className={`bg-green-700 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-green-600 transition duration-200 ease-in-out transform hover:-translate-y-0.5 ${record.status === 'returned' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    disabled={record.status === 'returned'}
+                                                >
+                                                    Request Return
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -314,20 +380,34 @@ const TransactionHistoryPage = () => {
                             onChange={setBorrowCurrentPage}
                         />
                     </div>
+                    <ExtendBorrowModal
+                        visible={extendModalVisible}
+                        onCancel={() => setExtendModalVisible(false)}
+                        borrowId={selectedBorrowId}
+                        onSuccess={handleExtendSuccess}
+                        borrowRecords={borrowRecords}
+                    />
+                    <RequestReturnModal
+                        visible={returnModalVisible}
+                        onCancel={() => setReturnModalVisible(false)}
+                        borrowId={selectedBorrowId}
+                        onSuccess={handleReturnSuccess}
+                        borrowRecords={borrowRecords}
+                    />
                 </div>
             ),
         },
     ];
 
     return (
-        <Layout style={{ backgroundColor: "#fff" }}>
-            <Content className="h-screen">
+        <Layout style={{ backgroundColor: "#fff", minHeight: "100vh" }}>
+            <Content className="flex-1 overflow-auto">
                 <Tabs
                     tabPosition="left"
                     activeKey={activeTab}
                     onChange={setActiveTab}
                     items={items}
-                    style={{ width: "100%", minHeight: "80vh" }}
+                    style={{ width: "100%", height: "100%" }}
                 />
             </Content>
         </Layout>

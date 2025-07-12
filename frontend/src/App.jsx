@@ -40,6 +40,14 @@ import {
   ItemDetailDashboard,
   itemDetailDashboardLoader,
 } from "./pages/admin/ItemDetailDashboard";
+import {
+  TransactionAdminDashboard,
+  transactionAdminDashboardLoader,
+} from "./pages/admin/TransactionAdmin";
+import {
+  CategoryAdminDashboard,
+  categoryAdminDashboardLoader,
+} from "./pages/admin/CategoryAdminDashboard";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -187,6 +195,16 @@ const router = createBrowserRouter([
             path: "items/detail/:id",
             element: <ItemDetailDashboard></ItemDetailDashboard>,
             loader: itemDetailDashboardLoader,
+          },
+          {
+            path: "transaction",
+            element: <TransactionAdminDashboard></TransactionAdminDashboard>,
+            loader: transactionAdminDashboardLoader,
+          },
+          {
+            path: "category",
+            element: <CategoryAdminDashboard></CategoryAdminDashboard>,
+            loader: categoryAdminDashboardLoader,
           },
         ],
       },

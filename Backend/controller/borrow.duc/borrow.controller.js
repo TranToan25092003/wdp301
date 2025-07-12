@@ -196,18 +196,24 @@ const requestForReturnBorrow = async (req, res) => {
   try {
     const borrowerId = req.userId;
     const user = req.user;
-    console.log("User info", user)
-    const { itemId, message } = req.body;
-    console.log(borrowerId)
-    console.log(itemId)
-    console.log(message)
-    if (!borrowerId || !itemId || !message) {
-      return res.status(400).json({ success: false, message: 'Borrower ID, item ID, and message are required' });
+    const { borrowId, message } = req.body;
+    if (!borrowerId || !borrowId || !message) {
+      return res.status(400).json({ success: false, message: 'Borrower ID, borrow ID, and message are required' });
     }
 
-    const item = await Item.findOne({ _id: itemId });
+    const borrowRecord = await Borrow.findOne({ _id: borrowId, borrowers: borrowerId });
+    if (!borrowRecord) {
+      return res.status(404).json({ success: false, message: 'Borrow record not found or not borrowed by you' });
+    }
+
+    if(borrowRecord.status === "returned"){
+      return res.status(400).json({ success: false, message: 'This item has been returned!' });
+    }
+
+
+    const item = await Item.findOne({ _id: borrowRecord.itemId });
     if (!item) {
-      return res.status(404).json({ success: false, message: 'Item not found or not borrowed by you' });
+      return res.status(404).json({ success: false, message: 'Item not found' });
     }
 
     // Fetch owner information
@@ -228,7 +234,7 @@ const requestForReturnBorrow = async (req, res) => {
     const notification = new Notification({
       recipientId: item.owner,
       type: 'borrow_confirm',
-      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}`,
+      message: `User ${user.firstName} ${user.lastName} has requested to return item "${item.name}" (Borrow ID: ${borrowId}). Message: ${message}`,
       link: `/history`,
     });
     await notification.save();
@@ -246,7 +252,7 @@ const requestForReturnBorrow = async (req, res) => {
         from: process.env.EMAIL_USER,
         to: ownerEmail,
         subject: 'OLD MARKET - RETURN REQUEST FOR BORROWED ITEM',
-        text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}". Message: ${message}. Check your dashboard: ${notification.link}`,
+        text: `${user.firstName} ${user.lastName} has requested to return item "${item.name}" (Borrow ID: ${borrowId}). Message: ${message}. Check your dashboard: ${notification.link}`,
       };
       await transporter.sendMail(mailOptions);
     }
@@ -258,9 +264,351 @@ const requestForReturnBorrow = async (req, res) => {
   }
 };
 
+const confirmReturnBorrow = async (req, res) => {
+  try {
+    const ownerId = req.userId;
+    const { borrowId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(borrowId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Borrow ID format",
+      });
+    }
+
+    if (!borrowId) {
+      return res.status(400).json({
+        success: false,
+        message: "Borrow ID is required",
+      });
+    }
+
+    // Find the borrow record with populated item
+    const borrow = await Borrow.findById(borrowId)
+      .populate('itemId');
+
+    if (!borrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Borrow record not found",
+      });
+    }
+
+    // Verify the owner is authorized
+    if (borrow.itemId.owner.toString() !== ownerId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to confirm this return",
+      });
+    }
+
+    // Check if the item is already returned
+    if (borrow.status === 'returned') {
+      return res.status(400).json({
+        success: false,
+        message: "This item has already been returned",
+      });
+    }
+
+    // Set actual return time
+    const actualTime = new Date();
+    const isLate = actualTime > borrow.endTime;
+    const newStatus = isLate ? 'late' : 'returned';
+
+    // Calculate late fee if applicable
+    let lateFee = 0;
+    if (isLate && borrow.itemId.ratePrice !== 'no') {
+      const timeDiffMs = actualTime - borrow.endTime; // Difference in milliseconds
+      if (borrow.itemId.ratePrice === 'hour') {
+        const hoursLate = Math.ceil(timeDiffMs / (1000 * 60 * 60)); // Convert to hours
+        lateFee = borrow.itemId.price * hoursLate;
+      } else if (borrow.itemId.ratePrice === 'day') {
+        const daysLate = Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)); // Convert to days
+        lateFee = borrow.itemId.price * daysLate;
+      }
+    }
+
+    // Update borrow record
+    borrow.actualTime = actualTime;
+    borrow.status = newStatus;
+    await borrow.save();
+
+    // Update item status to "Available"
+    const availableStatus = await Status.findOne({ name: "Available" });
+    if (!availableStatus) {
+      return res.status(500).json({
+        success: false,
+        message: "Server error: Available status configuration missing",
+      });
+    }
+    borrow.itemId.statusId = availableStatus._id;
+    await borrow.itemId.save();
+
+    // Notify borrower and handle late fee
+    const borrower = await clerkClient.users.getUser(borrow.borrowers);
+    if (borrower) {
+      const borrowerEmail = borrower.emailAddresses[0]?.emailAddress || '';
+      if (borrowerEmail) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: borrowerEmail,
+          subject: 'OLD MARKET - RETURN CONFIRMED',
+          text: `Your return request for item "${borrow.itemId.name}" has been confirmed by the owner. Status: ${newStatus}. ${isLate ? `Late fee of ${lateFee} coins applied.` : ''}`,
+        };
+        await transporter.sendMail(mailOptions);
+      }
+
+      // Create notification
+      const notification = new Notification({
+        recipientId: borrow.borrowers,
+        type: 'system',
+        message: `Your return request for item "${borrow.itemId.name}" has been confirmed. Status: ${newStatus}. ${isLate ? `Late fee of ${lateFee} coins applied.` : ''}`,
+        link: `/history`,
+      });
+      await notification.save();
+
+      // Deduct late fee from borrower if applicable
+      if (isLate && lateFee > 0) {
+        const currentBorrowerCoins = Number.parseInt(borrower.publicMetadata?.coin) || 0;
+        const newBorrowerCoins = currentBorrowerCoins - lateFee;
+        if (newBorrowerCoins >= 0) {
+          await clerkClient.users.updateUserMetadata(borrow.borrowers, {
+            publicMetadata: {
+              coin: newBorrowerCoins,
+            },
+          });
+        } else {
+          // Handle insufficient funds (e.g., notify admin or borrower)
+          await clerkClient.users.updateUserMetadata(borrow.borrowers, {
+            publicMetadata: {
+              coin: 0,
+            },
+          });
+          console.warn(`Borrower ${borrow.borrowers} has insufficient coins to cover late fee of ${lateFee}`);
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Return confirmed. Status: ${newStatus}${isLate ? ` with late fee of ${lateFee} coins applied` : ''}`,
+      data: {
+        borrowId: borrow._id,
+        actualTime,
+        status: newStatus,
+        lateFee: isLate ? lateFee : 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error confirming return:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+const extendBorrow = async (req, res) => {
+  try {
+    const borrowerId = req.userId;
+    const { borrowId, newEndTime } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(borrowId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Borrow ID format",
+      });
+    }
+
+    if (!borrowId || !newEndTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Borrow ID and new end time are required",
+      });
+    }
+
+    // Validate newEndTime is in the future
+    const newEndTimeDate = new Date(newEndTime);
+    if (isNaN(newEndTimeDate.getTime()) || newEndTimeDate <= new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "New end time must be a future date",
+      });
+    }
+
+
+    const borrow = await Borrow.findById(borrowId)
+      .populate('itemId');
+
+    if (!borrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Borrow record not found",
+      });
+    }
+
+    if (newEndTimeDate <= borrow.endTime) {
+      return res.status(400).json({
+        success: false,
+        message: "New end time must be after the current end time",
+      });
+    }
+
+
+    if (borrow.borrowers !== borrowerId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to extend this borrow",
+      });
+    }
+
+    // Prevent extension if already returned or late
+    if (borrow.status === 'returned' || borrow.status === 'late' || borrow.status === 'not_returned') {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot extend a returned, late, or not returned borrow",
+      });
+    }
+
+    // Calculate extension cost
+    const currentEndTime = borrow.endTime;
+    const timeDiffMs = newEndTimeDate - currentEndTime; // Difference in milliseconds
+    let extensionCost = 0;
+    if (borrow.itemId.ratePrice === 'hour') {
+      const hoursExtended = Math.ceil(timeDiffMs / (1000 * 60 * 60)); // Convert to hours
+      extensionCost = borrow.itemId.price * hoursExtended;
+    } else if (borrow.itemId.ratePrice === 'day') {
+      const daysExtended = Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24)); // Convert to days
+      extensionCost = borrow.itemId.price * daysExtended;
+    } else if (borrow.itemId.ratePrice === 'no') {
+      return res.status(400).json({
+        success: false,
+        message: "Extension not allowed for items with no rate price",
+      });
+    }
+
+    // Verify borrower has sufficient coins
+    const borrower = await clerkClient.users.getUser(borrowerId);
+    if (!borrower) {
+      return res.status(400).json({
+        success: false,
+        message: "Borrower not found in the system",
+      });
+    }
+
+    const currentCoins = Number.parseInt(borrower.publicMetadata?.coin) || 0;
+    if (currentCoins < extensionCost) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient coins to extend the borrow",
+      });
+    }
+
+    // Deduct extension cost from borrower
+    const newCoinBalance = currentCoins - extensionCost;
+    await clerkClient.users.updateUserMetadata(borrowerId, {
+      publicMetadata: {
+        coin: newCoinBalance,
+      },
+    });
+
+    // Fetch seller information and add coint
+    const seller = await clerkClient.users.getUser(borrow.itemId.owner.toString());
+    if (!seller) {
+      return res.status(400).json({
+        success: false,
+        message: "Seller not found in the system",
+      });
+    }
+    const currentSellerCoins = Number.parseInt(seller.publicMetadata?.coin) || 0;
+    const newSellerCoinBalance = currentSellerCoins + extensionCost;
+    await clerkClient.users.updateUserMetadata(borrow.itemId.owner.toString(), {
+      publicMetadata: {
+        coin: newSellerCoinBalance,
+      },
+    });
+
+    // Update borrow end time
+    borrow.endTime = newEndTimeDate;
+    await borrow.save();
+
+    // Notify owner of extension request
+    const owner = await clerkClient.users.getUser(borrow.itemId.owner.toString());
+    if (owner) {
+      const ownerEmail = owner.emailAddresses[0]?.emailAddress || '';
+      if (ownerEmail) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: ownerEmail,
+          subject: 'OLD MARKET - BORROW EXTENSION REQUEST',
+          text: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${formatReadableDate(newEndTimeDate)}. Extension cost: ${extensionCost} coins.`,
+        };
+        await transporter.sendMail(mailOptions);
+      }
+
+      // Create notification for owner
+      const notification = new Notification({
+        recipientId: borrow.itemId.owner,
+        type: 'system',
+        message: `Borrower ${borrower.firstName} ${borrower.lastName} has extended the borrow for item "${borrow.itemId.name}" until ${formatReadableDate(newEndTimeDate)}. Cost: ${extensionCost} coins.`,
+        link: `/history`,
+      });
+      await notification.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Borrow extended until ${formatReadableDate(newEndTimeDate)}. Extension cost: ${extensionCost} coins`,
+      data: {
+        borrowId: borrow._id,
+        newEndTime: newEndTimeDate,
+        extensionCost,
+        remainingCoins: newCoinBalance,
+      },
+    });
+  } catch (error) {
+    console.error('Error extending borrow:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+const formatReadableDate = (date) => {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) {
+    return "Invalid Date";
+  }
+
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
+
 
 module.exports = {
   createBorrow,
   getAllBorrowRecordByUserId,
-  requestForReturnBorrow
+  requestForReturnBorrow,
+  confirmReturnBorrow,
+  extendBorrow
 };
