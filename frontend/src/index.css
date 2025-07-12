@@ -120,3 +120,52 @@
 }
 
 /* Do not write any css here this css for shacdn layout please */
+
+/* Chat animations */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar for chat */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 5px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Chat list styles */
+.chat-list .ant-list-item {
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.chat-list .ant-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.chat-list .ant-badge {
+  transition: transform 0.2s ease;
+}
+
+.chat-list .ant-badge:hover {
+  transform: scale(1.05);
+}

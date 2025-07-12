@@ -26,6 +26,15 @@ const chatSchema = new mongoose.Schema({
       senderId: String,
       content: String,
       timestamp: Date,
+      messageType: {
+        type: String,
+        enum: ["text", "image"],
+        default: "text",
+      },
+      seen: {
+        type: Boolean,
+        default: false,
+      },
     },
   ],
   lastMessage: String,
@@ -241,7 +250,14 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", async (messageData, callback) => {
     try {
       console.log("Received message:", messageData);
-      const { roomId, senderId, receiverId, content, timestamp } = messageData;
+      const {
+        roomId,
+        senderId,
+        receiverId,
+        content,
+        timestamp,
+        messageType = "text",
+      } = messageData;
 
       if (!roomId || !senderId || !receiverId || !content) {
         throw new Error("Missing required message data");
@@ -263,9 +279,13 @@ io.on("connection", (socket) => {
         senderId,
         content,
         timestamp,
+        messageType,
+        seen: false,
       };
       chat.messages.push(newMessage);
-      chat.lastMessage = content;
+
+      // For display in chat list, use different text for images
+      chat.lastMessage = messageType === "image" ? "📷 Image" : content;
       chat.lastMessageTime = timestamp;
 
       // Update unread count for receiver
@@ -277,6 +297,14 @@ io.on("connection", (socket) => {
 
       // Emit to all users in the room
       io.to(roomId).emit("newMessage", newMessage);
+
+      // Also emit to the receiver's personal room for notifications
+      io.to(receiverId).emit("newChatNotification", {
+        senderId,
+        roomId,
+        content: newMessage.content,
+        messageType: newMessage.messageType,
+      });
 
       // Send success callback
       callback(null);
@@ -293,10 +321,22 @@ io.on("connection", (socket) => {
       console.log(
         `Marking messages as read for user ${userId} in room ${roomId}`
       );
+
+      // Set unread count to 0
       await Chat.updateOne(
         { roomId },
         { $set: { [`unreadCounts.${userId}`]: 0 } }
       );
+
+      // Mark all messages as seen
+      await Chat.updateOne(
+        { roomId },
+        { $set: { "messages.$[elem].seen": true } },
+        { arrayFilters: [{ "elem.senderId": { $ne: userId } }] }
+      );
+
+      // Notify the room that messages were read
+      io.to(roomId).emit("messagesRead", { userId });
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
