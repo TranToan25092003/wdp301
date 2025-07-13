@@ -34,10 +34,28 @@ const checkAndSettleEndedAuctions = async (io) => {
 
 exports.createAuction = async (req, res) => {
   try {
-    const { startTime, endTime, startPrice, itemId, statusId } = req.body;
+    const {
+      startTime,
+      endTime,
+      startPrice,
+      itemId,
+      statusId,
+      minBidIncrement,
+    } = req.body;
 
     if (!startTime || !endTime || !startPrice || !itemId || !statusId) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate that start time is at least 5 minutes in the future
+    const now = new Date();
+    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+    const startTimeDate = new Date(startTime);
+
+    if (startTimeDate < fiveMinutesFromNow) {
+      return res.status(400).json({
+        message: "Start time must be at least 5 minutes from now",
+      });
     }
 
     const status = await Status.findById(statusId);
@@ -52,6 +70,7 @@ exports.createAuction = async (req, res) => {
       currentPrice: startPrice,
       itemId,
       statusId,
+      minBidIncrement: minBidIncrement || 0, // Use provided value or default to 0
     });
 
     await auction.save();
@@ -144,14 +163,15 @@ exports.getAllAuctions = async (req, res) => {
   }
 };
 
-// Hàm settleAuction: trừ coin người thắng khi auction kết thúc
+// Hàm settleAuction: trừ coin người thắng khi auction kết thúc và cộng coin cho người bán
 exports.settleAuction = async (auctionId) => {
   // Tìm và update settled = true chỉ khi settled = false (atomic)
   const auction = await Auction.findOneAndUpdate(
     { _id: auctionId, settled: false },
     { $set: { settled: true } },
     { new: true }
-  );
+  ).populate("itemId");
+
   if (!auction)
     return { success: false, message: "Auction not found or already settled" };
   if (new Date() < auction.endTime)
@@ -160,26 +180,87 @@ exports.settleAuction = async (auctionId) => {
   const highestBid = await Bid.findOne({ auctionId }).sort({ amount: -1 });
   if (!highestBid) return { success: false, message: "No bids" };
 
+  // Get winner information
   const winnerId = highestBid.userId;
   const winner = await clerkClient.users.getUser(winnerId);
-  const userCoin = Number.parseInt(winner.publicMetadata?.coin) || 0;
+  const winnerCoin = Number.parseInt(winner.publicMetadata?.coin) || 0;
   const winnerName =
     `${winner.firstName || ""} ${winner.lastName || ""}`.trim() || winnerId;
 
-  if (userCoin >= highestBid.amount) {
-    await clerkClient.users.updateUserMetadata(winnerId, {
-      publicMetadata: {
-        coin: userCoin - highestBid.amount,
-      },
-    });
-    return {
-      success: true,
-      message: `Đấu giá đã kết thúc! Người thắng: ${winnerName}, giá: ${highestBid.amount}`,
-      winnerId,
-      winnerName,
-      amount: highestBid.amount,
-      remainingCoin: userCoin - highestBid.amount,
-    };
+  // Get seller information
+  const sellerId = auction.itemId.owner;
+  const seller = await clerkClient.users.getUser(sellerId);
+  const sellerCoin = Number.parseInt(seller.publicMetadata?.coin) || 0;
+  const sellerName =
+    `${seller.firstName || ""} ${seller.lastName || ""}`.trim() || sellerId;
+
+  // Check if winner has enough coins
+  if (winnerCoin >= highestBid.amount) {
+    try {
+      // Calculate new coin balances
+      const newWinnerCoinBalance = winnerCoin - highestBid.amount;
+      const newSellerCoinBalance = sellerCoin + highestBid.amount;
+
+      // Deduct coins from winner
+      await clerkClient.users.updateUserMetadata(winnerId, {
+        publicMetadata: {
+          coin: newWinnerCoinBalance,
+        },
+      });
+
+      // Add coins to seller
+      await clerkClient.users.updateUserMetadata(sellerId, {
+        publicMetadata: {
+          coin: newSellerCoinBalance,
+        },
+      });
+
+      // Update item status to "Sold"
+      const soldStatus = await Status.findOne({ name: "Sold" });
+      if (soldStatus) {
+        auction.itemId.statusId = soldStatus._id;
+        await auction.itemId.save();
+      }
+
+      // Get socket.io instance from the global app object
+      const io = global.io;
+      if (io) {
+        // Emit coin update events to both users
+        io.to(winnerId).emit("coinUpdate", {
+          userId: winnerId,
+          newBalance: newWinnerCoinBalance,
+          transaction: {
+            type: "debit",
+            amount: highestBid.amount,
+            description: `Auction win: ${auction.itemId.name}`,
+          },
+        });
+
+        io.to(sellerId).emit("coinUpdate", {
+          userId: sellerId,
+          newBalance: newSellerCoinBalance,
+          transaction: {
+            type: "credit",
+            amount: highestBid.amount,
+            description: `Auction sale: ${auction.itemId.name}`,
+          },
+        });
+      }
+
+      return {
+        success: true,
+        message: `Đấu giá đã kết thúc! Người thắng: ${winnerName}, giá: ${highestBid.amount}`,
+        winnerId,
+        winnerName,
+        sellerId,
+        sellerName,
+        amount: highestBid.amount,
+        remainingCoin: newWinnerCoinBalance,
+      };
+    } catch (error) {
+      console.error("Error during auction settlement:", error);
+      return { success: false, message: "Error processing transaction" };
+    }
   } else {
     return { success: false, message: "Winner does not have enough coin" };
   }

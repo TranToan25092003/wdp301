@@ -6,19 +6,22 @@ import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import AuthRequiredModal from "./AuthRequiredModal";
 
 dayjs.extend(relativeTime);
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const NotificationBell = () => {
-  const { userId, getToken } = useAuth();
+  const { userId, getToken, isSignedIn } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [allNotifications, setAllNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const fetchNotifications = async () => {
     try {
@@ -60,94 +63,96 @@ const NotificationBell = () => {
     socket.emit("join", userId);
 
     socket.on("new_notification", (newNotification) => {
-  setAllNotifications((prev) => [newNotification, ...prev]);
-  setUnreadNotifications((prev) => [newNotification, ...prev]);
-  setUnreadCount((prev) => prev + 1);
-});
+      console.log("New notification received:", newNotification);
+      fetchNotifications();
+    });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.off("new_notification");
+      socket.disconnect();
+    };
   }, [userId]);
 
   const handleNotificationClick = async (notification) => {
+    if (!notification.isRead) {
+      try {
+        const token = await getToken();
+        await fetch(`${API_URL}/notifications/${notification._id}/read`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        // Refresh notifications
+        fetchNotifications();
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
+    }
+
+    // Navigate to link if provided
+    if (notification.link && notification.link !== "#") {
+      navigate(notification.link);
+      setDropdownOpen(false);
+    }
+  };
+
+  const handleDeleteNotification = async (id) => {
     try {
       const token = await getToken();
-
-      // Đánh dấu đã đọc
-      await fetch(`${API_URL}/notifications/mark-read/${notification._id}`, {
-        method: "PATCH",
+      await fetch(`${API_URL}/notifications/${id}`, {
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Cập nhật lại danh sách
-      setUnreadNotifications((prev) =>
-        prev.filter((n) => n._id !== notification._id)
-      );
-      setUnreadCount((prev) => Math.max(prev - 1, 0));
-
-      // Điều hướng nếu có link và không phải loại follow
-      if (notification.link && notification.type !== "follow") {
-        navigate(notification.link);
-      }
+      // Refresh notifications
+      fetchNotifications();
     } catch (error) {
-      console.error("Lỗi khi xử lý thông báo:", error);
-      message.error("Không thể xử lý thông báo.");
-    }
-  };
-
-  const handleDeleteNotification = async (notificationId) => {
-    try {
-      const token = await getToken();
-
-      const res = await fetch(`${API_URL}/notifications/${notificationId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        setAllNotifications((prev) =>
-          prev.filter((n) => n._id !== notificationId)
-        );
-        setUnreadNotifications((prev) =>
-          prev.filter((n) => n._id !== notificationId)
-        );
-        setUnreadCount((prev) => Math.max(prev - 1, 0));
-      } else {
-        throw new Error("Xóa thất bại");
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa thông báo:", error);
+      console.error("Error deleting notification:", error);
       message.error("Không thể xóa thông báo.");
     }
   };
 
-  // Hàm lấy icon phù hợp với loại thông báo
   const getNotificationIcon = (type) => {
     switch (type) {
+      case "message":
+        return <MessageCircle className="w-5 h-5 text-blue-500" />;
       case "follow":
-        return <UserPlus className="w-5 h-5 text-blue-500" />;
-      case "like":
-        return <Heart className="w-5 h-5 text-red-500" />;
-      case "comment":
-        return <MessageCircle className="w-5 h-5 text-green-500" />;
+        return <UserPlus className="w-5 h-5 text-green-500" />;
+      case "new_post":
+        return <Heart className="w-5 h-5 text-pink-500" />;
       default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
+        return <Bell className="w-5 h-5 text-orange-400" />;
     }
   };
 
-  // Hàm lấy màu viền cho loại thông báo
   const getNotificationColor = (type) => {
     switch (type) {
+      case "message":
+        return "border-blue-500";
       case "follow":
-        return "border-l-blue-500";
-      case "like":
-        return "border-l-red-500";
-      case "comment":
-        return "border-l-green-500";
+        return "border-green-500";
+      case "new_post":
+        return "border-pink-500";
       default:
-        return "border-l-gray-400";
+        return "border-orange-400";
     }
+  };
+
+  const handleDropdownOpenChange = (flag) => {
+    if (!isSignedIn && flag) {
+      setShowAuthModal(true);
+      return;
+    }
+    setDropdownOpen(flag);
+  };
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
   };
 
   const renderList = (data) =>
@@ -212,74 +217,93 @@ const NotificationBell = () => {
       </div>
     );
 
-  if (!userId) return null;
-
-  return loading ? (
-    <div className="flex items-center justify-center p-2">
-      <Spin size="small" />
-    </div>
-  ) : (
-    <Dropdown
-      dropdownRender={() => (
-        <div className="w-96 max-h-[500px] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
-          {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Thông báo</h3>
-              {unreadCount > 0 && (
-                <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-xs">
-                  {unreadCount} mới
+  return (
+    <>
+      {isSignedIn ? (
+        loading ? (
+          <div className="flex items-center justify-center p-2">
+            <Spin size="small" />
+          </div>
+        ) : (
+          <Dropdown
+            open={dropdownOpen}
+            onOpenChange={handleDropdownOpenChange}
+            dropdownRender={() => (
+              <div className="w-96 max-h-[500px] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+                {/* Header */}
+                <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-lg">Thông báo</h3>
+                    {unreadCount > 0 && (
+                      <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-xs">
+                        {unreadCount} mới
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Tabs */}
+                <div className="bg-white">
+                  <Tabs
+                    defaultActiveKey="all"
+                    centered
+                    className="notification-tabs"
+                    items={[
+                      {
+                        key: "all",
+                        label: (
+                          <div className="flex items-center gap-2 px-2">
+                            <Bell className="w-4 h-4" />
+                            <span>Tất cả</span>
+                          </div>
+                        ),
+                        children: renderList(allNotifications),
+                      },
+                      {
+                        key: "unread",
+                        label: (
+                          <div className="flex items-center gap-2 px-2">
+                            <Badge count={unreadCount} size="small">
+                              <Bell className="w-4 h-4" />
+                            </Badge>
+                            <span>Chưa đọc</span>
+                          </div>
+                        ),
+                        children: renderList(unreadNotifications),
+                      },
+                    ]}
+                  />
+                </div>
+              </div>
+            )}
+            trigger="click"
+            placement="bottomRight"
+          >
+            <div className="flex items-center justify-center relative cursor-pointer">
+              <Bell className="w-6 h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
               )}
             </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="bg-white">
-            <Tabs
-              defaultActiveKey="all"
-              centered
-              className="notification-tabs"
-              items={[
-                {
-                  key: "all",
-                  label: (
-                    <div className="flex items-center gap-2 px-2">
-                      <Bell className="w-4 h-4" />
-                      <span>Tất cả</span>
-                    </div>
-                  ),
-                  children: renderList(allNotifications),
-                },
-                {
-                  key: "unread",
-                  label: (
-                    <div className="flex items-center gap-2 px-2">
-                      <Badge count={unreadCount} size="small">
-                        <Bell className="w-4 h-4" />
-                      </Badge>
-                      <span>Chưa đọc</span>
-                    </div>
-                  ),
-                  children: renderList(unreadNotifications),
-                },
-              ]}
-            />
-          </div>
+          </Dropdown>
+        )
+      ) : (
+        <div
+          className="flex items-center justify-center relative cursor-pointer"
+          onClick={() => setShowAuthModal(true)}
+        >
+          <Bell className="w-6 h-6" />
         </div>
       )}
-      trigger="click"
-      placement="bottomRight"
-    >
-      <div className="flex items-center justify-center relative">
-        <Bell className="w-6 h-6" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-            {unreadCount}
-          </span>
-        )}
-      </div>
-    </Dropdown>
+
+      <AuthRequiredModal
+        open={showAuthModal}
+        onClose={handleAuthModalClose}
+        featureName="thông báo"
+      />
+    </>
   );
 };
 

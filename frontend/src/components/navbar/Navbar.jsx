@@ -2,22 +2,83 @@ import { MessageCircle } from "lucide-react";
 import LinkDropdown from "./LinksDropdown";
 import logo from "../../assets/logo.png";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { TbCoinFilled } from "react-icons/tb";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { Input } from "antd";
 import ChatList from "./ChatList";
-import NotificationBell from "../global/NotificationBell"; // ✅ Đã import chuông thông báo
+import NotificationBell from "../global/NotificationBell";
+import AuthRequiredModal from "../global/AuthRequiredModal";
+import { initializeSocket } from "@/utils/socket";
+import { toast } from "sonner";
 
 const Navbar = () => {
-  const { user } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
+  const { isSignedIn } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authFeatureName, setAuthFeatureName] = useState("");
+  const [coinBalance, setCoinBalance] = useState(0);
   const navigate = useNavigate();
+
+  // Initialize coin balance from user data when loaded
+  useEffect(() => {
+    if (userLoaded && user) {
+      setCoinBalance(user.publicMetadata?.coin || 0);
+    }
+  }, [user, userLoaded]);
+
+  // Set up socket listener for coin balance updates
+  useEffect(() => {
+    if (!isSignedIn || !user) return;
+
+    const socket = initializeSocket();
+
+    // Join user's personal room for notifications
+    socket.emit("join", user.id);
+
+    // Listen for coin balance updates
+    socket.on("coinUpdate", (data) => {
+      if (data.userId === user.id) {
+        setCoinBalance(data.newBalance);
+
+        // Show a toast notification about the transaction
+        const isCredit = data.transaction?.type === "credit";
+        toast(
+          isCredit ? "Coin balance increased!" : "Coin balance decreased!",
+          {
+            description: data.transaction?.description,
+            icon: isCredit ? "💰" : "💸",
+          }
+        );
+      }
+    });
+
+    return () => {
+      socket.off("coinUpdate");
+    };
+  }, [isSignedIn, user]);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/filter?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handlePostClick = (e) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthFeatureName("đăng tin");
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleTopUpClick = (e) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthFeatureName("nạp coin");
+      setShowAuthModal(true);
     }
   };
 
@@ -87,10 +148,10 @@ const Navbar = () => {
           </div>
 
           {/* Coin */}
-          <Link to={"/topup"}>
-            <div className="flex items-center mx-2">
+          <Link to={"/topup"} onClick={handleTopUpClick}>
+            <div className="flex items-center mx-2 relative">
               <TbCoinFilled size={30} color="#ebb410" />
-              <p className="ml-1">{user?.publicMetadata?.coin || 0}</p>
+              <p className="ml-1">{coinBalance}</p>
             </div>
           </Link>
 
@@ -98,7 +159,7 @@ const Navbar = () => {
           <LinkDropdown />
 
           {/* Post listing button */}
-          <Link to="/create-post">
+          <Link to="/create-post" onClick={handlePostClick}>
             <button
               className="px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-white"
               style={{
@@ -114,6 +175,12 @@ const Navbar = () => {
           </Link>
         </div>
       </div>
+
+      <AuthRequiredModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        featureName={authFeatureName}
+      />
     </div>
   );
 };
