@@ -15,6 +15,8 @@ import { Clock } from "lucide-react";
 import { CheckSquare } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Gavel } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
+import AuthRequiredModal from "../components/global/AuthRequiredModal";
 
 const statusConfig = {
   Available: { icon: CheckCircle, color: "text-green-600", label: "Available" },
@@ -49,7 +51,9 @@ export default function ProductDetail() {
   const [borrowModalOpen, setBorrowModalOpen] = useState(false);
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
 
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
@@ -112,6 +116,14 @@ export default function ProductDetail() {
     const { name, imageUrl, hasImage, emailAddresses, phoneNumbers } =
       product.ownerInfo;
 
+    const handleChatClick = () => {
+      if (isSignedIn) {
+        navigate(`/chat?seller=${product.owner}`);
+      } else {
+        setAuthModalOpen(true);
+      }
+    };
+
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-4">
@@ -132,10 +144,7 @@ export default function ProductDetail() {
             </p>
             {/* Nút nhắn tin nếu có product.owner và name khác "Anonymous Seller" */}
             {product.owner && name && name !== "Anonymous Seller" && (
-              <Button
-                type="primary"
-                onClick={() => navigate(`/chat?seller=${product.owner}`)}
-              >
+              <Button type="primary" onClick={handleChatClick}>
                 Nhắn tin với người bán
               </Button>
             )}
@@ -301,6 +310,14 @@ export default function ProductDetail() {
           <ProductList title="Related Products" products={relatedItems} />
         </section>
       )}
+
+      {/* Auth Required Modal */}
+      <AuthRequiredModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        featureName="nhắn tin với người bán"
+        returnUrl={window.location.pathname}
+      />
     </div>
   );
 }

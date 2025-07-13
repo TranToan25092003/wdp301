@@ -249,7 +249,8 @@ const CreatePost = () => {
           toast.success("Pass AI checking", {
             id: toastLoading,
           });
-        } catch (error) {
+        } catch (err) {
+          console.error("AI checking error:", err);
           toast.error("Something wrong with AI please try later 😅😅😅", {
             id: toastLoading,
           });
@@ -257,33 +258,33 @@ const CreatePost = () => {
       }
       // =====================================
 
-      // const itemRes = await createItem(itemData);
-      // console.log("Item creation response:", itemRes);
+      const itemRes = await createItem(itemData);
+      console.log("Item creation response:", itemRes);
 
-      // // Based on post type, create additional records
-      // if (postType === "auction") {
-      //   const auctionData = {
-      //     startTime: values.auctionStartTime.toISOString(),
-      //     endTime: values.auctionEndTime.toISOString(),
-      //     startPrice: Number(values.price),
-      //     currentPrice: Number(values.price),
-      //     itemId: itemRes.data._id,
-      //     statusId: pendingStatus._id,
-      //   };
-      //   console.log("Creating auction with data:", auctionData);
-      //   await createAuction(auctionData);
-      // }
+      // Based on post type, create additional records
+      if (postType === "auction") {
+        const auctionData = {
+          startTime: values.auctionStartTime.toISOString(),
+          endTime: values.auctionEndTime.toISOString(),
+          startPrice: Number(values.price),
+          currentPrice: Number(values.price),
+          itemId: itemRes.data._id,
+          statusId: pendingStatus._id,
+          minBidIncrement: values.minBidIncrement || 0, // Add minimum bid increment
+        };
+        console.log("Creating auction with data:", auctionData);
+        await createAuction(auctionData);
+      }
 
       message.success("Post created successfully!");
       navigate("/", { state: { created: true } });
     } catch (error) {
       console.error("Error creating post:", error);
-      if (error.response) {
-        console.error("Error response:", error.response.data);
-        message.error(error.response.data.message || "Failed to create post");
-      } else {
-        message.error(error.message || "Failed to create post");
-      }
+      message.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to create post"
+      );
     } finally {
       setUploading(false);
     }
@@ -365,12 +366,54 @@ const CreatePost = () => {
           {isAuction && (
             <Space direction="vertical" style={{ width: "100%" }}>
               <Form.Item
+                name="minBidIncrement"
+                label="Minimum Bid Increment"
+                tooltip="The minimum amount a new bid must be higher than the current bid"
+                rules={[
+                  {
+                    type: "number",
+                    min: 0,
+                    message: "Minimum bid increment cannot be negative",
+                  },
+                ]}
+              >
+                <InputNumber
+                  style={{ width: "100%" }}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                  addonAfter="VND"
+                  size="large"
+                  placeholder="Enter minimum bid increment (optional)"
+                />
+              </Form.Item>
+              <Form.Item
                 name="auctionStartTime"
                 label="Start Time"
                 rules={[
                   {
                     required: true,
                     message: "Please select start time",
+                  },
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+
+                      const now = new Date();
+                      const fiveMinutesFromNow = new Date(
+                        now.getTime() + 5 * 60 * 1000
+                      );
+
+                      if (value.isBefore(fiveMinutesFromNow)) {
+                        return Promise.reject(
+                          new Error(
+                            "Start time must be at least 5 minutes from now"
+                          )
+                        );
+                      }
+                      return Promise.resolve();
+                    },
                   },
                 ]}
               >

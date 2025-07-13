@@ -34,10 +34,28 @@ const checkAndSettleEndedAuctions = async (io) => {
 
 exports.createAuction = async (req, res) => {
   try {
-    const { startTime, endTime, startPrice, itemId, statusId } = req.body;
+    const {
+      startTime,
+      endTime,
+      startPrice,
+      itemId,
+      statusId,
+      minBidIncrement,
+    } = req.body;
 
     if (!startTime || !endTime || !startPrice || !itemId || !statusId) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate that start time is at least 5 minutes in the future
+    const now = new Date();
+    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+    const startTimeDate = new Date(startTime);
+
+    if (startTimeDate < fiveMinutesFromNow) {
+      return res.status(400).json({
+        message: "Start time must be at least 5 minutes from now",
+      });
     }
 
     const status = await Status.findById(statusId);
@@ -52,6 +70,7 @@ exports.createAuction = async (req, res) => {
       currentPrice: startPrice,
       itemId,
       statusId,
+      minBidIncrement: minBidIncrement || 0, // Use provided value or default to 0
     });
 
     await auction.save();

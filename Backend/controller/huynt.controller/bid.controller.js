@@ -59,10 +59,24 @@ exports.placeBid = async (req, res) => {
       return res.status(400).json({ message: "Auction is not active" });
     }
 
-    if (amount <= auction.currentPrice) {
+    // Calculate the increment amount
+    const incrementAmount = amount - auction.currentPrice;
+
+    // Validate that the bid is higher than current price
+    if (incrementAmount <= 0) {
       return res
         .status(400)
         .json({ message: "Bid amount must be higher than current price" });
+    }
+
+    // Check if bid meets minimum increment requirement
+    if (
+      auction.minBidIncrement > 0 &&
+      incrementAmount < auction.minBidIncrement
+    ) {
+      return res.status(400).json({
+        message: `Bid increment must be at least ${auction.minBidIncrement}`,
+      });
     }
 
     // Không trừ coin ở đây, chỉ kiểm tra đủ điều kiện

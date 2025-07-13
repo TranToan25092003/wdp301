@@ -22,6 +22,7 @@ import { initializeSocket } from "@/utils/socket";
 import CountdownTimer from "../components/auction/CountdownTimer";
 import { useAuth } from "@clerk/clerk-react";
 import { getUserInformation } from "@/API/duc.api/user.api";
+import AuthRequiredModal from "../components/global/AuthRequiredModal";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -51,7 +52,7 @@ const AuctionDetailPage = () => {
   const [socketConnected, setSocketConnected] = useState(false);
   const [form] = Form.useForm();
   const socketRef = useRef(null);
-  const { userId } = useAuth();
+  const { userId, isSignedIn } = useAuth();
   const [userNames, setUserNames] = useState({});
   const [winnerModal, setWinnerModal] = useState({
     visible: false,
@@ -59,6 +60,7 @@ const AuctionDetailPage = () => {
     winnerName: "",
     amount: 0,
   });
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Add a new state to check if auction has started
   const [auctionStatus, setAuctionStatus] = useState({
@@ -86,6 +88,14 @@ const AuctionDetailPage = () => {
 
     // Set up interval to check status periodically (every 5 seconds)
     const interval = setInterval(checkAuctionStatus, 5000);
+
+    // Set bid increment based on auction settings
+    if (auction.minBidIncrement > 0) {
+      setBidIncrement(auction.minBidIncrement);
+    } else {
+      // Default increment if not specified by seller
+      setBidIncrement(Math.max(10, Math.round(auction.currentPrice * 0.01))); // 1% of current price or minimum 10
+    }
 
     return () => clearInterval(interval);
   }, [auction]);
@@ -341,88 +351,205 @@ const AuctionDetailPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bids]);
 
+  // Modified onFinish function to check authentication
   const onFinish = async (values) => {
+    if (!isSignedIn) {
+      setShowAuthModal(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      // Tính toán giá trị bid cuối cùng = giá hiện tại + increment
-      const finalBidAmount = auction.currentPrice + values.bidIncrement;
+      // Calculate the total bid amount (current price + increment amount)
+      const incrementAmount = values.bidAmount;
+      const totalBidAmount = auction.currentPrice + incrementAmount;
 
-      const bidData = {
-        auctionId,
-        amount: finalBidAmount, // Sử dụng giá trị đã tính toán
-        userId, // Lấy từ Clerk
-      };
+      // Validate bid amount
+      if (incrementAmount <= 0) {
+        setError("Increment amount must be greater than 0");
+        setLoading(false);
+        return;
+      }
 
-      console.log("Placing bid:", bidData);
-      const result = await placeBid(bidData);
-      console.log("Bid placed successfully:", result);
+      // Validate min bid increment if set
+      if (bidIncrement && bidIncrement > 0 && incrementAmount < bidIncrement) {
+        setError(`Increment must be at least ${bidIncrement}`);
+        setLoading(false);
+        return;
+      }
 
-      // Create optimistic update với giá trị cuối cùng
-      const optimisticBid = {
-        id: `temp-${Date.now()}`,
-        userId: bidData.userId,
-        amount: finalBidAmount, // Sử dụng giá trị cuối cùng
-        createdAt: new Date().toISOString(),
+      // Make the bid with all required fields
+      const response = await placeBid({
         auctionId: auctionId,
-      };
+        amount: totalBidAmount,
+      });
 
-      // Emit bid to socket for real-time updates to other clients
-      if (socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit("placeBid", {
-          ...bidData,
-          bidId: result.bid?.id || optimisticBid.id,
-          createdAt: optimisticBid.createdAt,
-        });
-      }
+      console.log("Bid placed successfully:", response);
 
-      // Optimistic update for current user
-
-      // Gọi lại API để lấy danh sách bids thực tế từ backend
-      try {
-        const updated = await getAuctionDetailById(auctionId);
-        if (updated?.auction) setAuction(updated.auction);
-        if (updated?.bids)
-          setBids([...updated.bids].sort((a, b) => b.amount - a.amount));
-      } catch {
-        /* ignore error */
-      }
-
-      form.resetFields();
-      setBidIncrement(null); // Reset increment state
-    } catch (err) {
-      console.error("Error placing bid:", err);
-      setError(
-        err.response?.data?.message || "Failed to place bid. Please try again."
-      );
-
-      // Revert optimistic update on error
-      try {
-        const response = await getAuctionDetailById(auctionId);
-        if (response?.auction) {
-          setAuction(response.auction);
-        }
-        if (response?.bids) {
-          const sortedBids = [...response.bids].sort(
-            (a, b) => b.amount - a.amount
-          );
-          setBids(sortedBids);
-        }
-      } catch (refreshError) {
-        console.error("Error refreshing after bid failure:", refreshError);
-      }
+      // Optimistically update the form with the same increment
+      form.setFieldsValue({
+        bidAmount: incrementAmount,
+      });
+    } catch (error) {
+      console.error("Error placing bid:", error);
+      setError(error.response?.data?.message || "Failed to place bid");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!auction) {
-    return (
-      <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
-    );
-  }
+  // Render the bid form with authentication check
+  const renderBidForm = () => {
+    // Set default increment amount to either the minimum bid increment or 1
+    const defaultIncrementAmount = bidIncrement || 1;
 
+    // Calculate total bid amount based on current form value or default
+    const calculateTotalBid = () => {
+      const incrementValue =
+        form.getFieldValue("bidAmount") || defaultIncrementAmount;
+      return auction?.currentPrice + Number(incrementValue);
+    };
+
+    return (
+      <Card
+        title="Place a Bid"
+        className="mb-4 shadow-sm"
+        extra={
+          <div className="text-right">
+            <Text type="secondary">
+              Current price: {auction?.currency || "$"}
+              {auction?.currentPrice?.toLocaleString()}
+            </Text>
+            {auction?.minBidIncrement > 0 && (
+              <Text
+                type="secondary"
+                style={{ display: "block", fontSize: "12px" }}
+              >
+                (Min increment: {auction?.currency || "$"}
+                {auction.minBidIncrement})
+              </Text>
+            )}
+          </div>
+        }
+      >
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+            closable
+            onClose={() => setError(null)}
+          />
+        )}
+
+        <Form
+          form={form}
+          name="bid_form"
+          initialValues={{
+            bidAmount: defaultIncrementAmount,
+          }}
+          onFinish={onFinish}
+          onValuesChange={() => {
+            // Force re-render to update the total bid display
+            setLoading(loading); // This is a trick to force re-render without changing state
+          }}
+        >
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "10px",
+              background: "#f9f9f9",
+              borderRadius: "4px",
+              border: "1px solid #eee",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Text>Current price:</Text>
+              <Text strong>
+                {auction?.currency || "$"}
+                {auction?.currentPrice?.toLocaleString()}
+              </Text>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: 8,
+              }}
+            >
+              <Text>Your increment:</Text>
+              <Text strong>
+                + {auction?.currency || "$"}
+                {(
+                  form.getFieldValue("bidAmount") || defaultIncrementAmount
+                )?.toLocaleString()}
+              </Text>
+            </div>
+            <Divider style={{ margin: "8px 0" }} />
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Text strong>Your total bid:</Text>
+              <Text strong style={{ fontSize: "16px", color: "#1890ff" }}>
+                {auction?.currency || "$"}
+                {calculateTotalBid()?.toLocaleString()}
+              </Text>
+            </div>
+          </div>
+
+          <Form.Item
+            name="bidAmount"
+            label="Amount to add"
+            rules={[
+              { required: true, message: "Please enter increment amount" },
+              {
+                type: "number",
+                min: bidIncrement || 1,
+                message: `Increment must be at least ${bidIncrement || 1}`,
+              },
+            ]}
+          >
+            <InputNumber
+              min={bidIncrement || 1}
+              step={bidIncrement || 1}
+              style={{ width: "100%" }}
+              size="large"
+              disabled={!auctionStatus.hasStarted || auctionStatus.hasEnded}
+              formatter={(value) =>
+                `${auction?.currency || "$"}${value}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
+              }
+              parser={(value) => value.replace(/[^\d.]/g, "")}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              block
+              size="large"
+              disabled={!auctionStatus.hasStarted || auctionStatus.hasEnded}
+            >
+              {auctionStatus.hasEnded
+                ? "Auction Ended"
+                : !auctionStatus.hasStarted
+                ? "Auction Not Started"
+                : `Place Bid (${
+                    auction?.currency || "$"
+                  }${calculateTotalBid()?.toLocaleString()})`}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+    );
+  };
+
+  // Return the component
   return (
     <>
       <Modal
@@ -835,170 +962,20 @@ const AuctionDetailPage = () => {
                 </Row>
               </Card>
 
-              <Card title="Place a Bid" style={{ marginBottom: "20px" }}>
-                {error && (
-                  <Alert
-                    message={error}
-                    type="error"
-                    style={{ marginBottom: "20px" }}
-                    closable
-                    onClose={() => setError(null)}
-                  />
-                )}
-
-                {!auctionStatus.hasStarted ? (
-                  <Alert
-                    message="Auction has not started yet"
-                    description={`You can place bids once the auction begins at ${new Date(
-                      auction.startTime
-                    ).toLocaleString()}`}
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: "20px" }}
-                  />
-                ) : auctionStatus.hasEnded ? (
-                  <Alert
-                    message="Auction has ended"
-                    description="Bidding is no longer available for this auction"
-                    type="warning"
-                    showIcon
-                    style={{ marginBottom: "20px" }}
-                  />
-                ) : null}
-
-                <Form form={form} onFinish={onFinish} layout="vertical">
-                  <Form.Item
-                    name="bidIncrement"
-                    label={
-                      <div>
-                        <Text>Amount to Add</Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: "12px" }}>
-                          Current price: $
-                          {auction.currentPrice?.toLocaleString()}
-                          {bidIncrement && bidIncrement > 0 && (
-                            <>
-                              <br />
-                              <Text
-                                style={{ color: "#1890ff", fontWeight: "bold" }}
-                              >
-                                Your bid will be: $
-                                {(
-                                  auction.currentPrice + bidIncrement
-                                )?.toLocaleString()}
-                              </Text>
-                            </>
-                          )}
-                        </Text>
-                      </div>
-                    }
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter an amount to add",
-                      },
-                      {
-                        type: "number",
-                        min: 1,
-                        message: "Amount must be at least $1",
-                      },
-                    ]}
-                  >
-                    <InputNumber
-                      min={1}
-                      placeholder="Enter amount to add (e.g., 1000)"
-                      style={{ width: "100%" }}
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                      size="large"
-                      onChange={(value) => setBidIncrement(value)}
-                      addonBefore="+"
-                      disabled={
-                        !auctionStatus.hasStarted || auctionStatus.hasEnded
-                      }
-                    />
-                  </Form.Item>
-
-                  {/* Preview của bid cuối cùng */}
-                  {/* {bidIncrement && bidIncrement > 0 && (
-                    <div
-                      style={{
-                        background: "#e6f7ff",
-                        border: "1px solid #91d5ff",
-                        borderRadius: "6px",
-                        padding: "12px",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      <Text style={{ fontSize: "14px" }}>
-                        <strong>Bid Preview:</strong>
-                      </Text>
-                      <br />
-                      <Text style={{ fontSize: "16px" }}>
-                        ${auction.currentPrice?.toLocaleString()} + $
-                        {bidIncrement?.toLocaleString()} =
-                        <Text
-                          style={{
-                            color: "#1890ff",
-                            fontWeight: "bold",
-                            fontSize: "18px",
-                            marginLeft: "8px",
-                          }}
-                        >
-                          $
-                          {(
-                            auction.currentPrice + bidIncrement
-                          )?.toLocaleString()}
-                        </Text>
-                      </Text>
-                    </div>
-                  )} */}
-
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      loading={loading}
-                      size="large"
-                      block
-                      disabled={
-                        !bidIncrement ||
-                        bidIncrement <= 0 ||
-                        !auctionStatus.hasStarted ||
-                        auctionStatus.hasEnded
-                      }
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #1890ff 0%, #722ed1 100%)",
-                        border: "none",
-                        height: "50px",
-                        fontSize: "16px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {loading
-                        ? "Placing Bid..."
-                        : !auctionStatus.hasStarted
-                        ? "Auction Not Started"
-                        : auctionStatus.hasEnded
-                        ? "Auction Ended"
-                        : bidIncrement && bidIncrement > 0
-                        ? `Place Bid: $${(
-                            auction.currentPrice + bidIncrement
-                          )?.toLocaleString()}`
-                        : "Place Bid"}
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </Card>
+              {renderBidForm()}
             </Col>
           </Row>
 
           <Divider />
         </Content>
       </Layout>
+
+      {/* Add the AuthRequiredModal */}
+      <AuthRequiredModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        featureName="đấu giá"
+      />
     </>
   );
 };

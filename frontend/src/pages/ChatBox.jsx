@@ -1,13 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth, SignInButton } from "@clerk/clerk-react";
 import { getUserInformation } from "@/API/duc.api/user.api";
-import { Input, Button, Avatar, Spin, message, Upload, Tooltip } from "antd";
+import {
+  Input,
+  Button,
+  Avatar,
+  Spin,
+  message,
+  Upload,
+  Tooltip,
+  Result,
+} from "antd";
 import {
   SendOutlined,
   PictureOutlined,
   CheckCircleFilled,
   ArrowLeftOutlined,
+  LoginOutlined,
 } from "@ant-design/icons";
 import { initializeSocket } from "@/utils/socket";
 import { uploadImage } from "@/utils/uploadCloudinary";
@@ -16,6 +26,7 @@ const ChatBox = () => {
   const [searchParams] = useSearchParams();
   const sellerId = searchParams.get("seller");
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [sellerInfo, setSellerInfo] = useState(null);
@@ -27,6 +38,8 @@ const ChatBox = () => {
 
   // Fetch seller information
   useEffect(() => {
+    if (!isSignedIn) return;
+
     const fetchSellerInfo = async () => {
       try {
         console.log("Fetching seller info for:", sellerId);
@@ -48,12 +61,11 @@ const ChatBox = () => {
       message.error("No seller ID provided");
       setLoading(false);
     }
-  }, [sellerId]);
+  }, [sellerId, isSignedIn]);
 
   // Initialize socket connection
   useEffect(() => {
-    if (!user || !sellerId) {
-      console.log("Missing user or seller ID:", { user, sellerId });
+    if (!isSignedIn || !user || !sellerId) {
       return;
     }
 
@@ -74,31 +86,6 @@ const ChatBox = () => {
       if (!messagesRef.current.has(messageId)) {
         messagesRef.current.add(messageId);
         setMessages((prev) => [...prev, message]);
-
-        // Play notification sound for messages from the other person
-        if (message.senderId !== user.id) {
-          const audio = new Audio("/assets/notification.mp3");
-          audio.volume = 0.5;
-          audio
-            .play()
-            .catch((err) =>
-              console.error("Error playing notification sound:", err)
-            );
-
-          // Show browser notification
-          if (Notification.permission === "granted") {
-            new Notification(
-              `New message from ${sellerInfo?.name || "Contact"}`,
-              {
-                body:
-                  message.messageType === "image"
-                    ? "📷 Sent you an image"
-                    : message.content,
-                icon: sellerInfo?.imageUrl || "/assets/fallback.png",
-              }
-            );
-          }
-        }
       }
     });
 
@@ -149,14 +136,6 @@ const ChatBox = () => {
       message.error("Chat error occurred");
     });
 
-    // Request notification permission
-    if (
-      Notification.permission !== "granted" &&
-      Notification.permission !== "denied"
-    ) {
-      Notification.requestPermission();
-    }
-
     return () => {
       console.log("Cleaning up socket connection...");
       if (socketRef.current) {
@@ -169,7 +148,7 @@ const ChatBox = () => {
         socketRef.current.emit("leaveChat", roomId);
       }
     };
-  }, [user, sellerId, sellerInfo]);
+  }, [user, sellerId, isSignedIn, sellerInfo]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -178,7 +157,7 @@ const ChatBox = () => {
 
   // Mark messages as read when user is active in chat
   useEffect(() => {
-    if (!socketRef.current || !user || !sellerId) return;
+    if (!isSignedIn || !socketRef.current || !user || !sellerId) return;
 
     const roomId = [user.id, sellerId].sort().join("-");
     socketRef.current.emit("markAsRead", { roomId, userId: user.id });
@@ -189,7 +168,7 @@ const ChatBox = () => {
     }, 5000); // Every 5 seconds
 
     return () => clearInterval(interval);
-  }, [user, sellerId]);
+  }, [user, sellerId, isSignedIn]);
 
   const sendMessage = () => {
     if (!newMessage.trim() || !socketRef.current) {
@@ -286,6 +265,44 @@ const ChatBox = () => {
     }
   };
 
+  // Check if user is authenticated - display login UI instead of redirecting
+  if (!isSignedIn) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 h-[calc(100vh-120px)] flex flex-col bg-gray-50 rounded-lg shadow-lg">
+        <div className="flex items-center gap-4 p-4 border-b bg-white rounded-t-lg shadow">
+          <Button
+            icon={<ArrowLeftOutlined />}
+            type="text"
+            onClick={() => window.history.back()}
+          />
+          <h2 className="text-lg font-semibold">Chat</h2>
+        </div>
+
+        <div className="flex-1 flex justify-center items-center">
+          <Result
+            status="info"
+            title="Yêu cầu đăng nhập"
+            subTitle="Vui lòng đăng nhập để sử dụng tính năng chat"
+            extra={[
+              <SignInButton key="signin" redirectUrl={window.location.href}>
+                <Button type="primary" icon={<LoginOutlined />} size="large">
+                  Đăng nhập
+                </Button>
+              </SignInButton>,
+              <Button
+                key="back"
+                onClick={() => window.history.back()}
+                size="large"
+              >
+                Quay lại
+              </Button>,
+            ]}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -325,11 +342,6 @@ const ChatBox = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 bg-opacity-50">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8 p-8 bg-white rounded-lg shadow">
-            <img
-              src="/assets/chat-empty.svg"
-              alt="No messages"
-              className="w-32 h-32 mx-auto mb-4 opacity-50"
-            />
             <p className="text-lg font-medium">No messages yet</p>
             <p>
               Start the conversation with {sellerInfo?.name || "this user"}!

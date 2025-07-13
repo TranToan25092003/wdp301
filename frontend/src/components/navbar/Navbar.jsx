@@ -5,19 +5,39 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { TbCoinFilled } from "react-icons/tb";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { Input } from "antd";
 import ChatList from "./ChatList";
-import NotificationBell from "../global/NotificationBell"; // ✅ Đã import chuông thông báo
+import NotificationBell from "../global/NotificationBell";
+import AuthRequiredModal from "../global/AuthRequiredModal";
 
 const Navbar = () => {
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authFeatureName, setAuthFeatureName] = useState("");
   const navigate = useNavigate();
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/filter?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handlePostClick = (e) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthFeatureName("đăng tin");
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleTopUpClick = (e) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthFeatureName("nạp coin");
+      setShowAuthModal(true);
     }
   };
 
@@ -87,7 +107,7 @@ const Navbar = () => {
           </div>
 
           {/* Coin */}
-          <Link to={"/topup"}>
+          <Link to={"/topup"} onClick={handleTopUpClick}>
             <div className="flex items-center mx-2">
               <TbCoinFilled size={30} color="#ebb410" />
               <p className="ml-1">{user?.publicMetadata?.coin || 0}</p>
@@ -98,7 +118,7 @@ const Navbar = () => {
           <LinkDropdown />
 
           {/* Post listing button */}
-          <Link to="/create-post">
+          <Link to="/create-post" onClick={handlePostClick}>
             <button
               className="px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-white"
               style={{
@@ -114,6 +134,12 @@ const Navbar = () => {
           </Link>
         </div>
       </div>
+
+      <AuthRequiredModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        featureName={authFeatureName}
+      />
     </div>
   );
 };

@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Popover, List, Avatar, Badge, Spin, Empty } from "antd";
 import { MessageCircle } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { getUserInformation } from "@/API/duc.api/user.api";
 import { initializeSocket } from "@/utils/socket";
+import AuthRequiredModal from "../global/AuthRequiredModal";
 
 const ChatList = () => {
   const { user } = useUser();
+  const { isSignedIn } = useAuth();
   const navigate = useNavigate();
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!isSignedIn) return;
 
     const socket = initializeSocket();
 
@@ -78,7 +81,7 @@ const ChatList = () => {
       socket.off("newMessage");
       socket.off("newChatNotification");
     };
-  }, [user]);
+  }, [user, isSignedIn]);
 
   // Mark messages as read when opening chat
   const handleChatClick = (userId) => {
@@ -87,7 +90,16 @@ const ChatList = () => {
   };
 
   const handleOpenChange = (newOpen) => {
+    if (!isSignedIn && newOpen) {
+      // If not signed in and trying to open the chat list
+      setShowAuthModal(true);
+      return;
+    }
     setOpen(newOpen);
+  };
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
   };
 
   const content = (
@@ -143,22 +155,30 @@ const ChatList = () => {
   );
 
   return (
-    <Popover
-      content={content}
-      trigger="click"
-      placement="bottomRight"
-      open={open}
-      onOpenChange={handleOpenChange}
-    >
-      <div className="flex items-center justify-center relative cursor-pointer">
-        <MessageCircle className="w-6 h-6" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center px-1">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
-        )}
-      </div>
-    </Popover>
+    <>
+      <Popover
+        content={content}
+        trigger="click"
+        placement="bottomRight"
+        open={open}
+        onOpenChange={handleOpenChange}
+      >
+        <div className="flex items-center justify-center relative cursor-pointer">
+          <MessageCircle className="w-6 h-6" />
+          {isSignedIn && unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center px-1">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </div>
+      </Popover>
+
+      <AuthRequiredModal
+        open={showAuthModal}
+        onClose={handleAuthModalClose}
+        featureName="chat"
+      />
+    </>
   );
 };
 
