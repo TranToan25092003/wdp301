@@ -57,7 +57,9 @@ const AuctionDetailPage = () => {
   const [winnerModal, setWinnerModal] = useState({
     visible: false,
     isWinner: false,
+    isSeller: false,
     winnerName: "",
+    sellerName: "",
     amount: 0,
   });
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -112,10 +114,16 @@ const AuctionDetailPage = () => {
       const highestBid = bids[0];
       console.log("Auction ended on load, highest bid:", highestBid);
 
+      // Get seller info if available
+      const sellerId = auction.itemId?.owner;
+      const sellerName = sellerId ? userNames[sellerId] || "Seller" : "Seller";
+
       setWinnerModal({
         visible: true,
         isWinner: highestBid.userId === userId,
+        isSeller: sellerId === userId,
         winnerName: userNames[highestBid.userId] || "Another bidder",
+        sellerName: sellerName,
         amount: highestBid.amount,
       });
     }
@@ -243,9 +251,21 @@ const AuctionDetailPage = () => {
         setWinnerModal({
           visible: true,
           isWinner: data.winnerId === userId,
+          isSeller: data.sellerId === userId,
           winnerName: data.winnerName || "Another bidder",
+          sellerName: data.sellerName || "Seller",
           amount: data.amount,
         });
+      }
+    });
+
+    // Listen for coin balance updates related to this auction
+    socketInstance.on("coinUpdate", (data) => {
+      if (
+        data.userId === userId &&
+        data.transaction?.description?.includes(auction?.itemId?.name)
+      ) {
+        console.log("Received coin update for this auction:", data);
       }
     });
 
@@ -272,13 +292,16 @@ const AuctionDetailPage = () => {
         socketRef.current.off("error");
         socketRef.current.off("bidError");
         socketRef.current.off("auctionEnded");
+        socketRef.current.off("coinUpdate");
         socketRef.current.emit("leaveAuction", auctionId);
       }
       // Reset modal state
       setWinnerModal({
         visible: false,
         isWinner: false,
+        isSeller: false,
         winnerName: "",
+        sellerName: "",
         amount: 0,
       });
     };
@@ -559,7 +582,7 @@ const AuctionDetailPage = () => {
         centered
         closable={true}
         maskClosable={true}
-        width={400}
+        width={450}
         style={{ zIndex: 1001 }} // Đảm bảo modal hiển thị trên cùng
         maskStyle={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }} // Làm tối background
       >
@@ -572,9 +595,72 @@ const AuctionDetailPage = () => {
               Bạn đã thắng với giá{" "}
               <b>${winnerModal.amount?.toLocaleString()}</b>.
             </p>
-            <p style={{ color: "#1890ff", fontWeight: 500 }}>
-              Số coin của bạn đã bị trừ tương ứng.
+            <div
+              style={{
+                background: "#f6ffed",
+                border: "1px solid #b7eb8f",
+                borderRadius: "4px",
+                padding: "12px",
+                margin: "16px 0",
+              }}
+            >
+              <p style={{ color: "#52c41a", fontWeight: 500, marginBottom: 8 }}>
+                Giao dịch hoàn tất
+              </p>
+              <div style={{ textAlign: "left" }}>
+                <p>
+                  • Số coin của bạn đã bị trừ{" "}
+                  <b>{winnerModal.amount?.toLocaleString()}</b>
+                </p>
+                <p>• Sản phẩm đã được chuyển cho bạn</p>
+                <p>
+                  • Người bán <b>{winnerModal.sellerName}</b> đã nhận được tiền
+                </p>
+              </div>
+            </div>
+            <Button
+              type="primary"
+              block
+              style={{ marginTop: 24 }}
+              onClick={() =>
+                setWinnerModal((prev) => ({ ...prev, visible: false }))
+              }
+            >
+              Đóng
+            </Button>
+          </div>
+        ) : winnerModal.isSeller ? (
+          <div style={{ textAlign: "center" }}>
+            <h2 style={{ color: "#16a34a", marginBottom: 16 }}>
+              💰 Phiên đấu giá của bạn đã kết thúc!
+            </h2>
+            <p style={{ fontSize: 18, marginBottom: 8 }}>
+              Sản phẩm của bạn đã được bán với giá{" "}
+              <b>${winnerModal.amount?.toLocaleString()}</b>.
             </p>
+            <div
+              style={{
+                background: "#f6ffed",
+                border: "1px solid #b7eb8f",
+                borderRadius: "4px",
+                padding: "12px",
+                margin: "16px 0",
+              }}
+            >
+              <p style={{ color: "#52c41a", fontWeight: 500, marginBottom: 8 }}>
+                Giao dịch hoàn tất
+              </p>
+              <div style={{ textAlign: "left" }}>
+                <p>
+                  • Tài khoản của bạn đã được cộng{" "}
+                  <b>{winnerModal.amount?.toLocaleString()}</b> coin
+                </p>
+                <p>• Sản phẩm đã được chuyển cho người mua</p>
+                <p>
+                  • Người thắng cuộc: <b>{winnerModal.winnerName}</b>
+                </p>
+              </div>
+            </div>
             <Button
               type="primary"
               block
@@ -594,9 +680,25 @@ const AuctionDetailPage = () => {
             <p style={{ fontSize: 18, marginBottom: 8 }}>
               Người thắng cuộc: <b>{winnerModal.winnerName || "(ẩn danh)"}</b>
             </p>
-            <p style={{ color: "#1890ff", fontWeight: 500 }}>
+            <p style={{ color: "#1890ff", fontWeight: 500, marginBottom: 8 }}>
               Giá thắng: <b>${winnerModal.amount?.toLocaleString()}</b>
             </p>
+            <p>
+              Người bán: <b>{winnerModal.sellerName || "(ẩn danh)"}</b>
+            </p>
+            <div
+              style={{
+                background: "#f0f5ff",
+                border: "1px solid #d6e4ff",
+                borderRadius: "4px",
+                padding: "12px",
+                margin: "16px 0",
+                textAlign: "left",
+              }}
+            >
+              <p>• Giao dịch đã được hoàn tất</p>
+              <p>• Sản phẩm đã được chuyển cho người thắng cuộc</p>
+            </div>
             <Button
               type="primary"
               block
