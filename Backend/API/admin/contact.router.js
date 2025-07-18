@@ -4,6 +4,8 @@ const contactValidation = require("../../dto/contact.dto");
 const {
   throwErrors,
 } = require("../../middleware/validate-data/throwErrors.middleware");
+const { authenticate } = require("../../middleware/guards/authen.middleware");
+const { roleProtected } = require("../../middleware/guards/role.middleware");
 
 const router = new express.Router();
 
@@ -62,6 +64,8 @@ router.get("/", contactController.getContact);
  */
 router.patch(
   "/",
+  authenticate,
+  roleProtected,
   contactValidation,
   throwErrors,
   contactController.updateContact

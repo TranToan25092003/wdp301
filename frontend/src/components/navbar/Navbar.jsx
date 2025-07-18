@@ -1,15 +1,86 @@
-import React from "react";
+import { MessageCircle } from "lucide-react";
 import LinkDropdown from "./LinksDropdown";
 import logo from "../../assets/logo.png";
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import { ShoppingCart, Plus, MessageCircle, Search } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
 import { TbCoinFilled } from "react-icons/tb";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
+import { Input } from "antd";
+import ChatList from "./ChatList";
+import NotificationBell from "../global/NotificationBell";
+import AuthRequiredModal from "../global/AuthRequiredModal";
+import { initializeSocket } from "@/utils/socket";
+import { toast } from "sonner";
 
 const Navbar = () => {
-  const { user } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
+  const { isSignedIn } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authFeatureName, setAuthFeatureName] = useState("");
+  const [coinBalance, setCoinBalance] = useState(0);
+  const navigate = useNavigate();
+
+  // Initialize coin balance from user data when loaded
+  useEffect(() => {
+    if (userLoaded && user) {
+      setCoinBalance(user.publicMetadata?.coin || 0);
+    }
+  }, [user, userLoaded]);
+
+  // Set up socket listener for coin balance updates
+  useEffect(() => {
+    if (!isSignedIn || !user) return;
+
+    const socket = initializeSocket();
+
+    // Join user's personal room for notifications
+    socket.emit("join", user.id);
+
+    // Listen for coin balance updates
+    socket.on("coinUpdate", (data) => {
+      if (data.userId === user.id) {
+        setCoinBalance(data.newBalance);
+
+        // Show a toast notification about the transaction
+        const isCredit = data.transaction?.type === "credit";
+        toast(
+          isCredit ? "Coin balance increased!" : "Coin balance decreased!",
+          {
+            description: data.transaction?.description,
+            icon: isCredit ? "💰" : "💸",
+          }
+        );
+      }
+    });
+
+    return () => {
+      socket.off("coinUpdate");
+    };
+  }, [isSignedIn, user]);
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/filter?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handlePostClick = (e) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthFeatureName("đăng tin");
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleTopUpClick = (e) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthFeatureName("nạp coin");
+      setShowAuthModal(true);
+    }
+  };
 
   return (
     <div className="border-b w-full">
@@ -29,13 +100,19 @@ const Navbar = () => {
               Trang chủ
             </Link>
             <Link
-              to="/about"
+              to="/auctions"
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
-              About Us
+              Auctions
             </Link>
             <Link
-              to="/info"
+              to="/sellers"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+            >
+              Người đăng
+            </Link>
+            <Link
+              to="/about"
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Thông tin
@@ -45,46 +122,44 @@ const Navbar = () => {
 
         {/* Search Bar */}
         <div className="flex-1 max-w-md mx-4 order-last lg:order-none w-full lg:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+          <Input.Search
+            placeholder="Tìm kiếm sản phẩm..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onSearch={handleSearch}
+            enterButton={<span className="hidden sm:inline">Tìm</span>}
+            size="large"
+            style={{
+              "--antd-wave-shadow-color": "#0F7A5A",
+            }}
+            className="custom-antd-search"
+          />
         </div>
 
         <div className="flex gap-4 items-center">
           {/* Chat Icon */}
-          <div className="relative cursor-pointer">
-            <MessageCircle className="w-6 h-6" />
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              2
-            </span>
+          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+            <ChatList />
           </div>
 
-          {/* Cart Icon with badge */}
-          <div className="relative cursor-pointer">
-            <ShoppingCart className="w-6 h-6" />
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              3
-            </span>
+          {/* Notification Bell ✅ */}
+          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+            <NotificationBell />
           </div>
 
-          <Link to={"/topup"}>
-            <div className="flex items-center mx-2">
+          {/* Coin */}
+          <Link to={"/topup"} onClick={handleTopUpClick}>
+            <div className="flex items-center mx-2 relative">
               <TbCoinFilled size={30} color="#ebb410" />
-              <p className="ml-1">{user?.publicMetadata?.coin || 0}</p>
+              <p className="ml-1">{coinBalance}</p>
             </div>
           </Link>
 
           {/* Dropdown menu */}
           <LinkDropdown />
+
           {/* Post listing button */}
-          <Link to="/create-post">
+          <Link to="/create-post" onClick={handlePostClick}>
             <button
               className="px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-white"
               style={{
@@ -100,6 +175,12 @@ const Navbar = () => {
           </Link>
         </div>
       </div>
+
+      <AuthRequiredModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        featureName={authFeatureName}
+      />
     </div>
   );
 };

@@ -11,7 +11,9 @@ const Test = require("./test.model");
 const Type = require("./type.model");
 const Session = require("./session.model");
 const Contact = require("./contact.model");
-
+const userViolation = require("./userViolation.model");
+const Follow = require("./Follow.model");
+const Notification = require("./notification.model");
 module.exports = {
   Test,
   Report,
@@ -19,6 +21,7 @@ module.exports = {
   Category,
   Status,
   Type,
+  Follow,
   Item,
   Borrow,
   Buy,
@@ -26,4 +29,6 @@ module.exports = {
   Bid,
   Session,
   Contact,
+  userViolation,
+  Notification,
 };

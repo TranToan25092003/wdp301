@@ -1,47 +1,150 @@
-[
-  {
-    "_id": {
-      "$oid": "682fed324a0495973b61df51"
-    },
-    "name": "Electronics",
-    "image": "/assets/category-electronics.jpeg",
-    "tags": ["gadget", "tech", "innovation", "smart"]
+[{
+  "_id": {
+    "$oid": "6877ac5318b58515067ff012"
   },
-  {
-    "_id": {
-      "$oid": "682feddc4a0495973b61df52"
-    },
-    "name": "Furniture",
-    "image": "/assets/category-furniture.png",
-    "tags": ["comfort", "interior", "wood", "durability"]
+  "name": "Thời trang & Phụ kiện",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752673360/wiigipflealzorjvzimx.webp",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:42:44.023Z"
   },
-  {
-    "_id": {
-      "$oid": "683acfe534534b2075aac25e"
-    },
-    "name": "Giấy thủ công",
-    "description": "Samsung tablet with S Pen, ideal for drawing, note-taking, and watching videos. Available for borrowing.",
-    "price": 20,
-    "images": [
-      "https://res.cloudinary.com/dzq1rcnwl/image/upload/v1745575649/mdxandxuxp9cin8xvvbq.webp",
-      "https://res.cloudinary.com/dzq1rcnwl/image/upload/v1745575649/mdxandxuxp9cin8xvvbq.webp"
-    ],
-    "ratePrice": "hour",
-    "owner": "user_2xp0JJPV5DDQzNnpMqgLfvGoyRk",
-    "typeId": {
-      "$oid": "682fee514a0495973b61df54"
-    },
-    "categoryId": {
-      "$oid": "682fed324a0495973b61df51"
-    },
-    "statusId": {
-      "$oid": "682fefcb4a0495973b61df59"
-    },
-    "createdAt": {
-      "$date": "2025-07-23T10:00:00.000Z"
-    },
-    "updatedAt": {
-      "$date": "2025-07-23T10:00:00.000Z"
-    }
-  }
-]
+  "updatedAt": {
+    "$date": "2025-07-16T13:59:47.230Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877acf218b58515067ff04f"
+  },
+  "name": "Đồ điện tử",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752673519/gmnachpae3nnalsqzx8w.jpg",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:45:22.640Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T13:59:59.641Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877ad4118b58515067ff068"
+  },
+  "name": "Nội thất",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752673599/vo6suprbv9wsccsrscua.jpg",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:46:41.798Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:00:07.683Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877ad8318b58515067ff07c"
+  },
+  "name": "Sách & Phương tiện truyền thông",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752673665/uuosojhpwpiq2osljpgv.jpg",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:47:47.516Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:00:25.015Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877adc018b58515067ff08b"
+  },
+  "name": "Thể thao",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752673726/gcmhpjdejnlz621dqor5.jpg",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:48:48.528Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:00:48.886Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877ae7118b58515067ff0a2"
+  },
+  "name": "Dụng cụ lao động",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752673903/f52wghzqgljv4pxjgvky.jpg",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:51:45.459Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:01:23.736Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877aeba18b58515067ff0aa"
+  },
+  "name": "Thú cưng",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752673976/napsnwwjja2rdlt1rcwq.webp",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:52:58.174Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:01:30.218Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877aeee18b58515067ff0b1"
+  },
+  "name": "Văn phòng phẩm",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752674028/x0bdvnyp0ppaiwefmpgp.jpg",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:53:50.843Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:01:38.866Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877af5918b58515067ff0bb"
+  },
+  "name": "Xe cộ",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752674134/ausfvtaeczoadfmqfj5x.avif",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T13:55:37.867Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:05:30.764Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b19b18b58515067ff0fa"
+  },
+  "name": "Mục khác",
+  "image": "https://res.cloudinary.com/db4tuojnn/image/upload/v1752674713/kn4uugjfstxicmctgl8c.png",
+  "tags": [],
+  "createdAt": {
+    "$date": "2025-07-16T14:05:15.796Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:05:15.796Z"
+  },
+  "__v": 0
+}]

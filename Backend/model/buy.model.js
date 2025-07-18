@@ -8,7 +8,7 @@ const buySchema = new mongoose.Schema(
       required: [true, "Total is required"],
       min: [0, "Total cannot be negative"],
     },
-    buyer: {
+    buyer: { // Người mua (Buyer)
       type: String,
       required: [true, "Buyer is required"],
     },
@@ -19,11 +19,10 @@ const buySchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
-// Create the model
 const Buy = mongoose.model("Buy", buySchema);
 
 module.exports = Buy;

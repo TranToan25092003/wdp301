@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { redirect } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -11,6 +12,23 @@ import {
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import clerk from "@/utils/clerk";
+
+export const TopUpLoader = async () => {
+  try {
+    if (!clerk.isSignedIn) {
+      toast.error("Bạn cần đăng nhập để truy cập trang này", {
+        description: "Vui lòng đăng nhập để tiếp tục",
+      });
+      return redirect("/");
+    }
+  } catch (error) {
+    toast.error("Something wrong", {
+      description: "Vui lòng thử lại sau",
+    });
+    return redirect("/");
+  }
+};
 
 export const TopUp = () => {
   const [coinAmount, setCoinAmount] = useState("0");

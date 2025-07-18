@@ -1,36 +1,61 @@
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  useLoaderData,
+  useSearchParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
-export function PaginationDemo() {
+export function PaginationDemo({ currentPage, totalPages, onPageChange }) {
+  const pages = [];
+
+  for (let i = 1; i <= totalPages; i++) {
+    pages.push(
+      <PaginationItem key={i}>
+        <PaginationLink
+          href="#"
+          isActive={i === currentPage}
+          onClick={(e) => {
+            e.preventDefault();
+            onPageChange(i);
+          }}
+        >
+          {i}
+        </PaginationLink>
+      </PaginationItem>
+    );
+  }
+
   return (
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href="#" />
+          <PaginationPrevious
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage > 1) onPageChange(currentPage - 1);
+            }}
+          />
         </PaginationItem>
+
+        {pages}
+
         <PaginationItem>
-          <PaginationLink href="#">1</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#" isActive>
-            2
-          </PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">3</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationEllipsis />
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationNext href="#" />
+          <PaginationNext
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage < totalPages) onPageChange(currentPage + 1);
+            }}
+          />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

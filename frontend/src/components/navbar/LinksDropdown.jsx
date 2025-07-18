@@ -51,7 +51,7 @@ const LinkDropdown = () => {
         <SignedIn>
           {links.map((link) => {
             if (link.href.includes("/admin")) {
-              if (orgRole == "org:admin") {
+              if (orgRole == "org:admin" || orgRole == "org:admin_secondary") {
                 return (
                   <DropdownMenuItem key={link.href}>
                     <Link to={link.href} className="capitalize w-full">
@@ -61,6 +61,7 @@ const LinkDropdown = () => {
                 );
               } else return null;
             }
+
             return (
               <DropdownMenuItem key={link.href}>
                 <Link to={link.href} className="capitalize w-full">

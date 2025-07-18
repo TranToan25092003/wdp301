@@ -1,12 +1,137 @@
 [{
   "_id": {
-    "$oid": "682ff1114a0495973b61df65"
+    "$oid": "6877b35818b58515067ff11d"
   },
-  "name": "Dell Laptop XPS 13",
-  "description": "High-performance Dell XPS 13 laptop with Intel i7, 16GB RAM, perfect for programming and remote work.",
-  "price": 500,
+  "name": "Áo sơ mi nam kẻ sọc",
+  "description": "Áo sơ mi tay dài, chất liệu cotton thoáng mát, size L, còn rất mới, mặc chưa đến 5 lần. Thích hợp đi làm hoặc đi chơi.",
+  "price": 100000,
   "images": [
-    "/assets/sample.jpg"
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675155/dt77i6s0ttunzsxtlrp2.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675156/l1xqlhq1me1m6f4bk3ky.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675157/bw69njayqf5k8bph9txa.png"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ac5318b58515067ff012"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:12:40.405Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:12:40.405Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b3fe18b58515067ff139"
+  },
+  "name": "Túi xách da nữ màu nâu vintage",
+  "description": "Túi xách da thật, kiểu dáng cổ điển, còn bền đẹp, khóa kéo chắc chắn. Phù hợp với phong cách retro, đi học hoặc đi làm.",
+  "price": 200000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675324/daexsuxp3dwstjszst9z.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675324/mviqyic0o0hitoiqnait.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675324/w1hnzolrv69gjkuehfa8.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ac5318b58515067ff012"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:15:26.752Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:15:26.752Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b46d18b58515067ff152"
+  },
+  "name": "Đồng hồ đeo tay Casio",
+  "description": "Đồng hồ điện tử Casio chính hãng, dây nhựa đen, màn hình LED rõ nét. Đã thay pin mới, hoạt động tốt, chống nước nhẹ.",
+  "price": 350000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675432/fvigihracvif1t8cdald.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675434/f2pnaoxqxe2kcq860kcx.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675433/wzcufrgdgg5k7hvbhkaz.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ac5318b58515067ff012"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:17:17.156Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:17:17.156Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b4dc18b58515067ff17a"
+  },
+  "name": "Khăn choàng cổ len handmade",
+  "description": "Khăn len đan tay màu xám tro, mềm mại, giữ ấm tốt, dài 1m6. Đã giặt sạch, thích hợp dùng trong mùa lạnh hoặc làm quà tặng.",
+  "price": 50000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675545/egwaip1zw5dz0okwbgdf.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675546/zwi0pzkvb18xavly5wip.png"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ac5318b58515067ff012"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:19:08.512Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:19:08.512Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b59c18b58515067ff196"
+  },
+  "name": "Laptop Dell Inspiron 14",
+  "description": "Laptop Dell core i5 thế hệ 8, RAM 8GB, SSD 256GB, màn hình 14 inch Full HD. Máy hoạt động mượt, pin dùng được 2–3 tiếng, phù hợp cho học tập và văn phòng. Cho mượn đối với các bạn thi FE bằng USB của trường để tránh hỏng máy của mình. Đảm bảo máy chạy mượt, thi auto pass!",
+  "price": 50000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675736/ycj87kq2s3bdonb7chyy.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675736/egeogcrinrej72jgtgtt.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675738/okmfirt7unsaeljvtmka.jpg"
   ],
   "ratePrice": "day",
   "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
@@ -14,27 +139,123 @@
     "$oid": "682fee5f4a0495973b61df55"
   },
   "categoryId": {
-    "$oid": "682fed324a0495973b61df51"
+    "$oid": "6877acf218b58515067ff04f"
   },
   "statusId": {
-    "$oid": "682fefeb4a0495973b61df5c"
+    "$oid": "682fefcb4a0495973b61df59"
   },
   "createdAt": {
-    "$date": "2025-05-23T10:00:00.000Z"
+    "$date": "2025-07-16T14:22:20.308Z"
   },
   "updatedAt": {
-    "$date": "2025-05-23T10:00:00.000Z"
-  }
+    "$date": "2025-07-16T14:22:20.308Z"
+  },
+  "__v": 0
 },
 {
   "_id": {
-    "$oid": "682ff1244a0495973b61df66"
+    "$oid": "6877b61f18b58515067ff1b0"
   },
-  "name": "Wooden Dining Table Set",
-  "description": "Classic 6-seater dining table made of oak wood. Slightly used, in great condition.",
-  "price": 100,
+  "name": "Điện thoại Samsung Galaxy A52",
+  "description": "Máy màu tím, RAM 6GB, bộ nhớ trong 128GB. Ngoại hình còn đẹp 95%, không trầy xước, đã reset máy sẵn sàng dùng. Pin tốt, camera chụp nét. Đảm bảo uy tín!",
+  "price": 4000000,
   "images": [
-    "/assets/sample.jpg"
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675868/ydldkisst8kiymj22edp.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675868/e8ixln3bukvd44xuvsrv.webp",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752675868/ip8zjk9v1pjnugpnoyrx.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877acf218b58515067ff04f"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:24:31.448Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:24:31.448Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b6d518b58515067ff1cb"
+  },
+  "name": "Loa Bluetooth JBL GO 2",
+  "description": "Loa di động nhỏ gọn, màu đỏ, âm thanh rõ và bass ổn định. Dung lượng pin nghe nhạc liên tục 4–5 tiếng. Có chống nước nhẹ, dễ mang theo. Like new 90%, giá đã giảm kịch trần kịch sàn. Mua iii ae oi!",
+  "price": 500000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676051/xsjaira0sllav6hbjw3s.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676051/i4ouga1hsfkmhenjzal6.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676051/ancrxmidi16dykcp5lze.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877acf218b58515067ff04f"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:27:33.599Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:27:33.599Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b74f18b58515067ff1e6"
+  },
+  "name": "Tai nghe chụp tai Sony MDR-XB550AP",
+  "description": "Tai nghe dây, âm thanh Extra Bass, rất phù hợp nghe nhạc mạnh. Đệm tai êm ái, dây chống rối. Đã qua sử dụng nhưng hoạt động tốt. Bé đã giảm giá kịch sàn rùi nha, giá ưu đãi lắm đó các ae ơi, chốt đơn ngay :>>>",
+  "price": 400000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676172/vbdi0gm19hn6b5zpmphb.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676172/aoet7anykha40dbltohj.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676172/qwjcuz9vfjdgty2namyx.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877acf218b58515067ff04f"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:29:35.002Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:29:35.002Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b7ee18b58515067ff201"
+  },
+  "name": "Màn hình máy tính LG 24 inch",
+  "description": "Màn hình IPS Full HD, viền mỏng, góc nhìn rộng. Có cổng HDMI và VGA. Dùng làm màn phụ học online hoặc làm việc tại nhà rất ổn. Anh em nào học design mà đang chạy dự án cuối kì thì có thể thuê để làm việc nhé, mình để giá rất hời nha.",
+  "price": 80000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676332/l3n1ozjfyhzdld7pjpz4.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676332/hm73kstzr0xvsb7hkzim.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676332/cvrms4rcn9l5lgufnevp.png"
   ],
   "ratePrice": "day",
   "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
@@ -42,43 +263,1041 @@
     "$oid": "682fee5f4a0495973b61df55"
   },
   "categoryId": {
-    "$oid": "682feddc4a0495973b61df52"
+    "$oid": "6877acf218b58515067ff04f"
   },
   "statusId": {
-    "$oid": "682fefeb4a0495973b61df5c"
+    "$oid": "682fefcb4a0495973b61df59"
   },
   "createdAt": {
-    "$date": "2025-06-23T10:00:00.000Z"
+    "$date": "2025-07-16T14:32:14.571Z"
   },
   "updatedAt": {
-    "$date": "2025-06-23T10:00:00.000Z"
-  }
+    "$date": "2025-07-16T14:32:14.571Z"
+  },
+  "__v": 0
 },
 {
   "_id": {
-    "$oid": "682ff13c4a0495973b61df67"
+    "$oid": "6877b93e18b58515067ff223"
   },
-  "name": "Samsung Galaxy Tab S6",
-  "description": "Samsung tablet with S Pen, ideal for drawing, note-taking, and watching videos. Available for borrowing.",
-  "price": 20,
+  "name": "Bàn học gỗ thông có ngăn kéo",
+  "description": "Bàn học dài 1m2, làm từ gỗ thông tự nhiên, có 2 ngăn kéo tiện dụng. Bề mặt còn đẹp, chắc chắn, phù hợp cho học sinh hoặc làm bàn làm việc tại nhà. Vì mình không đi học nữa nên pass lại cho ai có nhu cầu nha, giá rất yêu thương :>",
+  "price": 600000,
   "images": [
-    "/assets/sample.jpg"
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676668/zw9jekdrfpwbk7oxn0co.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676668/zizsmolzubvsnonxhyik.jpg"
   ],
-  "ratePrice": "hour",
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad4118b58515067ff068"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:37:50.781Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:37:50.781Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877b9ed18b58515067ff241"
+  },
+  "name": "Ghế sofa vải 2 chỗ ngồi",
+  "description": "Sofa vải nỉ màu xám tro, khung gỗ chắc chắn, đệm ngồi êm. Dài khoảng 1m6, phù hợp cho phòng khách nhỏ hoặc phòng trọ. Đã vệ sinh sạch sẽ. Ngồi không êm không lấy tiền lun nha, sale đỉnh nóc kịch trần cho quý khách hàng may mắn sở hữu nè :)",
+  "price": 2000000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676842/tjwakexyhxzv58bxkwxi.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676842/zbyk9jrnp8faldo3wpmi.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676843/rxrzl6nw86wlhpp6fo1m.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad4118b58515067ff068"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:40:45.725Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:40:45.725Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877ba8b18b58515067ff25e"
+  },
+  "name": "Tủ quần áo nhựa 3 cánh",
+  "description": "Tủ nhựa Đài Loan màu trắng xanh, gồm 3 cánh, có ngăn treo và ngăn xếp đồ. Thích hợp cho sinh viên, dễ di chuyển và chống ẩm mốc. Mình không ở trọ nữa nên pass lại, giá cả đã fix hết mức có thể, hữu duyên thì mua của mình nha.",
+  "price": 600000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752676999/wkogyqji1rp2uokgrvn1.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752677000/wpnpu11mbaehfpgigshx.webp",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752677001/m2jx17pxrrmgf9clljta.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad4118b58515067ff068"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:43:23.454Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:43:23.454Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877bae518b58515067ff276"
+  },
+  "name": "Kệ sách gỗ 5 tầng",
+  "description": "Kệ đứng cao 1m6, làm từ gỗ công nghiệp màu nâu sẫm, có 5 ngăn đựng sách và đồ trang trí. Còn mới khoảng 90%, không bị mối mọt hay cong vênh.",
+  "price": 300000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752677091/ytjm5via3nofuhmiojly.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752677091/lo1h1ll8yoost3ebuqzw.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad4118b58515067ff068"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:44:53.537Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:44:53.537Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877bbe318b58515067ff296"
+  },
+  "name": "Đèn ngủ để bàn cảm ứng",
+  "description": "Đèn ngủ LED điều khiển cảm ứng, ánh sáng ấm dịu. Thiết kế nhỏ gọn, chân đèn gỗ, chụp vải. Tiện cho phòng ngủ hoặc làm việc ban đêm.",
+  "price": 100000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752677345/j1iw2zonzytlpk2jkfnx.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752677345/pg04k8peiw0yprej4fag.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad4118b58515067ff068"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T14:49:07.925Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T14:49:07.925Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877bef318b58515067ff2c6"
+  },
+  "name": "Truyện tranh Doraemon – Trọn bộ 45 tập",
+  "description": "Full set Doraemon bản màu, giấy dày xịn, đọc vừa cười vừa khóc. Đã bọc nilon cẩn thận từng tập, giữ gìn kỹ như bảo vật tuổi thơ. Bạn nào muốn sưu tầm hay đọc lại thời huy hoàng thì hốt lẹ nha! Giá hạt dẻ, mang về là có cả bầu trời tuổi thơ",
+  "price": 700000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678128/fsol1hgbaoa4dn42ty6m.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678127/ogf3i78cxiso1dd10gjw.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678127/qehcvv6pmtdvua4v8jjw.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad8318b58515067ff07c"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T15:02:11.344Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T15:02:11.344Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877bf6f18b58515067ff2e2"
+  },
+  "name": "Sách \"Đắc Nhân Tâm\" – bản bìa cứng",
+  "description": "Bản in chất lượng, bìa cứng sang chảnh, chữ to dễ đọc. Đọc xong đúng kiểu “được lòng người, mở lòng mình”. Ai mới đi làm, hay đang cần học cách giao tiếp thì cuốn này như cứu tinh. Đọc xong nhả lại thiện tâm nha",
+  "price": 50000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678251/dqawx8fz6zwlgifjtsmj.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678251/xpqgyg4ljn9ovwspc2jv.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678252/bwub9lusbtpqcxc7bjyi.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad8318b58515067ff07c"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T15:04:15.187Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T15:04:15.187Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877c07b18b58515067ff303"
+  },
+  "name": "Bộ giáo trình TOEIC Hách Cơ 2",
+  "description": "Bộ sách TOEIC Hách Cơ 2 gốc Hàn, gồm Reading + Listening + file nghe. Ai đang ôn nước rút, cần mượn 1-2 tuần thì mình cho thuê siêu rẻ 5k/ngày thôi! Sách sạch sẽ, đã dán flag sẵn phần quan trọng. Bao đậu 700+ nếu chịu học",
+  "price": 5000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678521/q8wrez5mx8j5guck6yhs.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678521/dwxb6bevu1nrs6wna5ke.jpg"
+  ],
+  "ratePrice": "day",
   "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
   "typeId": {
     "$oid": "682fee5f4a0495973b61df55"
   },
   "categoryId": {
-    "$oid": "682fed324a0495973b61df51"
+    "$oid": "6877ad8318b58515067ff07c"
   },
   "statusId": {
-    "$oid": "682fefeb4a0495973b61df5c"
+    "$oid": "682fefcb4a0495973b61df59"
   },
   "createdAt": {
-    "$date": "2025-07-23T10:00:00.000Z"
+    "$date": "2025-07-16T15:08:43.321Z"
   },
   "updatedAt": {
-    "$date": "2025-07-23T10:00:00.000Z"
-  }
+    "$date": "2025-07-16T15:08:43.321Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877c0db18b58515067ff31d"
+  },
+  "name": "Máy đọc sách Kindle Paperwhite",
+  "description": "Kindle Paperwhite Gen 4, pin trâu bò cả tuần, màn hình đọc cực dịu mắt. Ai thích đọc sách nhưng chưa muốn mua hẳn thì mình cho thuê 20k/ngày. Tải sẵn vài trăm đầu sách đủ thể loại từ văn học đến self-help. Mang đi cà phê chill đọc cũng sang lắm nha",
+  "price": 20000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678616/twsdb4uui7moaflbfk0l.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678616/gkf4gbus3fhxvqrq4uic.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678617/dfwkqr9eucfr25ilpjpq.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "6877ad8318b58515067ff07c"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T15:10:19.738Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T15:10:19.738Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6877c14c18b58515067ff337"
+  },
+  "name": "DVD phim hoạt hình Ghibli – Bộ sưu tập 6 đĩa",
+  "description": "Ai mê Studio Ghibli thì không thể bỏ qua bộ sưu tập này! Từ “Spirited Away” đến “Howl’s Moving Castle” – bản gốc có phụ đề, hình ảnh siêu nét. Đĩa còn bóng loáng, bao xem mượt trên đầu đĩa. Mua tặng người yêu, em gái hay chính mình đều đẹp nhaa.",
+  "price": 100000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678729/vlfcutbybggcdeot1kxh.webp",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752678729/bvjljhjdxqmcmrfegvl1.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ad8318b58515067ff07c"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-16T15:12:12.294Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-16T15:12:12.294Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687868730f9f52b7bb9568b0"
+  },
+  "name": "Giày chạy bộ Adidas Ultraboost",
+  "description": "Đôi giày quốc dân cho dân chạy bộ đây rồi! Size 42, màu đen trắng dễ phối, đế Boost còn nguyên độ nảy. Đi êm như mây, chạy sướng như bay. Mua về chỉ chạy được 3 lần rồi lười, giờ pass lại cho anh em siêng năng hơn",
+  "price": 300000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721519/m8z9rf6d4u3j95mq3e4u.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721519/izc5kaw6vhq5ola90hmj.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721520/foje9mo3ajdqmtf6ozg0.png"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877adc018b58515067ff08b"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:05:23.737Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:05:23.737Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687868ee0f9f52b7bb9568cc"
+  },
+  "name": "Vợt cầu lông Yonex Arcsaber",
+  "description": "Cán gỗ chắc tay, thân vợt dẻo nhẹ, smash hay thủ đều ok. Ai mới chơi hay đã chơi lâu đều dùng tốt. Vợt không trầy xước nhiều, lưới mới căng lại tháng trước. Có tặng kèm bao vợt luôn! Lên sân là auto đẹp trai",
+  "price": 400000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721643/vbwze8mjs2ouahdfvz0u.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721643/fxlmlksgl4hxi8oro0zq.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721643/rrm9ev6rdl90zf2dmgxn.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877adc018b58515067ff08b"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:07:26.749Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:07:26.749Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687869790f9f52b7bb9568e7"
+  },
+  "name": "Thảm yoga + dây kháng lực",
+  "description": "Combo tập yoga tại nhà cho bạn nào muốn detox tinh thần. Thảm dày 8mm, êm như nệm; dây kháng lực 3 cấp độ. Cho thuê 7k/ngày, dùng xong chỉ cần cuộn lại gọn gàng là được. Vừa tiết kiệm, vừa đỡ chật nhà. Tập rồi mới thấy yêu bản thân đó nha",
+  "price": 112000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721782/avcjov0cxokzeumamilk.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721782/gaah3gvh1cl4f2pkdql8.avif",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721782/pmmqevwyhyy5mazokjwy.avif"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877adc018b58515067ff08b"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:09:45.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:09:45.019Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786a400f9f52b7bb956904"
+  },
+  "name": "Găng tay tập gym Reebok",
+  "description": "Găng tay size M, dán dính chắc chắn, giúp chống trượt khi nâng tạ. Ai tập tay, tập xà, đẩy ngực mà không có găng là dễ trượt lắm đó. Mình pass lại 50k/đôi, sạch sẽ, không mùi, đỡ chai tay liền",
+  "price": 50000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721980/hv0cqr8oak4xrkwkb8ut.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752721980/ljqlcy6ldzxro1dpkqos.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877adc018b58515067ff08b"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:13:04.487Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:13:04.487Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786ad50f9f52b7bb95691f"
+  },
+  "name": "Máy khoan cầm tay Bosch GSB 550",
+  "description": "Máy khoan Bosch chính hãng, khoan tường, gỗ, sắt gì cũng chiến tốt. Đã xài vài lần sửa nhà, còn rất mới, motor chạy êm. Có tặng kèm mũi khoan đủ size. Giữ gìn kỹ lắm, giờ để không hơi phí, nên pass lại cho ai cần “đục tung vách” nha!",
+  "price": 560000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722130/cpzn2xtjd1ytb9ugpxve.webp",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722130/mjkhpna1gaxe1cnny8pg.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722131/jopnwc4kodmcfdm3b8sf.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ae7118b58515067ff0a2"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:15:33.766Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:15:33.766Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786b3d0f9f52b7bb95693a"
+  },
+  "name": "Thang nhôm rút 3.8m Nikita",
+  "description": "Thang nhôm rút gọn, cao tối đa gần 4 mét, dùng sửa điện, gắn camera, lắp rèm... Khung chắc chắn, khóa an toàn, chống trượt. Cũ mà gân, còn ngon lành cành đào. Ai nhà có trần cao là cần lắm á 🤓",
+  "price": 850000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722234/iwv9dh6pswl24gvzuoch.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722234/em75clesb156wacq0w0v.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722235/f1frlcilzuexvj0ezn0g.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ae7118b58515067ff0a2"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:17:17.378Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:17:17.378Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786c1d0f9f52b7bb956959"
+  },
+  "name": "Máy cắt cỏ mini chạy điện",
+  "description": "Sân cỏ mọc um tùm, vác kéo cắt thì toát mồ hôi? Mình có máy cắt cỏ mini dùng điện, nhỏ gọn, cắt gọn lỏn, dây kéo dài thoải mái. Cho thuê 50k/ngày thôi, cắm điện là xài được ngay. Cắt xong nhìn sân mà thấy nhẹ lòng",
+  "price": 50000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722459/funsfzw7joptkbty8xjm.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722459/iq2dozp2if7c1p0gthsq.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722459/gjm5ysytamukyizf8j2u.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "6877ae7118b58515067ff0a2"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:21:01.974Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:21:01.974Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786cbf0f9f52b7bb95697a"
+  },
+  "name": "Bộ dụng cụ sửa xe 26 món",
+  "description": "Bộ đồ nghề đầy đủ từ mỏ lết, kìm, tua vít đến khóa vòng – gọn trong 1 hộp nhựa. Cho bạn nào tự sửa xe, lắp đồ, làm DIY. Thuê 40k/ngày, mượn xài xong trả gọn gàng là được, khỏi mua cả bộ chi cho tốn",
+  "price": 40000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722621/ufqfvvmwvcwy62uo2t9v.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "6877ae7118b58515067ff0a2"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:23:43.798Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:23:43.798Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786d470f9f52b7bb956996"
+  },
+  "name": "Bộ 5 cờ lê đa năng có túi đựng",
+  "description": "Cờ lê inox cứng cáp, 5 size từ nhỏ tới to, có sẵn túi đựng cuộn lại siêu tiện. Mua hồi làm tủ kệ, giờ hết xài, pass lại cho ai hay vọc đồ, sửa vặt trong nhà. Giá nhẹ như lực siết tay mình vậy",
+  "price": 120000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722756/nmyq6qy2jo2pju0yhatj.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752722756/dsv3bvbcihg0ty2cmsmi.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877ae7118b58515067ff0a2"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:25:59.044Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:25:59.044Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786ee70f9f52b7bb9569ba"
+  },
+  "name": "Lồng mèo nhựa 2 tầng",
+  "description": "Lồng nhựa chắc chắn, 2 tầng rộng rãi cho bé mèo có chỗ leo trèo, nằm chơi. Đã vệ sinh sạch sẽ, không mùi. Ai nuôi mèo từ 2 bé trở lên là cần lắm luôn á! Có bánh xe đẩy cho tiện nữa nha 🐾😺",
+  "price": 90000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723173/kbogeho89wd55va3wo5r.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723173/dja7ikenvgfknj1wxvsi.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877aeba18b58515067ff0aa"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:32:55.787Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:32:55.787Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68786f3d0f9f52b7bb9569d4"
+  },
+  "name": "Balo vận chuyển thú cưng phi hành gia",
+  "description": "Balo phi hành gia xịn sò, có lỗ thông khí + kính bán cầu nhìn ra ngoài. Dắt bé đi chơi, đi tiêm hay về quê đều sang – người đi người tới đều ngoái nhìn 🛸🐕 Mua rồi bé ở nhà không chịu ra nữa, nên pass lại cho ai cần nha!",
+  "price": 115000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723258/xbahxjr2d2zheqaiw2fy.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723259/jicchj5btkoxdqtxgbln.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877aeba18b58515067ff0aa"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:34:21.125Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:34:21.125Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687871070f9f52b7bb9569fe"
+  },
+  "name": "Nhà vải cho chó/mèo cỡ nhỏ",
+  "description": "Nhà vải ấm áp, bên trong có nệm lót, thích hợp cho chó mèo dưới 10kg. Bạn nào cần chỗ ngủ tạm cho bé khi gửi bạn trông vài hôm, hoặc về quê vài ngày thì mình cho thuê 30k/ngày. Bé nhà mình đi spa rồi nên đang dư 😆🐶",
+  "price": 30000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723717/t4hw635lzsghc8flujda.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "6877aeba18b58515067ff0aa"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:41:59.487Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:41:59.487Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687871890f9f52b7bb956a19"
+  },
+  "name": "Bát ăn đôi chống trượt cho chó/mèo",
+  "description": "Bát ăn 2 ngăn (1 nước, 1 đồ ăn), đế chống trượt, chất liệu nhựa ABS an toàn. Mua về cho bé nhà mình nhưng bé chảnh không chịu dùng 😤 Ai nuôi pet sẽ hiểu! Pass lại giá yêu thương cho người yêu thương động vật nha!",
+  "price": 150000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723846/ztghmvwhpf4bkaxkwwgs.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723847/j0yndyypdckx0vrfgdkj.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877aeba18b58515067ff0aa"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:44:09.842Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:44:09.842Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687871ef0f9f52b7bb956a30"
+  },
+  "name": "Sổ tay lò xo A5 – Ghi chép mọi mặt trận",
+  "description": "Sổ tay A5 bìa cứng, giấy dày viết không lem, có đánh số trang. Mình dùng để bullet journal, ghi note học nhóm hay to-do list mỗi ngày. Còn hơn 80 trang trống, bạn nào mê viết lách hoặc cần ghi chú gọn gàng thì hốt lẹ nha! 📒🖋️",
+  "price": 10000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752723949/ijveenbs6n30qqj5rarl.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877aeee18b58515067ff0b1"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:45:51.461Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:45:51.461Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6878723f0f9f52b7bb956a49"
+  },
+  "name": "Bộ bút highlight 6 màu Pastel",
+  "description": "Bộ bút highlight dòng pastel siêu xinh, màu nhẹ không chói, ghi chú học hành là auto chăm hơn. Mua về dùng học online nhưng không hợp màu nên để lại cho bạn nào mê ghi bài đẹp như bullet journal Pinterest nhé ✨🖍️",
+  "price": 12000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724029/xejvefwbfqgzi5fpst1x.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724028/iithhx9rkfvfnuemvtje.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877aeee18b58515067ff0b1"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:47:11.835Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:47:11.835Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687872bc0f9f52b7bb956a69"
+  },
+  "name": "Máy in Canon mini",
+  "description": "Máy in nhỏ gọn, in được A4, hỗ trợ in đen trắng – đủ dùng cho luận văn, giấy tờ. Cho mượn 45k/ngày, có dây nguồn & USB đầy đủ. Bạn nào cần in gấp mà chưa kịp ra tiệm thì gọi mình ngay nha. In xong nhớ trả máy chớ in xong rồi \"tắt máy luôn\" là không được",
+  "price": 45000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724153/oaaxqq1qbbkehz13h9eu.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724153/dfawf2vmk2aarnz8dfgr.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "6877aeee18b58515067ff0b1"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:49:16.392Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:49:16.392Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6878731e0f9f52b7bb956a81"
+  },
+  "name": "Hộp đựng giấy tờ 5 ngăn – Màu trong suốt",
+  "description": "Hộp đựng hồ sơ tài liệu 5 ngăn rời, màu trong suốt dễ thương, để bàn học hay bàn làm việc đều xinh. Mình xài 2 ngăn rồi, còn dư 3 ngăn nên pass lại siêu rẻ. Ai mê gọn gàng xinh xắn là nên lấy liền nha",
+  "price": 130000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724252/wch2pg488e7vvibbindl.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877aeee18b58515067ff0b1"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T03:50:54.717Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T03:50:54.717Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6878755b0f9f52b7bb956aad"
+  },
+  "name": "Mũ bảo hiểm fullface Royal M136",
+  "description": "Mũ bảo hiểm fullface chính hãng Royal, size L, màu đen nhám ngầu bá cháy. Kính chắn gió trong suốt, không trầy, khóa chắc chắn. Mua về định phượt xuyên Việt mà mới đi được tới... Biên Hòa thì bỏ. Pass lại cho anh em đam mê tốc độ nhé!",
+  "price": 200000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724823/yur4tvf5nw3wv39fuhni.webp",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724825/yhthchoxuh0kseqlcywd.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724824/corfmkm26id4lbdytyag.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877af5918b58515067ff0bb"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T04:00:27.624Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T04:00:27.624Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687875b30f9f52b7bb956ac4"
+  },
+  "name": "Gác chân độ cho xe Wave/Dream",
+  "description": "Gác chân kiểu thể thao, màu bạc inox sáng bóng, bắn vít vô là đẹp trai hơn liền. Mua về gắn chơi Tết, giờ tháo ra vì người yêu chê “ồn ào”. Hợp cho anh em mê độ nhẹ, vừa ngầu vừa hợp ví",
+  "price": 135000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724913/f6dddlygodwd4d3kg70o.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752724913/nlr0iseswzedicbsp3ls.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877af5918b58515067ff0bb"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T04:01:55.709Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T04:01:55.709Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6878764c0f9f52b7bb956ae1"
+  },
+  "name": "Bơm xe mini cầm tay đa năng",
+  "description": "Bơm tay gọn nhẹ, có đầu chuyển đổi cho cả xe máy, xe đạp và cả bóng đá. Ai cần cứu cánh giữa đường hay bơm định kỳ thì hốt lẹ. Giảm giá đặc biệt rồi nha!",
+  "price": 180000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752725066/bdqcrbtcf86u6egkrfhb.webp",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752725066/ganllfbiwf9pcsoy4vju.webp"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877af5918b58515067ff0bb"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T04:04:28.983Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T04:04:28.983Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687876db0f9f52b7bb956afa"
+  },
+  "name": "Bộ vá xe lưu động",
+  "description": "Gồm keo vá, dùi, kim và một số miếng vá sơ cua. Cho thuê 25k/ngày, ai hay chạy xa hoặc làm shipper mà sợ “dính đinh” giữa đường thì mang theo cho yên tâm. Bộ nhỏ gọn đút cốp là vừa, cứu cánh nhiều lần rồi nên tin tưởng nha!",
+  "price": 25000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752725210/c3kfrg9pyt2akypwyopm.jpg"
+  ],
+  "ratePrice": "day",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee5f4a0495973b61df55"
+  },
+  "categoryId": {
+    "$oid": "6877af5918b58515067ff0bb"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T04:06:51.937Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T04:06:51.937Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6878772b0f9f52b7bb956b14"
+  },
+  "name": "Yên xe đạp thể thao bọc gel chống đau",
+  "description": "Yên bọc gel mềm mịn, đi xa không ê mông, hợp cho xe đạp địa hình hoặc xe đạp đi học. Mới mua tháng trước, xài đúng 2 hôm rồi chuyển qua xe máy. Còn như mới, bạn nào hay đạp sáng chiều nên cân nhắc",
+  "price": 280000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752725289/bao9ryzxpshckbrdzkgp.jpg",
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752725288/eeglggzqzpuxezi3wzru.webp"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877af5918b58515067ff0bb"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T04:08:11.263Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T04:08:11.263Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6878778f0f9f52b7bb956b2a"
+  },
+  "name": "Móc khoá Gundam phát sáng",
+  "description": "Móc khoá hình Gundam có đèn LED, nhấn nút là mắt sáng đỏ rực rỡ luôn 😎 Treo lên balo hay chìa khoá xe đều hợp, nhìn chất như phim. Fan anime hoặc ai thích đồ độc lạ thì quất liền, hàng limited không đụng hàng nha!",
+  "price": 15000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752725389/pq7nh4ox2b8dtcfwynxt.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877b19b18b58515067ff0fa"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T04:09:51.004Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T04:09:51.004Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687877cd0f9f52b7bb956b41"
+  },
+  "name": "Hộp nhạc gỗ quay tay – Giai điệu “Castle in the Sky”",
+  "description": "Hộp nhạc kiểu cổ điển, làm từ gỗ, quay tay là phát ra nhạc du dương. Giai điệu “Castle in the Sky” nghe chill lắm, buồn buồn mở lên là muốn... thả hồn ra mây ☁️ Ai thích decor vintage hoặc làm quà tặng thì món này đúng gu luôn!",
+  "price": 200000,
+  "images": [
+    "https://res.cloudinary.com/db4tuojnn/image/upload/v1752725451/cuwngmr9kx6rn1vbedgl.jpg"
+  ],
+  "ratePrice": "no",
+  "owner": "user_2xLGz5TgIOkrbOYpofMCfYyvWvt",
+  "typeId": {
+    "$oid": "682fee514a0495973b61df54"
+  },
+  "categoryId": {
+    "$oid": "6877b19b18b58515067ff0fa"
+  },
+  "statusId": {
+    "$oid": "682fefcb4a0495973b61df59"
+  },
+  "createdAt": {
+    "$date": "2025-07-17T04:10:53.326Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-17T04:10:53.326Z"
+  },
+  "__v": 0
 }]

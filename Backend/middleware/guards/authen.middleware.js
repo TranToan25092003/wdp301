@@ -14,6 +14,7 @@ module.exports.authenticate = async (req, res, next) => {
 
     const tokenPayload = await verifyToken(token, {
       secretKey: process.env.CLERK_SECRET_KEY,
+      clockSkewInMs: 300000, // avoid IAT error
     });
 
     const user = await clerkClient.users.getUser(tokenPayload.sub);
@@ -23,6 +24,7 @@ module.exports.authenticate = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.log(error);
     return res.status(401).json({
       message: "Invalid token",
     });

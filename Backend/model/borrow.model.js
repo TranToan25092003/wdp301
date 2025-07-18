@@ -13,7 +13,7 @@ const borrowSchema = new mongoose.Schema(
       required: [true, "Total time is required"],
       min: [0, "Total time cannot be negative"],
     },
-    borrowers: {
+    borrowers: { // Người mượn (Borrower)
       type: String,
       required: [true, "Borrower is required"],
     },
@@ -30,13 +30,21 @@ const borrowSchema = new mongoose.Schema(
       type: Date,
       required: [true, "End time is required"],
     },
+    actualTime: {
+      type: Date, 
+    },
+    status: {
+      type: String,
+      enum: ['borrowed', 'returned', 'late'],
+      default: 'borrowed',
+      required: true,
+    },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
-// Create the model
 const Borrow = mongoose.model("Borrow", borrowSchema);
 
 module.exports = Borrow;

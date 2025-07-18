@@ -50,11 +50,25 @@ const itemSchema = new mongoose.Schema(
       ref: "Category", // Reference to the Category model
       required: [true, "Category ID is required"],
     },
-
     statusId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Status", // Reference to the Status model
       required: [true, "Status ID is required"],
+    },
+    pendingChanges: {
+      name: String,
+      description: String,
+      price: Number,
+      requestDate: Date,
+      requestedBy: String,
+      status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+      },
+      reviewedBy: String,
+      reviewDate: Date,
+      rejectReason: String,
     },
   },
   {

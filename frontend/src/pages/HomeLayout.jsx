@@ -1,5 +1,5 @@
 import React from "react";
-import Providers from "./providers";
+import Providers from "./Providers";
 import Navbar from "@/components/navbar/Navbar";
 import Container from "@/components/global/Container";
 import { Outlet, useNavigation } from "react-router-dom";
@@ -10,11 +10,15 @@ import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
 import { useLoaderData } from "react-router-dom";
 import { useClerk } from "@clerk/clerk-react";
 import { useEffect } from "react";
+import { customFetch } from "@/utils/customAxios";
 
 export const homeLayoutLoader = async () => {
   try {
     const res = await getAllCategoriesWithStats();
-    return { categories: res.data };
+
+    const footerResponse = await customFetch("/admin/contact");
+
+    return { categories: res.data, footerInfo: footerResponse.data.data };
   } catch (error) {
     console.error("Failed to fetch categories", error);
     return { categories: [] };
@@ -37,7 +41,7 @@ const HomeLayout = () => {
       <Toaster position="bottom-right" richColors expand closeButton />
       <div className={` antialiased`}>
         <Providers>
-          <Navbar categories={categories}></Navbar>
+          <Navbar></Navbar>
           <Container className={"mt-4"}>
             {state === "loading" ? (
               <>

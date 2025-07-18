@@ -4,7 +4,7 @@ import { useLoaderData, useNavigate } from "react-router-dom";
 import { getAllAuctions } from "@/API/huynt.api/auction.api";
 import AuctionCard from "@/components/auction/AuctionCard";
 import CreateAuctionForm from "@/components/auction/CreateAuctionForm";
-import socket, { initializeSocket } from "@/utils/socket";
+import { initializeSocket } from "@/utils/socket";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -22,8 +22,6 @@ export const auctionListLoader = async () => {
 const AuctionPage = () => {
   const { dataAuctions } = useLoaderData();
   const [auctions, setAuctions] = useState(dataAuctions.auctions || []);
-  const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,38 +40,10 @@ const AuctionPage = () => {
     };
   }, []);
 
-  const handleDelete = (auctionId) => {
-    setAuctions((prev) => prev.filter((auction) => auction._id !== auctionId));
-  };
-
-  const handleCreate = (newAuction) => {
-    setAuctions((prev) => [...prev, newAuction]);
-    setIsModalOpen(false);
-  };
-
   return (
     <Layout style={{ backgroundColor: "#fff", padding: "20px" }}>
       <Content>
-        <Title level={2}>Auctions</Title>
-        <Button
-          type="primary"
-          onClick={() => setIsModalOpen(true)}
-          style={{ marginBottom: "20px" }}
-        >
-          Create New Auction
-        </Button>
-        <CreateAuctionForm
-          open={isModalOpen}
-          onCancel={() => setIsModalOpen(false)}
-          onCreate={handleCreate}
-        />
-        <Divider />
-        {loading ? (
-          <Spin
-            size="large"
-            style={{ display: "block", margin: "50px auto" }}
-          />
-        ) : auctions.length === 0 ? (
+        {auctions.length === 0 ? (
           <Title level={4}>No auctions available</Title>
         ) : (
           <div
@@ -87,7 +57,7 @@ const AuctionPage = () => {
               <AuctionCard
                 key={auction._id}
                 auction={auction}
-                onDelete={handleDelete}
+                bidCount={auction.bids ? auction.bids.length : 0}
                 onViewDetails={() => navigate(`/auctions/${auction._id}`)}
               />
             ))}
