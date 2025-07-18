@@ -55,7 +55,7 @@ const BuyModal = ({ open, onClose, product, setIsPurchasing }) => {
       try {
         const token = await getToken();
         const response = await purchaseItem(product._id, token);
-        console.log(response)
+        console.log(response);
         await Swal.fire({
           icon: "success",
           title: "Purchase Successful!",
@@ -66,7 +66,8 @@ const BuyModal = ({ open, onClose, product, setIsPurchasing }) => {
       } catch (error) {
         console.error("Purchase error:", error);
         const errorMessage =
-          error?.response?.data?.message || "Failed to complete purchase. Please try again.";
+          error?.response?.data?.message ||
+          "Failed to complete purchase. Please try again.";
         await Swal.fire({
           icon: "error",
           title: "Purchase Failed",
@@ -92,7 +93,7 @@ const BuyModal = ({ open, onClose, product, setIsPurchasing }) => {
             className="rounded-md object-cover w-full h-48 border-2 border-gray-200"
           />
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground line-clamp-3">
+            <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">
               {product?.description || "No description provided."}
             </p>
             <p className="text-lg font-semibold text-primary">

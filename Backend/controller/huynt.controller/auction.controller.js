@@ -163,6 +163,99 @@ exports.getAllAuctions = async (req, res) => {
   }
 };
 
+exports.getAuctionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const auction = await Auction.findById(id)
+      .populate("itemId")
+      .populate("statusId");
+
+    if (!auction) {
+      return res.status(404).json({ message: "Auction not found" });
+    }
+
+    res.status(200).json({ data: auction });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateAuction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      startTime,
+      endTime,
+      startPrice,
+      currentPrice,
+      minBidIncrement,
+      statusId,
+    } = req.body;
+
+    // Find the auction
+    let auction = await Auction.findById(id);
+    if (!auction) {
+      return res.status(404).json({ message: "Auction not found" });
+    }
+
+    // Validate required fields
+    if (!startTime || !endTime || !startPrice || startPrice <= 0) {
+      return res.status(400).json({
+        message: "All fields are required and prices must be positive",
+      });
+    }
+
+    // Validate that start time is at least 5 minutes in the future if it's being changed
+    const now = new Date();
+    const startTimeDate = new Date(startTime);
+    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+
+    if (startTimeDate < fiveMinutesFromNow) {
+      return res.status(400).json({
+        message: "Start time must be at least 5 minutes from now",
+      });
+    }
+
+    // Validate that end time is after start time
+    if (new Date(endTime) <= startTimeDate) {
+      return res.status(400).json({
+        message: "End time must be after start time",
+      });
+    }
+
+    // Update auction fields
+    auction.startTime = startTime;
+    auction.endTime = endTime;
+    auction.startPrice = startPrice;
+    auction.currentPrice = currentPrice || startPrice;
+    auction.minBidIncrement = minBidIncrement || 0;
+
+    // Only update statusId if provided and valid
+    if (statusId) {
+      const status = await Status.findById(statusId);
+      if (!status) {
+        return res.status(404).json({ message: "Status not found" });
+      }
+      auction.statusId = statusId;
+    }
+
+    await auction.save();
+
+    // Schedule check for auction end
+    const msUntilEnd = new Date(endTime) - new Date();
+    if (msUntilEnd > 0) {
+      setTimeout(() => {
+        checkAndSettleEndedAuctions(global.io);
+      }, msUntilEnd + 1000); // +1s to ensure it's ended
+    }
+
+    res.status(200).json({ message: "Auction updated successfully", auction });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Hàm settleAuction: trừ coin người thắng khi auction kết thúc và cộng coin cho người bán
 exports.settleAuction = async (auctionId) => {
   // Tìm và update settled = true chỉ khi settled = false (atomic)

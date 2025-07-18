@@ -171,4 +171,83 @@ router.post("/approve", itemController.approveItem);
  */
 router.get("/:id/detail", itemController.getItemById);
 
+/**
+ * @swagger
+ * /admin/items/{id}/approve-edit:
+ *   post:
+ *     summary: Approve an edit request for an item
+ *     tags:
+ *       - admin/items
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the item with the edit request
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               adminId:
+ *                 type: string
+ *                 example: "admin_xyz"
+ *     responses:
+ *       200:
+ *         description: Edit request approved successfully
+ *       400:
+ *         description: Invalid request or no pending edit request
+ *       404:
+ *         description: Item not found
+ *       500:
+ *         description: Server error
+ */
+router.post("/:id/approve-edit", itemController.approveEditRequest);
+
+/**
+ * @swagger
+ * /admin/items/{id}/reject-edit:
+ *   post:
+ *     summary: Reject an edit request for an item
+ *     tags:
+ *       - admin/items
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the item with the edit request
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               adminId:
+ *                 type: string
+ *                 example: "admin_xyz"
+ *               rejectReason:
+ *                 type: string
+ *                 example: "Inappropriate content"
+ *     responses:
+ *       200:
+ *         description: Edit request rejected successfully
+ *       400:
+ *         description: Invalid request or no pending edit request
+ *       404:
+ *         description: Item not found
+ *       500:
+ *         description: Server error
+ */
+router.post("/:id/reject-edit", itemController.rejectEditRequest);
+
 module.exports = router;

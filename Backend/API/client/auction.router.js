@@ -9,6 +9,10 @@ router.post("/create", authenticate, controller.createAuction);
 
 router.get("/auction/:id", controller.getAuctionDetails);
 
+router.get("/:id", controller.getAuctionById);
+
+router.put("/:id", authenticate, controller.updateAuction);
+
 router.delete("/delete/:id", authenticate, controller.deleteAuction);
 
 module.exports = router;

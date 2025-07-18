@@ -15,7 +15,7 @@ import {
   Image,
   Modal,
 } from "antd";
-import { useLoaderData, useParams } from "react-router-dom";
+import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import { getAuctionDetailById } from "@/API/huynt.api/auction.api";
 import { placeBid } from "@/API/huynt.api/bid.api";
 import { initializeSocket } from "@/utils/socket";
@@ -41,6 +41,7 @@ const AuctionDetailPage = () => {
   const { dataAuction } = useLoaderData();
   console.log(dataAuction);
   const { auctionId } = useParams();
+  const navigate = useNavigate();
   const [auction, setAuction] = useState(dataAuction?.auction || null);
   const [bids, setBids] = useState(() => {
     const initialBids = dataAuction?.bids || [];
@@ -68,7 +69,51 @@ const AuctionDetailPage = () => {
   const [auctionStatus, setAuctionStatus] = useState({
     hasStarted: false,
     hasEnded: false,
+    isConfigured: false,
+    isApproved: false,
+    isOwner: false,
   });
+
+  // Function to handle configuring the auction
+  const handleConfigureAuction = () => {
+    navigate(`/auction-config/${auctionId}`);
+  };
+
+  // Function to render a notification when the auction is approved but not configured
+  const renderConfigurationAlert = () => {
+    if (
+      auctionStatus.isOwner &&
+      auction &&
+      auction.startTime &&
+      auction.endTime
+    ) {
+      // Do nothing - auction is already configured
+      return null;
+    }
+
+    // Only show configuration alert for auction owners
+    if (auctionStatus.isOwner) {
+      return (
+        <Alert
+          message="Configure Your Auction"
+          description="You can update your auction settings at any time before it starts."
+          type="info"
+          showIcon
+          action={
+            <Button
+              type="primary"
+              size="small"
+              onClick={handleConfigureAuction}
+            >
+              Configure Now
+            </Button>
+          }
+          className="mb-4"
+        />
+      );
+    }
+    return null;
+  };
 
   // Check auction status when auction data changes or at regular intervals
   useEffect(() => {
@@ -76,12 +121,17 @@ const AuctionDetailPage = () => {
 
     const checkAuctionStatus = () => {
       const now = new Date();
-      const start = new Date(auction.startTime);
-      const end = new Date(auction.endTime);
+      const start = auction.startTime ? new Date(auction.startTime) : null;
+      const end = auction.endTime ? new Date(auction.endTime) : null;
+      const isConfigured =
+        auction.startTime && auction.endTime && auction.currentPrice > 0;
+      const isOwner = auction.itemId?.owner === userId;
 
       setAuctionStatus({
-        hasStarted: now >= start,
-        hasEnded: now >= end,
+        hasStarted: start ? now >= start : false,
+        hasEnded: end ? now >= end : false,
+        isConfigured,
+        isOwner,
       });
     };
 
@@ -100,7 +150,7 @@ const AuctionDetailPage = () => {
     }
 
     return () => clearInterval(interval);
-  }, [auction]);
+  }, [auction, userId]);
 
   // Kiểm tra auction đã kết thúc khi load trang
   useEffect(() => {
@@ -714,6 +764,19 @@ const AuctionDetailPage = () => {
       </Modal>
       <Layout style={{ backgroundColor: "#fff", padding: "20px" }}>
         <Content>
+          {renderConfigurationAlert()}
+
+          {error && (
+            <Alert
+              message="Error"
+              description={error}
+              type="error"
+              closable
+              onClose={() => setError(null)}
+              style={{ marginBottom: "16px" }}
+            />
+          )}
+
           {/* Connection Status Indicator */}
           {/* {!socketConnected && (
             <Alert
@@ -986,7 +1049,12 @@ const AuctionDetailPage = () => {
               </Card>
               <Title level={2}>{auction.itemId?.name}</Title>
               <Text
-                style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}
+                style={{
+                  fontSize: "16px",
+                  color: "#666",
+                  lineHeight: "1.6",
+                  whiteSpace: "pre-line",
+                }}
               >
                 {auction.itemId?.description}
               </Text>

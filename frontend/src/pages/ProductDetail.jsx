@@ -204,7 +204,9 @@ export default function ProductDetail() {
 
         <div className="space-y-4">
           <h1 className="text-2xl font-bold">{product.name}</h1>
-          <p className="text-muted-foreground">{product.description}</p>
+          {/* <p className="text-muted-foreground whitespace-pre-line">
+            {product.description}
+          </p> */}
           <div className="text-xl font-semibold text-primary">
             {formatPrice(product.price)}
           </div>
@@ -290,7 +292,7 @@ export default function ProductDetail() {
         <TabsContent value="description">
           <section className="border rounded-lg p-4 bg-white shadow-sm mt-2">
             <h3 className="text-lg font-semibold mb-2">Product Description</h3>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 whitespace-pre-line">
               {product.description || "No description provided."}
             </p>
           </section>

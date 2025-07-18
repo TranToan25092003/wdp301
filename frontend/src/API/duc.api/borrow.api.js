@@ -41,11 +41,14 @@ export const requestForReturnBorrow = async (body, token) => {
 };
 
 export const confirmReturnBorrow = async (borrowId, token) => {
-  const response = await customFetch.patch(`/borrows/confirm-return/${borrowId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await customFetch.patch(
+    `/borrows/confirm-return/${borrowId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   return response.data;
 };
