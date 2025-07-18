@@ -45,7 +45,7 @@ export const homepageLoader = async () => {
 
 const carouselData = [
   {
-    img: "/assets/banner.png",
+    img: "/assets/samsung-galaxy-s24-1.jpg",
     title: "Chào mừng đến với WDP301",
     desc: "Nền tảng mua bán, đấu giá, cho mượn đồ dùng tiện lợi, an toàn và tiết kiệm.",
     cta: "Khám phá ngay",

@@ -74,27 +74,32 @@ const NotificationBell = () => {
   }, [userId]);
 
   const handleNotificationClick = async (notification) => {
+    // Đánh dấu đã đọc nếu chưa đọc
     if (!notification.isRead) {
       try {
         const token = await getToken();
-        await fetch(`${API_URL}/notifications/${notification._id}/read`, {
-          method: "PUT",
+        await fetch(`${API_URL}/notifications/mark-read/${notification._id}`, {
+          method: "PATCH", 
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
 
-        // Refresh notifications
+
         fetchNotifications();
       } catch (error) {
         console.error("Error marking notification as read:", error);
       }
     }
 
-    // Navigate to link if provided
-    if (notification.link && notification.link !== "#") {
+    if (notification.type !== "follow" && notification.link && notification.link !== "#") {
       navigate(notification.link);
+      setDropdownOpen(false);
+    }
+
+
+    if (notification.type === "follow") {
       setDropdownOpen(false);
     }
   };
@@ -176,9 +181,8 @@ const NotificationBell = () => {
               className="flex-1 cursor-pointer min-w-0"
             >
               <div
-                className={`text-sm leading-relaxed break-words ${
-                  !n.isRead ? "font-semibold text-gray-900" : "text-gray-700"
-                }`}
+                className={`text-sm leading-relaxed break-words ${!n.isRead ? "font-semibold text-gray-900" : "text-gray-700"
+                  }`}
               >
                 {n.message}
               </div>
