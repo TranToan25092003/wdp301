@@ -17,6 +17,7 @@ import { RotateCcw } from "lucide-react";
 import { Gavel } from "lucide-react";
 import { useAuth } from "@clerk/clerk-react";
 import AuthRequiredModal from "../components/global/AuthRequiredModal";
+import { Truck } from "lucide-react";
 
 const statusConfig = {
   Available: { icon: CheckCircle, color: "text-green-600", label: "Available" },
@@ -27,6 +28,7 @@ const statusConfig = {
   Borrowed: { icon: RotateCcw, color: "text-orange-600", label: "Borrowed" },
   Returned: { icon: CheckCircle, color: "text-teal-600", label: "Returned" },
   Auctioning: { icon: Gavel, color: "text-indigo-600", label: "Auctioning" },
+  "Pending Delivery": { icon: Truck, color: "text-gray-600", label: "Pending Delivery" },
 };
 
 export const productDetailLoader = async ({ params }) => {

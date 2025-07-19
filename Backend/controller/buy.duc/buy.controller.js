@@ -5,6 +5,7 @@ const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
 const { clerkClient } = require("../../config/clerk");
 const mongoose = require('mongoose');
+const Notification = require("../../model/notification.model");
 
 /**
  * ====================================
@@ -97,8 +98,7 @@ const purchaseItem = async (req, res) => {
         }
 
         const currentBuyerCoins = Number.parseInt(buyer.publicMetadata?.coin) || 0;
-        const currentSellerCoins = Number.parseInt(seller.publicMetadata?.coin) || 0;
-
+        
         // Verify sufficient coins
         const requiredCoins = item.price;
         if (currentBuyerCoins < requiredCoins) {
@@ -107,6 +107,112 @@ const purchaseItem = async (req, res) => {
                 message: "Insufficient coins to purchase this item",
             });
         }
+
+        // Find the "Sold" status
+        const pendingDeliveryStatus = await Status.findOne({ name: "Pending Delivery" });
+        if (!pendingDeliveryStatus) {
+            return res.status(500).json({
+                success: false,
+                message: "Server error: Status configuration missing",
+            });
+        }
+
+        // Update buyer's coins
+        const newBuyerCoinBalance = currentBuyerCoins - item.price;
+        await clerkClient.users.updateUserMetadata(buyerId, {
+            publicMetadata: {
+                coin: newBuyerCoinBalance,
+            },
+        });
+
+        // Create Buy record
+        const buy = await Buy.create({
+            total: item.price,
+            buyer: buyerId,
+            itemId,
+        });
+
+        // Update item status to "Sold"
+        item.statusId = pendingDeliveryStatus._id;
+        await item.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Purchase successful",
+            data: {
+                buyId: buy._id,
+                itemId,
+                total: item.price,
+                remainingCoins: newBuyerCoinBalance,
+            },
+        });
+    } catch (error) {
+        console.error("Error purchasing item:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+    }
+};
+
+const confirmBuyItemReceipt = async (req, res) => {
+    try {
+        const { buyId } = req.params;
+        const buyerId = req.userId;
+
+        if (!mongoose.Types.ObjectId.isValid(buyId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Buy ID format",
+            });
+        }
+
+        if (!buyId) {
+            return res.status(400).json({
+                success: false,
+                message: "Buy ID is required",
+            });
+        }
+
+        const buy = await Buy.findById(buyId)
+            .populate("itemId");
+
+        if (!buy) {
+            return res.status(404).json({
+                success: false,
+                message: "Buy record not found",
+            });
+        }
+
+        // Verify the requester is the buyer
+        if (buy.buyer.toString() !== buyerId) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to confirm this receipt",
+            });
+        }
+
+        // Check if the buy is already confirmed
+        if (buy.status === "confirmed") {
+            return res.status(400).json({
+                success: false,
+                message: "This purchase has already been confirmed",
+            });
+        }
+
+        // Fetch related item, buyer, and seller
+        const item = buy.itemId;
+        const buyer = await clerkClient.users.getUser(buyerId);
+        const seller = await clerkClient.users.getUser(item.owner);
+
+        if (!buyer || !seller) {
+            return res.status(400).json({
+                success: false,
+                message: "Buyer or seller not found",
+            });
+        }
+
+        const currentSellerCoins = Number.parseInt(seller.publicMetadata?.coin) || 0;
 
         // Find the "Sold" status
         const soldStatus = await Status.findOne({ name: "Sold" });
@@ -125,37 +231,36 @@ const purchaseItem = async (req, res) => {
             },
         });
 
-        // Update buyer's coins
-        const newBuyerCoinBalance = currentBuyerCoins - item.price;
-        await clerkClient.users.updateUserMetadata(buyerId, {
-            publicMetadata: {
-                coin: newBuyerCoinBalance,
-            },
-        });
-
-        // Create Buy record
-        const buy = await Buy.create({
-            total: item.price,
-            buyer: buyerId,
-            itemId,
-        });
-
         // Update item status to "Sold"
         item.statusId = soldStatus._id;
         await item.save();
 
+        // Update buy record status
+        buy.status = "confirmed";
+        await buy.save();
+
+        // Create notification for the seller
+        const notification = new Notification({
+            recipientId: item.owner,
+            type: "buy_confirm",
+            message: `The buyer has confirmed receipt of "${item.name}". You have received ${item.price} coins.`,
+            link: `/item/${item._id}`, 
+            sourceId: buy._id,
+            sourceModel: "Buy",
+        });
+        await notification.save();
+
         return res.status(200).json({
             success: true,
-            message: "Purchase successful",
+            message: "Receipt confirmed. Seller has received payment.",
             data: {
                 buyId: buy._id,
-                itemId,
-                total: item.price,
-                remainingCoins: newBuyerCoinBalance,
+                itemId: item._id,
+                status: "Sold",
             },
         });
     } catch (error) {
-        console.error("Error purchasing item:", error);
+        console.error("Error confirming item receipt:", error);
         return res.status(500).json({
             success: false,
             message: "Server error",
@@ -218,5 +323,6 @@ const getAllBuyRecordByUserId = async (req, res) => {
 
 module.exports = {
     purchaseItem,
-    getAllBuyRecordByUserId
+    getAllBuyRecordByUserId,
+    confirmBuyItemReceipt
 };
