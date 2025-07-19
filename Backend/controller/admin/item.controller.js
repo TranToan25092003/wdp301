@@ -146,22 +146,16 @@ module.exports.getBrowseItem = async (req, res) => {
         item.pendingChanges &&
         typeof item.pendingChanges === "object" &&
         Object.keys(item.pendingChanges).length > 0 &&
-        item.pendingChanges.status === "pending" &&
-        (item.pendingChanges.name ||
-          item.pendingChanges.description ||
-          item.pendingChanges.price ||
-          item.pendingChanges.categoryId ||
-          (item.pendingChanges.images && item.pendingChanges.images.length > 0))
+        item.pendingChanges.status === "pending"
       ) {
+        // Cần kiểm tra xem có thay đổi thực sự không
         hasPendingChanges = true;
       }
 
       console.log(`Item classification for ${item._id} (${item.name}):`, {
         hasPendingChanges,
-        pendingChanges: item.pendingChanges
-          ? JSON.stringify(item.pendingChanges).substring(0, 100) + "..."
-          : "null",
-        createdAt: item.createdAt,
+        pendingChanges: item.pendingChanges ? "exists" : "not exists",
+        status: item.pendingChanges?.status || "N/A",
       });
 
       return {
@@ -174,21 +168,12 @@ module.exports.getBrowseItem = async (req, res) => {
         status: item.statusId?.name || "Unknown",
         category: item.categoryId?.name || "Unknown",
         isUpdated: hasPendingChanges,
+        pendingChanges: item.pendingChanges,
         isAuction: item.typeId?.name?.toLowerCase() === "auction",
         hasAuction:
           item.typeId?.name?.toLowerCase() === "auction" &&
           auctionMap.hasOwnProperty(item._id.toString()),
         createdAt: item.createdAt,
-        pendingChanges: hasPendingChanges
-          ? {
-              name: item.pendingChanges.name,
-              description: item.pendingChanges.description,
-              price: item.pendingChanges.price,
-              categoryId: item.pendingChanges.categoryId,
-              images: item.pendingChanges.images || [],
-              requestDate: item.pendingChanges.requestDate,
-            }
-          : null,
       };
     });
 
@@ -281,11 +266,30 @@ module.exports.approveItem = async (req, res) => {
     });
 
     try {
-      await Item.findByIdAndUpdate(itemId, {
-        statusId: statusId._id,
-        rejectReason: req.body?.reason || "",
-      });
+      // Tìm và cập nhật item
+      const item = await Item.findById(itemId);
+      if (!item) {
+        console.log("Item not found during update:", itemId);
+        return res.status(404).json({
+          success: false,
+          message: "Item not found during update",
+        });
+      }
 
+      // Cập nhật trạng thái
+      item.statusId = statusId._id;
+
+      // Nếu approve, xóa bỏ pendingChanges để đảm bảo không còn hiện thị là pending update
+      if (approve) {
+        item.pendingChanges = null;
+      }
+
+      // Thêm rejectReason nếu có
+      if (!approve && req.body?.reason) {
+        item.rejectReason = req.body.reason;
+      }
+
+      await item.save();
       console.log("Item status updated successfully");
 
       return res.status(200).json({
@@ -457,6 +461,20 @@ module.exports.approveEditRequest = async (req, res) => {
       item.pendingChanges = {};
     }
 
+    // Lấy statusId của "Approved"
+    const approvedStatus = await Status.findOne({ name: "Approved" });
+    if (!approvedStatus) {
+      console.error("Approved status not found in database");
+      return res.status(500).json({
+        success: false,
+        message: "Approved status not found in database",
+      });
+    }
+
+    // Cập nhật status của item sang Approved
+    item.statusId = approvedStatus._id;
+    console.log(`Updated item status to Approved for item ${itemId}`);
+
     item.pendingChanges.status = "approved";
     item.pendingChanges.reviewedBy = adminId;
     item.pendingChanges.reviewDate = new Date();
@@ -504,6 +522,7 @@ module.exports.approveEditRequest = async (req, res) => {
           price: item.price,
           categoryId: item.categoryId,
           images: item.images,
+          status: "Approved",
         },
       },
     });

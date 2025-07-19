@@ -102,7 +102,8 @@ export const browseLoader = async () => {
 
 // Helper function to get badge styling based on item type and status
 const getItemBadge = (product) => {
-  if (product.isUpdated) {
+  // Kiểm tra chính xác hơn về pending update
+  if (product.isUpdated && product.pendingChanges) {
     return (
       <Badge className="bg-orange-500 hover:bg-orange-600">
         Pending Update
