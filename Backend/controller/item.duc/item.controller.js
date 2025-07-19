@@ -6,6 +6,7 @@ const { Follow, Borrow, Buy } = require("../../model"); // THÊM DÒNG NÀY Đ�
 const {
   createNotification,
 } = require("../notification.duy/notificationController"); // THÊM DÒNG NÀY ĐỂ IMPORT HÀM GỬI THÔNG BÁO
+const Status = require("../../model/status.model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL STATUS
 const getAllItems = async (req, res) => {
   try {
     const items = await Item.find()
@@ -368,6 +369,14 @@ const createItem = async (req, res) => {
       typeId,
       categoryId,
       statusId,
+      pendingChanges: null, // Đảm bảo không có pendingChanges khi tạo sản phẩm mới
+    });
+
+    console.log("Creating new item without pendingChanges:", {
+      name,
+      price,
+      owner,
+      statusId,
     });
 
     await item.save();
@@ -464,6 +473,36 @@ const getUserUploadedItems = async (req, res) => {
     // Transform data to include relevant fields
     const formattedItems = await Promise.all(
       items.map(async (item) => {
+        // Xử lý pendingChanges nếu có
+        let pendingChangesWithCategory = null;
+        if (
+          item.pendingChanges &&
+          Object.keys(item.pendingChanges).length > 0
+        ) {
+          pendingChangesWithCategory = { ...item.pendingChanges };
+
+          // Thêm category name nếu có categoryId
+          if (pendingChangesWithCategory.categoryId) {
+            try {
+              const category = await mongoose
+                .model("Category")
+                .findById(pendingChangesWithCategory.categoryId);
+              if (category) {
+                pendingChangesWithCategory.category = category.name;
+              }
+            } catch (err) {
+              console.error(
+                `Error fetching category for item ${item._id}:`,
+                err
+              );
+              // Nếu không tìm được, sử dụng category hiện tại
+              pendingChangesWithCategory.category = item.categoryId.name;
+            }
+          } else {
+            pendingChangesWithCategory.category = item.categoryId.name;
+          }
+        }
+
         const baseItem = {
           id: item._id,
           name: item.name,
@@ -476,6 +515,7 @@ const getUserUploadedItems = async (req, res) => {
           status: item.statusId.name,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
+          pendingChanges: pendingChangesWithCategory,
         };
 
         // Sold item
@@ -625,7 +665,18 @@ const submitItemEditRequest = async (req, res) => {
     const userId = req.userId;
     const { name, description, price, categoryId, images } = req.body;
 
+    console.log("Received edit request for item:", {
+      itemId,
+      userId,
+      name,
+      description,
+      price,
+      categoryId,
+      imagesCount: images ? images.length : 0,
+    });
+
     if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      console.log("Invalid item ID format:", itemId);
       return res.status(400).json({
         success: false,
         message: "Invalid item ID format",
@@ -636,6 +687,7 @@ const submitItemEditRequest = async (req, res) => {
     const item = await Item.findById(itemId);
 
     if (!item) {
+      console.log("Item not found:", itemId);
       return res.status(404).json({
         success: false,
         message: "Item not found",
@@ -644,6 +696,10 @@ const submitItemEditRequest = async (req, res) => {
 
     // Check if the user is the owner of the item
     if (item.owner !== userId) {
+      console.log("Unauthorized edit attempt:", {
+        itemOwner: item.owner,
+        requestedBy: userId,
+      });
       return res.status(403).json({
         success: false,
         message: "You don't have permission to edit this item",
@@ -654,11 +710,18 @@ const submitItemEditRequest = async (req, res) => {
     const statusName = (await item.populate("statusId")).statusId.name;
     const typeName = (await item.populate("typeId")).typeId.name;
 
+    console.log("Item status check:", {
+      itemId,
+      status: statusName,
+      type: typeName,
+    });
+
     if (
       statusName === "Sold" ||
       statusName === "Borrowed" ||
       statusName === "In Auction"
     ) {
+      console.log(`Cannot edit item with status ${statusName}:`, itemId);
       return res.status(400).json({
         success: false,
         message: `Cannot edit an item that is ${statusName}`,
@@ -667,6 +730,7 @@ const submitItemEditRequest = async (req, res) => {
 
     // Validate categoryId if provided
     if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
+      console.log("Invalid category ID format:", categoryId);
       return res.status(400).json({
         success: false,
         message: "Invalid category ID format",
@@ -675,10 +739,10 @@ const submitItemEditRequest = async (req, res) => {
 
     // Create a pending edit request in the database
     // Store the pending changes in the item document
-    item.pendingChanges = {
+    const pendingChanges = {
       name: name || item.name,
       description: description || item.description,
-      price: price || item.price,
+      price: price !== undefined ? Number(price) : item.price,
       categoryId: categoryId || item.categoryId,
       images: images || item.images,
       requestDate: new Date(),
@@ -686,27 +750,115 @@ const submitItemEditRequest = async (req, res) => {
       status: "pending", // pending, approved, rejected
     };
 
-    await item.save();
+    console.log(
+      "Creating pending changes:",
+      JSON.stringify(pendingChanges, null, 2)
+    );
+
+    // Assign the pending changes to the item
+    item.pendingChanges = pendingChanges;
+
+    // Set the item status to Pending
+    try {
+      const pendingStatus = await Status.findOne({ name: "Pending" });
+      if (pendingStatus) {
+        // Only update status if current status is not already "Pending"
+        if (!item.statusId.equals(pendingStatus._id)) {
+          console.log(`Updating item status to Pending for item ${itemId}`);
+          item.statusId = pendingStatus._id;
+        }
+      } else {
+        console.warn("Pending status not found in database");
+      }
+    } catch (statusError) {
+      console.error("Error updating item status:", statusError);
+    }
+
+    try {
+      await item.save();
+      console.log("Edit request saved successfully for item:", itemId);
+    } catch (saveError) {
+      console.error("Error saving item with pending changes:", saveError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save edit request",
+        error: saveError.message,
+      });
+    }
 
     // Notify admin about the edit request (could implement email or in-app notification)
     const io = req.app.get("socketio");
     if (io) {
-      // Emit event to admin users
-      io.to("admin").emit("item_edit_request", {
-        itemId: item._id,
-        itemName: item.name,
-        requestDate: new Date(),
-        requestedBy: userId,
-      });
+      try {
+        // Emit event to admin users
+        io.to("admin").emit("item_edit_request", {
+          itemId: item._id,
+          itemName: item.name,
+          requestDate: new Date(),
+          requestedBy: userId,
+        });
+        console.log("Admin notification sent for edit request:", itemId);
+      } catch (notifyError) {
+        console.error("Error sending admin notification:", notifyError);
+        // Continue even if notification fails
+      }
     }
+
+    // Get the updated item with populated fields for the response
+    const updatedItem = await Item.findById(itemId)
+      .populate("typeId")
+      .populate("categoryId")
+      .populate("statusId")
+      .lean();
+
+    // Lấy thêm thông tin category nếu có
+    let categoryName = updatedItem.categoryId?.name || "Unknown";
+
+    // Nếu có categoryId mới trong pendingChanges, cần lấy tên của category đó
+    if (
+      pendingChanges.categoryId &&
+      pendingChanges.categoryId.toString() !==
+        updatedItem.categoryId?._id?.toString()
+    ) {
+      try {
+        const newCategory = await mongoose
+          .model("Category")
+          .findById(pendingChanges.categoryId);
+        if (newCategory) {
+          pendingChanges.category = newCategory.name; // Thêm tên category vào pendingChanges
+        }
+      } catch (err) {
+        console.error("Error fetching category name:", err);
+      }
+    } else {
+      // Sử dụng category hiện tại nếu không có thay đổi
+      pendingChanges.category = categoryName;
+    }
+
+    // Format the response data
+    const responseData = {
+      id: updatedItem._id,
+      name: updatedItem.name,
+      description: updatedItem.description,
+      price: updatedItem.price,
+      category: categoryName,
+      type: updatedItem.typeId?.name || "Unknown",
+      status: updatedItem.statusId?.name || "Unknown",
+      images: updatedItem.images,
+      createdAt: updatedItem.createdAt,
+      updatedAt: updatedItem.updatedAt,
+      pendingChanges: {
+        ...pendingChanges,
+        categoryId: pendingChanges.categoryId
+          ? pendingChanges.categoryId.toString()
+          : null,
+      },
+    };
 
     res.status(200).json({
       success: true,
       message: "Edit request submitted for approval",
-      data: {
-        itemId: item._id,
-        pendingChanges: item.pendingChanges,
-      },
+      data: responseData,
     });
   } catch (error) {
     console.error("Error submitting item edit request:", error);

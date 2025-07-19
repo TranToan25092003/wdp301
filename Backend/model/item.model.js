@@ -59,6 +59,8 @@ const itemSchema = new mongoose.Schema(
       name: String,
       description: String,
       price: Number,
+      categoryId: mongoose.Schema.Types.ObjectId,
+      images: [String],
       requestDate: Date,
       requestedBy: String,
       status: {

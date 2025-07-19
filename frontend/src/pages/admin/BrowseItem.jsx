@@ -593,23 +593,44 @@ const BrowseItemContent = ({ data }) => {
 
       if (product.isUpdated) {
         // If it's an update, use the approve-edit endpoint
-        await customFetch.post(`/admin/items/${product._id}/approve-edit`, {
-          adminId: localStorage.getItem("adminId") || "admin",
-        });
-        toast("Item update approved successfully");
+        const response = await customFetch.post(
+          `/admin/items/${product._id}/approve-edit`,
+          {
+            adminId: localStorage.getItem("adminId") || "admin",
+          }
+        );
+
+        if (response.data && response.data.success) {
+          toast.success("Item update approved successfully");
+        } else {
+          toast.error(
+            response.data?.message || "Unknown error approving item update"
+          );
+        }
       } else {
         // For new items
-        await customFetch.post("/admin/items/approve", {
+        const response = await customFetch.post("/admin/items/approve", {
           itemId: product._id,
           approve: true,
         });
-        toast("Item approved successfully");
+
+        if (response.data && response.data.success) {
+          toast.success("Item approved successfully");
+        } else {
+          toast.error(response.data?.message || "Unknown error approving item");
+        }
       }
 
       setSubmit(false);
       navigate(location.pathname, { replace: true });
-    } catch {
-      toast("Error in approving item");
+    } catch (error) {
+      console.error("Error approving item:", error);
+
+      // Show a more specific error message based on the response if available
+      const errorMsg =
+        error.response?.data?.message || "Error in approving item";
+      toast.error(errorMsg);
+
       setSubmit(false);
     }
   };
@@ -759,7 +780,7 @@ const BrowseItemContent = ({ data }) => {
                     Category
                   </TableHead>
                   <TableHead className="text-[#1DCD9F] w-1/6">Type</TableHead>
-                  <TableHead className="text-[#1DCD9F] w-28">Status</TableHead>
+                  {/* <TableHead className="text-[#1DCD9F] w-28">Status</TableHead> */}
                   <TableHead className="text-[#1DCD9F] w-28">Created</TableHead>
                   <TableHead className="text-[#1DCD9F] w-28">Actions</TableHead>
                 </TableRow>
@@ -809,7 +830,7 @@ const BrowseItemContent = ({ data }) => {
                       {product.category}
                     </TableCell>
                     <TableCell>{product.type}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       {product.isUpdated ? (
                         <TooltipProvider>
                           <Tooltip>
@@ -839,7 +860,7 @@ const BrowseItemContent = ({ data }) => {
                             : "Pending New Item"}
                         </Badge>
                       )}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="text-xs">
                       {product.isUpdated
                         ? formatDate(product.pendingChanges.requestDate)

@@ -50,8 +50,49 @@ export const getFilteredItems = async (filters = {}) => {
 };
 
 export const createItem = async (itemData) => {
-  const response = await customFetch.post("/items", itemData);
-  return response.data;
+  try {
+    console.log("Creating new item with data:", itemData);
+
+    // Validate data trước khi gửi
+    if (!itemData.name || !itemData.description || !itemData.price) {
+      console.error("Missing required item data fields:", {
+        hasName: !!itemData.name,
+        hasDescription: !!itemData.description,
+        hasPrice: !!itemData.price,
+      });
+      return {
+        success: false,
+        message: "Missing required fields: name, description or price",
+      };
+    }
+
+    const response = await customFetch.post("/items", itemData);
+    console.log("Create item response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating item:", error);
+
+    // Xử lý các lỗi chi tiết
+    if (error.response) {
+      console.error("Server error response:", error.response.data);
+      return {
+        success: false,
+        message: error.response.data.message || "Error creating item",
+        error: error.response.data,
+      };
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+      return {
+        success: false,
+        message: "No response from server",
+      };
+    } else {
+      return {
+        success: false,
+        message: error.message || "Unknown error creating item",
+      };
+    }
+  }
 };
 
 export const submitItemEditRequest = async (itemId, editData, token) => {
