@@ -709,11 +709,15 @@ const CreatePost = () => {
                       ]}
                     >
                       <TextArea
-                        rows={6}
-                        placeholder="Detailed description of the product"
+                        rows={8}
+                        placeholder="Detailed description of the product. Line breaks and formatting will be preserved when displayed."
                         className="rounded-lg"
                       />
                     </Form.Item>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Formatting tips: Press Enter for a new line. Your text
+                      formatting will be preserved when displayed.
+                    </div>
                   </div>
                 </div>
 

@@ -45,7 +45,7 @@ export const homepageLoader = async () => {
 
 const carouselData = [
   {
-    img: "/assets/banner.png",
+    img: "/assets/samsung-galaxy-s24-1.jpg",
     title: "Chào mừng đến với WDP301",
     desc: "Nền tảng mua bán, đấu giá, cho mượn đồ dùng tiện lợi, an toàn và tiết kiệm.",
     cta: "Khám phá ngay",
@@ -358,11 +358,11 @@ const HomePage = () => {
                 hoverable
                 style={{
                   width: 170,
-                  minHeight: 220,
+                  height: 220,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "flex-start",
+                  justifyContent: "space-between",
                   textAlign: "center",
                   borderRadius: 18,
                   boxShadow: "0 4px 16px rgba(34,197,94,0.08)",
@@ -371,53 +371,65 @@ const HomePage = () => {
                   padding: 0,
                   margin: 0,
                   transition: "all 0.2s",
-                  overflow: "visible",
+                  overflow: "hidden",
                 }}
-                bodyStyle={{ padding: 16 }}
+                bodyStyle={{
+                  padding: 26,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  height: "100%",
+                  width: "100%",
+                }}
                 onClick={() => navigate(`/category/${cat._id}`)}
                 className="category-card"
               >
                 <div
                   style={{
-                    background:
-                      "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                    width: 70,
+                    height: 70,
+                    marginTop: 8,
+                    marginBottom: 8,
                     borderRadius: "50%",
-                    padding: 14,
-                    marginBottom: 14,
-                    width: 64,
-                    height: 64,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 8px rgba(34,197,94,0.10)",
+                    backgroundImage: `url(${
+                      cat.image || "/assets/fallback.png"
+                    })`,
+                    backgroundPosition: "center center",
+                    backgroundSize: "cover",
+                    backgroundRepeat: "no-repeat",
+                    border: "3px solid #43e97b",
+                    boxShadow: "0 3px 10px rgba(34,197,94,0.2)",
                   }}
-                >
-                  <img
-                    src={cat.image || "/assets/fallback.png"}
-                    alt={cat.title}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                      background: "#fff",
-                    }}
-                  />
-                </div>
+                  aria-label={cat.title}
+                ></div>
                 <div
                   style={{
                     fontWeight: 600,
-                    fontSize: 15,
+                    fontSize: 14,
                     color: "#16a34a",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    height: 40,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     width: "100%",
+                    overflow: "hidden",
+                    textAlign: "center",
+                    lineHeight: "1.2",
                   }}
                 >
-                  {cat.title}
+                  <div
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      width: "100%",
+                    }}
+                  >
+                    {cat.title}
+                  </div>
                 </div>
-                <Text style={{ color: "#22c55e", fontSize: 13, marginTop: 2 }}>
+                <Text style={{ color: "#22c55e", fontSize: 13, marginTop: 4 }}>
                   {cat.products || 0} sản phẩm
                 </Text>
               </Card>

@@ -15,15 +15,11 @@ export const purchaseItem = async (itemId, token) => {
 };
 
 export const getAllBuyRecord = async (token) => {
-  const response = await customFetch.get(
-    "/buys",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await customFetch.get("/buys", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   return response.data;
 };
-

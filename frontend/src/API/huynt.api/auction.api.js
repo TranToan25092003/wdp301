@@ -20,3 +20,13 @@ export const getAuctionDetailById = async (auctionId) => {
   const response = await customFetch.get(`/auctions/auction/${auctionId}`);
   return response.data;
 };
+
+export const getAuctionById = async (auctionId) => {
+  const response = await customFetch.get(`/auctions/${auctionId}`);
+  return response.data;
+};
+
+export const updateAuction = async (auctionId, auctionData) => {
+  const response = await customFetch.put(`/auctions/${auctionId}`, auctionData);
+  return response.data;
+};
