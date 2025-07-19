@@ -77,8 +77,8 @@ const NotificationBell = () => {
     if (!notification.isRead) {
       try {
         const token = await getToken();
-        await fetch(`${API_URL}/notifications/${notification._id}/read`, {
-          method: "PUT",
+        await fetch(`${API_URL}/notifications/mark-read/${notification._id}`, {
+          method: "PATCH",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",

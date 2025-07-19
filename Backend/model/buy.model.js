@@ -17,6 +17,12 @@ const buySchema = new mongoose.Schema(
       ref: "Item", // Reference to the Item model
       required: [true, "Item ID is required"],
     },
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed'],
+      default: 'pending',
+      required: true,
+    },
   },
   {
     timestamps: true,

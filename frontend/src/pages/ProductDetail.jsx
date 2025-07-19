@@ -1,22 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
+import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api"; 
 import { useLoaderData, useNavigate } from "react-router-dom";
 import ProductList from "@/components/item/item-list";
 import { Tag } from "antd";
 import BorrowModal from "@/components/item/borrow-modal";
-import { useState } from "react";
 import BuyModal from "@/components/item/buy-modal";
 import { Carousel } from "antd";
 import { Clock } from "lucide-react";
 import { CheckSquare } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Gavel } from "lucide-react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import AuthRequiredModal from "../components/global/AuthRequiredModal";
+import { Truck } from "lucide-react";
+import ConfirmBuyReceiptModal from "@/components/item/confirm-buy-receipt-modal";
+import { getBuyRecordByItemId } from "@/API/duc.api/buy.api";
 
 const statusConfig = {
   Available: { icon: CheckCircle, color: "text-green-600", label: "Available" },
@@ -27,6 +29,7 @@ const statusConfig = {
   Borrowed: { icon: RotateCcw, color: "text-orange-600", label: "Borrowed" },
   Returned: { icon: CheckCircle, color: "text-teal-600", label: "Returned" },
   Auctioning: { icon: Gavel, color: "text-indigo-600", label: "Auctioning" },
+  "Pending Delivery": { icon: Truck, color: "text-gray-600", label: "Pending Delivery" },
 };
 
 export const productDetailLoader = async ({ params }) => {
@@ -52,14 +55,35 @@ export default function ProductDetail() {
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [confirmReceiptModalOpen, setConfirmReceiptModalOpen] = useState(false);
+  const [buyId, setBuyId] = useState(null); // State to store buyId
   const navigate = useNavigate();
-  const { isSignedIn } = useAuth();
-
+  const { isSignedIn, getToken, userId } = useAuth();
+  
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
+
+    console.log(buyId)
+  useEffect(() => {
+    const fetchBuyRecord = async () => {
+      if (product.statusId?.name === "Pending Delivery") {
+        const token = await getToken();
+        const response = await getBuyRecordByItemId(product._id, token);
+        console.log(response)
+        if (response.success) {
+          if (response.data.buyer === userId) {
+            setBuyId(response.data._id); // Set buyId if the user is the owner
+          }
+        }
+      } else {
+        setBuyId(null); // Reset buyId for other statuses
+      }
+    };
+    fetchBuyRecord();
+  }, [product, getToken]);
 
   // Handle image display
   const renderImages = () => {
@@ -197,6 +221,15 @@ export default function ProductDetail() {
     label: "Unknown",
   };
 
+  const handleConfirmReceiptSuccess = async () => {
+    // Refresh product details after confirmation
+    const token = await getToken();
+    const data = await getItemDetailById(product._id, token);
+    if (data.success) {
+      navigate(0); // Reload the page to reflect updated status
+    }
+  };
+
   return (
     <div className="container mx-auto p-6">
       <Card className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
@@ -204,9 +237,6 @@ export default function ProductDetail() {
 
         <div className="space-y-4">
           <h1 className="text-2xl font-bold">{product.name}</h1>
-          {/* <p className="text-muted-foreground whitespace-pre-line">
-            {product.description}
-          </p> */}
           <div className="text-xl font-semibold text-primary">
             {formatPrice(product.price)}
           </div>
@@ -230,7 +260,7 @@ export default function ProductDetail() {
             </span>
           </div>
 
-          {/* Display button */}
+          {/* Display button based on status and user role */}
           <div className="pt-4">
             {product.typeId?.name === "Sell" &&
               (product.statusId?.name === "Available" ||
@@ -279,6 +309,16 @@ export default function ProductDetail() {
                   </Button>
                 </>
               )}
+
+            {product.statusId?.name === "Pending Delivery" && buyId && (
+              <Button
+                className="flex items-center gap-2 mt-2 bg-green-500 hover:bg-green-600"
+                onClick={() => setConfirmReceiptModalOpen(true)}
+              >
+                <CheckCircle size={18} />
+                Confirm Receipt
+              </Button>
+            )}
           </div>
         </div>
       </Card>
@@ -319,6 +359,14 @@ export default function ProductDetail() {
         onClose={() => setAuthModalOpen(false)}
         featureName="nhắn tin với người bán"
         returnUrl={window.location.pathname}
+      />
+
+      {/* Confirm Buy Receipt Modal */}
+      <ConfirmBuyReceiptModal
+        visible={confirmReceiptModalOpen}
+        onCancel={() => setConfirmReceiptModalOpen(false)}
+        onSuccess={handleConfirmReceiptSuccess}
+        buyId={buyId}
       />
     </div>
   );
