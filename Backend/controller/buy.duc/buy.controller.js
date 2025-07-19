@@ -321,8 +321,60 @@ const getAllBuyRecordByUserId = async (req, res) => {
     }
 };
 
+const getBuyRecordByItemId = async (req, res) => {
+    try {
+        const { itemId } = req.params;
+        const buyerId = req.userId; 
+
+        if (!mongoose.Types.ObjectId.isValid(itemId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Item ID format",
+            });
+        }
+
+        if (!itemId) {
+            return res.status(400).json({
+                success: false,
+                message: "Item ID is required",
+            });
+        }
+
+        const buy = await Buy.findOne({ itemId })
+            .populate("itemId")
+
+        if (!buy) {
+            return res.status(404).json({
+                success: false,
+                message: "No buy record found for this item",
+            });
+        }
+
+        // Verify that the authenticated user is the buyer
+        if (buy.buyer !== buyerId) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to view this buy record",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Buy record retrieved successfully",
+            data: buy,
+        });
+    } catch (error) {
+        console.error("Error fetching buy record:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+    }
+};
+
 module.exports = {
     purchaseItem,
     getAllBuyRecordByUserId,
-    confirmBuyItemReceipt
+    confirmBuyItemReceipt,
+    getBuyRecordByItemId
 };
