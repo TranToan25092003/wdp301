@@ -14,6 +14,7 @@ import {
   Button,
   message,
   Upload,
+  Tag,
 } from "antd";
 import {
   ShoppingOutlined,
@@ -294,12 +295,54 @@ const TransactionHistoryPage = () => {
         console.log("API response:", response);
 
         if (response.success) {
-          message.success("Your edit request has been submitted for approval");
+          message.success({
+            content: (
+              <div>
+                <div className="font-bold">
+                  Đã gửi yêu cầu chỉnh sửa thành công!
+                </div>
+                <div>
+                  Thay đổi của bạn sẽ được hiển thị sau khi được quản trị viên
+                  phê duyệt.
+                </div>
+                <div>
+                  Bạn vẫn có thể tiếp tục chỉnh sửa cho đến khi được phê duyệt.
+                </div>
+              </div>
+            ),
+            duration: 5,
+            style: {
+              marginTop: "20vh",
+            },
+          });
           setEditModalVisible(false);
 
-          // Refresh the items list
-          const updatedRes = await getUserUploadedItems(token);
-          if (updatedRes.success) setUploadedItems(updatedRes.data);
+          // Update the item in the current list with the updated data
+          if (response.data) {
+            const updatedItems = uploadedItems.map((item) => {
+              if (item.id === itemId || item._id === itemId) {
+                // Return updated item data from response
+                return {
+                  ...item,
+                  ...response.data,
+                  status: "Pending", // Make sure status shows as pending
+                  pendingChanges: response.data.pendingChanges,
+                };
+              }
+              return item;
+            });
+
+            // Update the state with the new items list
+            setUploadedItems(updatedItems);
+
+            // Also refresh from the server to be sure
+            const updatedRes = await getUserUploadedItems(token);
+            if (updatedRes.success) setUploadedItems(updatedRes.data);
+          } else {
+            // Fallback to just refreshing from server if no data in response
+            const updatedRes = await getUserUploadedItems(token);
+            if (updatedRes.success) setUploadedItems(updatedRes.data);
+          }
         } else {
           console.error("API returned error:", response);
           message.error(response.message || "Failed to submit edit request");
@@ -364,15 +407,32 @@ const TransactionHistoryPage = () => {
                             className="cursor-pointer hover:text-blue-600"
                             onClick={(e) => handleItemClick(item, e)}
                           >
-                            {item.name || "Unknown Item"}
+                            {/* Hiển thị tên từ pendingChanges nếu sản phẩm đang pending và có pendingChanges */}
+                            {item.status === "Pending" &&
+                            item.pendingChanges?.name
+                              ? item.pendingChanges.name
+                              : item.name || "Unknown Item"}
                           </span>
+                          {/* {item.status === "Pending" && item.pendingChanges && (
+                            <Tag color="orange" className="ml-2">
+                              Đang chờ duyệt
+                            </Tag>
+                          )} */}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 text-sm mb-1">
                           <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md font-medium">
-                            Category: {item.category || "N/A"}
+                            Category:{" "}
+                            {item.status === "Pending" &&
+                            item.pendingChanges?.category
+                              ? item.pendingChanges.category
+                              : item.category || "N/A"}
                           </span>
                           <span className="text-gray-600">
-                            {formatPrice(item.price)} | {item.type || "N/A"}
+                            {item.status === "Pending" &&
+                            item.pendingChanges?.price
+                              ? formatPrice(item.pendingChanges.price)
+                              : formatPrice(item.price)}{" "}
+                            | {item.type || "N/A"}
                           </span>
                           <span
                             className={`px-2 py-0.5 rounded-md ${
@@ -408,8 +468,8 @@ const TransactionHistoryPage = () => {
                           } text-white font-bold`}
                           size="large"
                         >
-                          {item.status === "Pending"
-                            ? "Chỉnh sửa (Đang chờ duyệt)"
+                          {item.status === "Pending" && item.pendingChanges
+                            ? "Chỉnh sửa tiếp"
                             : "Chỉnh sửa"}
                         </Button>
                       ) : (
@@ -429,21 +489,70 @@ const TransactionHistoryPage = () => {
                       <h4 className="font-semibold mb-2">Item Details</h4>
                       <div className="space-y-2">
                         <p>
-                          <span className="font-medium">Name:</span> {item.name}
+                          <span className="font-medium">Name:</span>{" "}
+                          {item.status === "Pending" &&
+                          item.pendingChanges?.name ? (
+                            <>
+                              <span className="line-through text-gray-400">
+                                {item.name}
+                              </span>{" "}
+                              <span className="text-blue-600">
+                                {item.pendingChanges.name}
+                              </span>
+                            </>
+                          ) : (
+                            item.name
+                          )}
                         </p>
                         <p>
                           <span className="font-medium">Description:</span>{" "}
-                          {item.description}
+                          {item.status === "Pending" &&
+                          item.pendingChanges?.description ? (
+                            <>
+                              <div className="line-through text-gray-400">
+                                {item.description}
+                              </div>
+                              <div className="text-blue-600">
+                                {item.pendingChanges.description}
+                              </div>
+                            </>
+                          ) : (
+                            item.description
+                          )}
                         </p>
                         <p>
                           <span className="font-medium">Category:</span>{" "}
                           <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md">
-                            {item.category}
+                            {item.status === "Pending" &&
+                            item.pendingChanges?.category ? (
+                              <>
+                                <span className="line-through text-gray-400">
+                                  {item.category}
+                                </span>{" "}
+                                <span className="text-blue-600">
+                                  {item.pendingChanges.category}
+                                </span>
+                              </>
+                            ) : (
+                              item.category
+                            )}
                           </span>
                         </p>
                         <p>
                           <span className="font-medium">Price:</span>{" "}
-                          {formatPrice(item.price)}
+                          {item.status === "Pending" &&
+                          item.pendingChanges?.price ? (
+                            <>
+                              <span className="line-through text-gray-400">
+                                {formatPrice(item.price)}
+                              </span>{" "}
+                              <span className="text-blue-600">
+                                {formatPrice(item.pendingChanges.price)}
+                              </span>
+                            </>
+                          ) : (
+                            formatPrice(item.price)
+                          )}
                         </p>
                         <p>
                           <span className="font-medium">Type:</span> {item.type}
@@ -464,6 +573,9 @@ const TransactionHistoryPage = () => {
                             }`}
                           >
                             {item.status}
+                            {item.status === "Pending" &&
+                              item.pendingChanges &&
+                              " (Chờ duyệt thay đổi)"}
                           </span>
                         </p>
                       </div>
@@ -471,7 +583,22 @@ const TransactionHistoryPage = () => {
                     <div>
                       <h4 className="font-semibold mb-2">Images</h4>
                       <div className="grid grid-cols-3 gap-2">
-                        {item.images && item.images.length > 0 ? (
+                        {item.status === "Pending" &&
+                        item.pendingChanges?.images &&
+                        item.pendingChanges.images.length > 0 ? (
+                          item.pendingChanges.images.map((img, idx) => (
+                            <div key={idx} className="relative">
+                              <img
+                                src={img || erroImg}
+                                alt={`${item.name} - ${idx + 1}`}
+                                className="w-full h-24 object-cover rounded border border-blue-300"
+                              />
+                              <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-1 rounded-bl">
+                                Mới
+                              </div>
+                            </div>
+                          ))
+                        ) : item.images && item.images.length > 0 ? (
                           item.images.map((img, idx) => (
                             <div key={idx} className="relative">
                               <img

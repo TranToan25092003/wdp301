@@ -115,6 +115,8 @@ module.exports.getBrowseItem = async (req, res) => {
       .populate("statusId")
       .lean();
 
+    console.log(`Found ${pendingItems.length} pending items`);
+
     // 2. Get auctions for pending items that are of auction type
     const Auction = require("../../model/auction.model");
     const pendingItemIds = pendingItems
@@ -134,33 +136,44 @@ module.exports.getBrowseItem = async (req, res) => {
     // 3. Format the data
     const formattedItems = pendingItems.map((item) => {
       // Determine if this is a new item or an updated item
-      const isUpdated =
-        item.pendingChanges && item.pendingChanges.status === "pending";
+      // An item is considered updated if it has pendingChanges object with status "pending"
+      // that contains actual changes
+
+      // Kiểm tra xem pendingChanges có tồn tại và có hợp lệ không
+      let hasPendingChanges = false;
+
+      if (
+        item.pendingChanges &&
+        typeof item.pendingChanges === "object" &&
+        Object.keys(item.pendingChanges).length > 0 &&
+        item.pendingChanges.status === "pending"
+      ) {
+        // Cần kiểm tra xem có thay đổi thực sự không
+        hasPendingChanges = true;
+      }
+
+      console.log(`Item classification for ${item._id} (${item.name}):`, {
+        hasPendingChanges,
+        pendingChanges: item.pendingChanges ? "exists" : "not exists",
+        status: item.pendingChanges?.status || "N/A",
+      });
 
       return {
         _id: item._id,
         name: item.name,
         price: item.price,
+        images: item.images || [],
         image: item.images && item.images.length > 0 ? item.images[0] : "",
         type: item.typeId?.name || "Unknown",
         status: item.statusId?.name || "Unknown",
         category: item.categoryId?.name || "Unknown",
-        isUpdated: isUpdated,
+        isUpdated: hasPendingChanges,
+        pendingChanges: item.pendingChanges,
         isAuction: item.typeId?.name?.toLowerCase() === "auction",
         hasAuction:
           item.typeId?.name?.toLowerCase() === "auction" &&
           auctionMap.hasOwnProperty(item._id.toString()),
         createdAt: item.createdAt,
-        pendingChanges: isUpdated
-          ? {
-              name: item.pendingChanges.name,
-              description: item.pendingChanges.description,
-              price: item.pendingChanges.price,
-              categoryId: item.pendingChanges.categoryId,
-              images: item.pendingChanges.images || [],
-              requestDate: item.pendingChanges.requestDate,
-            }
-          : null,
       };
     });
 
@@ -196,10 +209,14 @@ module.exports.approveItem = async (req, res) => {
     const itemId = req.body.itemId;
     const approve = req.body.approve;
 
+    console.log("Approving item:", { itemId, approve });
+
     // check valid id
     if (!checkValidMongoId(itemId)) {
-      return res.json({
-        message: "item does not exist",
+      console.log("Invalid item ID:", itemId);
+      return res.status(400).json({
+        success: false,
+        message: "item does not exist - invalid ID format",
       });
     }
 
@@ -209,8 +226,10 @@ module.exports.approveItem = async (req, res) => {
     });
 
     if (!isExist) {
-      return res.json({
-        message: "item does not exist",
+      console.log("Item not found:", itemId);
+      return res.status(404).json({
+        success: false,
+        message: "item does not exist - not found in database",
       });
     }
 
@@ -220,23 +239,77 @@ module.exports.approveItem = async (req, res) => {
       statusId = await Status.findOne({
         name: "Approved",
       });
+      if (!statusId) {
+        console.log("'Approved' status not found in database");
+        return res.status(500).json({
+          success: false,
+          message: "Could not find 'Approved' status",
+        });
+      }
     } else {
       statusId = await Status.findOne({
         name: "Rejected",
       });
+      if (!statusId) {
+        console.log("'Rejected' status not found in database");
+        return res.status(500).json({
+          success: false,
+          message: "Could not find 'Rejected' status",
+        });
+      }
     }
 
-    await Item.findByIdAndUpdate(itemId, {
-      statusId: statusId._id,
-      rejectReason: req.body?.reason || "",
+    console.log("Updating item status:", {
+      itemId,
+      newStatusId: statusId._id,
+      statusName: approve ? "Approved" : "Rejected",
     });
 
-    return res.json({
-      message: "success",
-    });
+    try {
+      // Tìm và cập nhật item
+      const item = await Item.findById(itemId);
+      if (!item) {
+        console.log("Item not found during update:", itemId);
+        return res.status(404).json({
+          success: false,
+          message: "Item not found during update",
+        });
+      }
+
+      // Cập nhật trạng thái
+      item.statusId = statusId._id;
+
+      // Nếu approve, xóa bỏ pendingChanges để đảm bảo không còn hiện thị là pending update
+      if (approve) {
+        item.pendingChanges = null;
+      }
+
+      // Thêm rejectReason nếu có
+      if (!approve && req.body?.reason) {
+        item.rejectReason = req.body.reason;
+      }
+
+      await item.save();
+      console.log("Item status updated successfully");
+
+      return res.status(200).json({
+        success: true,
+        message: "success",
+      });
+    } catch (updateError) {
+      console.error("Error updating item status:", updateError);
+      return res.status(500).json({
+        success: false,
+        message: "Error updating item status",
+        error: updateError.message,
+      });
+    }
   } catch (error) {
-    return res.json({
+    console.error("Error in approveItem:", error);
+    return res.status(500).json({
+      success: false,
       message: "error in approve items",
+      error: error.message,
     });
   }
 };
@@ -316,8 +389,11 @@ module.exports.approveEditRequest = async (req, res) => {
     const itemId = req.params.id;
     const adminId = req.body.adminId;
 
+    console.log("Approving edit request:", { itemId, adminId });
+
     // Validate MongoDB ID
     if (!checkValidMongoId(itemId)) {
+      console.log("Invalid item ID format:", itemId);
       return res.status(400).json({
         success: false,
         message: "Invalid item ID format",
@@ -327,6 +403,7 @@ module.exports.approveEditRequest = async (req, res) => {
     // Check if the item exists
     const item = await Item.findById(itemId);
     if (!item) {
+      console.log("Item not found:", itemId);
       return res.status(404).json({
         success: false,
         message: "Item not found",
@@ -335,16 +412,39 @@ module.exports.approveEditRequest = async (req, res) => {
 
     // Check if there's a pending edit request
     if (!item.pendingChanges || item.pendingChanges.status !== "pending") {
+      console.log(
+        "No pending edit request found for item:",
+        itemId,
+        item.pendingChanges
+      );
       return res.status(400).json({
         success: false,
         message: "No pending edit request found",
       });
     }
 
-    // Apply the changes from pendingChanges to the item
-    item.name = item.pendingChanges.name;
-    item.description = item.pendingChanges.description;
-    item.price = item.pendingChanges.price;
+    console.log("Applying pending changes for item:", {
+      itemId,
+      currentName: item.name,
+      newName: item.pendingChanges.name,
+      pendingChanges: JSON.stringify(item.pendingChanges),
+    });
+
+    // Apply the changes from pendingChanges to the item - safely
+    if (item.pendingChanges.name) {
+      item.name = item.pendingChanges.name;
+    }
+
+    if (item.pendingChanges.description) {
+      item.description = item.pendingChanges.description;
+    }
+
+    if (
+      item.pendingChanges.price !== undefined &&
+      item.pendingChanges.price !== null
+    ) {
+      item.price = item.pendingChanges.price;
+    }
 
     // Apply category changes if provided
     if (item.pendingChanges.categoryId) {
@@ -357,23 +457,58 @@ module.exports.approveEditRequest = async (req, res) => {
     }
 
     // Update the pendingChanges status
+    if (!item.pendingChanges) {
+      item.pendingChanges = {};
+    }
+
+    // Lấy statusId của "Approved"
+    const approvedStatus = await Status.findOne({ name: "Approved" });
+    if (!approvedStatus) {
+      console.error("Approved status not found in database");
+      return res.status(500).json({
+        success: false,
+        message: "Approved status not found in database",
+      });
+    }
+
+    // Cập nhật status của item sang Approved
+    item.statusId = approvedStatus._id;
+    console.log(`Updated item status to Approved for item ${itemId}`);
+
     item.pendingChanges.status = "approved";
     item.pendingChanges.reviewedBy = adminId;
     item.pendingChanges.reviewDate = new Date();
 
-    await item.save();
+    try {
+      await item.save();
+      console.log("Edit request approved successfully for item:", itemId);
+    } catch (saveError) {
+      console.error("Error saving item:", saveError);
+      return res.status(500).json({
+        success: false,
+        message: "Error saving item after approval",
+        error: saveError.message,
+      });
+    }
 
-    // Notify the item owner that their edit request was approved
+    // Notify the item owner that their edit request was approved - wrapped in try/catch
     try {
       const io = req.app.get("socketio");
       if (io) {
-        io.to(item.owner).emit("edit_request_approved", {
-          itemId: item._id,
-          itemName: item.name,
-        });
+        try {
+          io.to(item.owner).emit("edit_request_approved", {
+            itemId: item._id,
+            itemName: item.name,
+          });
+          console.log("Notification sent to owner:", item.owner);
+        } catch (socketError) {
+          console.error("Socket notification error:", socketError);
+          // We continue even if notification fails
+        }
       }
     } catch (notifyError) {
       console.error("Error sending notification:", notifyError);
+      // We continue even if notification fails
     }
 
     return res.status(200).json({
@@ -387,6 +522,7 @@ module.exports.approveEditRequest = async (req, res) => {
           price: item.price,
           categoryId: item.categoryId,
           images: item.images,
+          status: "Approved",
         },
       },
     });
