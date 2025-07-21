@@ -1,9 +1,10 @@
 // src/controller/report.controller.js
 
 const { Report, UserViolation } = require('../../model');
+const ActivityLog = require('../../model/ActivityLog.model'); // Thêm dòng này để import ActivityLog
 const { validationResult, body } = require('express-validator');
 const { detectSpamContent } = require('../../utils/contentFilter');
-const { clerkClient } = require('@clerk/clerk-sdk-node'); // Thêm dòng này
+const { clerkClient } = require('@clerk/clerk-sdk-node');
 
 // Hàm validation cho việc tạo báo cáo
 const validateReportInput = [
@@ -44,13 +45,31 @@ const validateReportInput = [
 
     body('reportedUserEmail')
         .optional()
-        .custom((value, { req }) => {
+        .custom(async (value, { req }) => { // THÊM async vì cần await clerkClient
             if ((req.body.reportType === 'user_behavior' || req.body.reportType === 'spam') && !value) {
                 throw new Error('Email người dùng bị báo cáo là bắt buộc.');
             }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (value && !emailRegex.test(value)) {
                 throw new Error('Địa chỉ email không hợp lệ.');
+            }
+
+            // Lấy ID của người dùng hiện tại từ req.body.userId (người gửi báo cáo)
+            const currentUserId = req.body.userId;
+            if (!currentUserId) {
+                throw new Error('Không tìm thấy ID người dùng gửi báo cáo.');
+            }
+            
+            // Tìm kiếm người dùng bằng email bị báo cáo
+            if (value) {
+                const users = await clerkClient.users.getUserList({ emailAddress: [value] });
+                if (users && users.length > 0) {
+                    const reportedUserId = users[0].id;
+                    // So sánh ID của người gửi báo cáo với ID của người bị báo cáo
+                    if (currentUserId === reportedUserId) {
+                        throw new Error('Bạn không thể báo cáo chính mình.');
+                    }
+                }
             }
             return true;
         }),
@@ -70,15 +89,34 @@ const createReport = async (req, res) => {
         // Content Filtering
         const isSpamDetected = await detectSpamContent(`${title} ${description}`);
         if (isSpamDetected) {
-            await UserViolation.create({
+            const userViolationDoc = await UserViolation.create({ // Ghi lại UserViolation
                 userId,
-                violationType: 'content_spam',
+                violationType: 'content_spam', // Đảm bảo giá trị này hợp lệ
                 description: `Nội dung báo cáo có thể chứa spam hoặc nội dung không phù hợp: "${title}" - "${description}"`,
-                details: {
+                payload: { // Sử dụng 'payload' thay vì 'details' để nhất quán với schema UserViolation
                     reportTitle: title,
                     reportDescription: description,
                     reportType,
-                    reason: 'Content filtering flagged report as spam/inappropriate.'
+                    reason: 'Content filtering flagged report as spam/inappropriate.',
+                    ipAddress: req.ip,
+                    userAgent: req.headers['user-agent'],
+                }
+            });
+
+            // Ghi log hoạt động khi phát hiện spam và tạo UserViolation
+            await ActivityLog.create({
+                userId: userId, // Người dùng có hành vi spam
+                actionType: 'USER_VIOLATION_CREATED',
+                description: `Tự động tạo bản ghi vi phạm cho người dùng ${userId} do nội dung báo cáo bị gắn cờ spam.`,
+                entityType: 'UserViolation',
+                entityId: userViolationDoc._id, // Liên kết với bản ghi UserViolation vừa tạo
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                payload: {
+                    violationId: userViolationDoc._id,
+                    violationType: userViolationDoc.violationType,
+                    flaggedReportTitle: title,
+                    flaggedReportDescription: description,
                 }
             });
 
@@ -99,6 +137,11 @@ const createReport = async (req, res) => {
             }
 
             resolvedReportedUserId = users[0].id;
+            
+            // THÊM LOGIC KIỂM TRA NGƯỜI DÙNG TỰ BÁO CÁO MÌNH Ở BACKEND
+            if (userId === resolvedReportedUserId) {
+                return res.status(400).json({ success: false, message: 'Bạn không thể báo cáo chính mình.' });
+            }
         }
 
         // Tạo báo cáo mới
@@ -114,6 +157,24 @@ const createReport = async (req, res) => {
         });
 
         await newReport.save();
+
+        // Ghi log hoạt động khi tạo báo cáo thành công
+        await ActivityLog.create({
+            userId: userId, // Người dùng gửi báo cáo
+            actionType: 'USER_REPORTED', // Hoặc 'REPORT_CREATED' nếu bạn muốn một actionType cụ thể hơn
+            description: `Người dùng ${userId} đã gửi một báo cáo (${reportType}) với tiêu đề: "${title}".`,
+            entityType: 'Report',
+            entityId: newReport._id, // Liên kết với bản ghi báo cáo vừa tạo
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            payload: {
+                reportId: newReport._id,
+                reportType: newReport.reportType,
+                reportedUserId: newReport.reportedUserId,
+                itemId: newReport.itemId,
+            },
+        });
+
 
         res.status(201).json({
             success: true,

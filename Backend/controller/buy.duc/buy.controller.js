@@ -4,6 +4,7 @@ const Status = require("../../model/status.model");
 const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
 const { clerkClient } = require("../../config/clerk");
+const logActivity = require("../../utils/activityLogger");
 const mongoose = require('mongoose');
 
 /**
@@ -143,7 +144,38 @@ const purchaseItem = async (req, res) => {
         // Update item status to "Sold"
         item.statusId = soldStatus._id;
         await item.save();
+         try {
+            let buyerName = "Người dùng ẩn danh";
+            if (buyer) {
+                const fullName = `${buyer.firstName || ""} ${buyer.lastName || ""}`.trim();
+                if (fullName) {
+                    buyerName = fullName;
+                } else if (buyer.username) {
+                    buyerName = buyer.username;
+                } else if (buyer.emailAddresses?.length > 0) {
+                    buyerName = buyer.emailAddresses[0].emailAddress;
+                }
+            }
 
+            await logActivity(
+                buyerId, // userId: ID của người mua
+                "BUY_COMPLETED", // actionType: Loại hành động
+                `${buyerName} đã mua vật phẩm "${item.name}" với giá ${item.price} coins.`, // description
+                "Buy", // entityType: Đối tượng bị ảnh hưởng là 'Buy'
+                buy._id, // entityId: ID của bản ghi Buy vừa tạo
+                req, // Truyền đối tượng request để log IP và User-Agent
+                {
+                    itemId: item._id,
+                    itemName: item.name,
+                    itemPrice: item.price,
+                    sellerId: item.owner,
+                } // Payload bổ sung
+            );
+            console.log(`Activity logged: Item "${item.name}" purchased by ${buyerName}.`);
+        } catch (logError) {
+            console.error("Error logging BUY_COMPLETED activity:", logError);
+            // Không ném lỗi để không làm gián đoạn luồng chính của purchaseItem
+        }
         return res.status(200).json({
             success: true,
             message: "Purchase successful",

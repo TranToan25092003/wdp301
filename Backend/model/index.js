@@ -14,6 +14,7 @@ const Contact = require("./contact.model");
 const userViolation = require("./userViolation.model");
 const Follow = require("./Follow.model");
 const Notification = require("./notification.model");
+const ActivityLog = require("./ActivityLog.model");
 module.exports = {
   Test,
   Report,
@@ -31,4 +32,5 @@ module.exports = {
   Contact,
   userViolation,
   Notification,
+  ActivityLog,
 };

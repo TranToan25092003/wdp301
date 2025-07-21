@@ -24,6 +24,10 @@ export const adminLinks = [
     href: "/admin/transaction",
     label: "Transactions",
   },
+   {
+    href: "/admin/activity-logs",
+    label: "Lịch Sử Hoạt Động",
+  },
   {
     href: "https://informed-slug-82.accounts.dev/organization",
     label: "organizations",

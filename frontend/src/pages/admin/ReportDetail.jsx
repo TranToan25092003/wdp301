@@ -25,9 +25,9 @@ export const reportDetailLoader = async ({ params }) => {
     const response = await customFetch.get(`/admin/reports/${params.reportId}`);
     return { report: response.data };
   } catch (error) {
-    toast.error("Error fetching report details");
+    toast.error("Lỗi khi tải chi tiết báo cáo");
     console.error("Loader Error:", error);
-    return { report: null, error: "Failed to load report details." };
+    return { report: null, error: "Không thể tải chi tiết báo cáo." };
   }
 };
 
@@ -46,17 +46,17 @@ const ReportDetail = () => {
           <CardHeader>
             <CardTitle className="text-red-600 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
-              Error
+              Lỗi
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-700">{error || "Report not found"}</p>
+            <p className="text-red-700">{error || "Không tìm thấy báo cáo"}</p>
             <Button
               variant="outline"
               onClick={() => navigate("/admin/reports")}
               className="mt-4"
             >
-              Back to Reports
+              Quay lại danh sách báo cáo
             </Button>
           </CardContent>
         </Card>
@@ -100,21 +100,21 @@ const ReportDetail = () => {
           <CardHeader>
             <CardTitle className="text-2xl text-slate-700 flex items-center gap-2">
               <AlertTriangle className="w-6 h-6 text-orange-600" />
-              Report Details
+              Chi tiết báo cáo
             </CardTitle>
-            <CardDescription>Report ID: {report.id}</CardDescription>
+            <CardDescription>Mã báo cáo: {report.id}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-slate-600">Title</p>
+              <p className="text-sm font-medium text-slate-600">Tiêu đề</p>
               <p className="text-slate-800">{report.title}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Description</p>
+              <p className="text-sm font-medium text-slate-600">Mô tả</p>
               <p className="text-slate-800">{report.description}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Type</p>
+              <p className="text-sm font-medium text-slate-600">Loại báo cáo</p>
               <Badge className="bg-orange-100 text-orange-800">
                 {report.reportType}
               </Badge>
@@ -122,17 +122,17 @@ const ReportDetail = () => {
             <div>
               <p className="text-sm font-medium text-slate-600 flex items-center gap-1">
                 <User className="w-4 h-4" />
-                Reported User
+                Người bị báo cáo
               </p>
               <p className="text-slate-800">
                 {report.reportedUser.name}
                 {/* Hiển thị trạng thái banned */}
                 {report.reportedUser.isBanned ? (
                   <Badge className="ml-2 bg-red-100 text-red-800">
-                    <Ban className="w-3 h-3 mr-1" /> Banned
+                    <Ban className="w-3 h-3 mr-1" /> Đã bị cấm
                   </Badge>
                 ) : (
-                  <Badge className="ml-2 bg-green-100 text-green-800">Active</Badge>
+                  <Badge className="ml-2 bg-green-100 text-green-800">Đang hoạt động</Badge>
                 )}
               </p>
               <p className="text-sm text-slate-500">{report.reportedUser.email}</p>
@@ -140,17 +140,17 @@ const ReportDetail = () => {
             <div>
               <p className="text-sm font-medium text-slate-600 flex items-center gap-1">
                 <User className="w-4 h-4" />
-                Reporter
+                Người báo cáo
               </p>
               <p className="text-slate-800">
                 {report.reporter.name}
                  {/* Hiển thị trạng thái banned cho Reporter (nếu cần) */}
                 {report.reporter.isBanned ? (
                   <Badge className="ml-2 bg-red-100 text-red-800">
-                    <Ban className="w-3 h-3 mr-1" /> Banned
+                    <Ban className="w-3 h-3 mr-1" /> Đã bị cấm
                   </Badge>
                 ) : (
-                  report.reporter.id !== 'System' && <Badge className="ml-2 bg-green-100 text-green-800">Active</Badge>
+                  report.reporter.id !== 'System' && <Badge className="ml-2 bg-green-100 text-green-800">Đang hoạt động</Badge>
                 )}
               </p>
               <p className="text-sm text-slate-500">{report.reporter.email}</p>
@@ -158,17 +158,17 @@ const ReportDetail = () => {
             <div>
               <p className="text-sm font-medium text-slate-600 flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                Created At
+                Ngày tạo
               </p>
               <p className="text-slate-800">{new Date(report.createdAt).toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Status</p>
+              <p className="text-sm font-medium text-slate-600">Trạng thái</p>
               <Badge
                 variant={report.status === 'pending' ? 'secondary' : 'default'}
                 className={report.status === 'pending' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'}
               >
-                {report.status}
+                {report.status === 'pending' ? 'Đang chờ xử lý' : 'Đã xử lý'}
               </Badge>
             </div>
             
@@ -178,7 +178,7 @@ const ReportDetail = () => {
                 onClick={() => navigate("/admin/report")}
                 className="border-slate-300 text-slate-600 hover:bg-slate-50"
               >
-                Back to Reports
+                Quay lại danh sách báo cáo
               </Button>
               {/* Nút xem chi tiết người dùng */}
              
@@ -189,12 +189,12 @@ const ReportDetail = () => {
                   <AlertDialog open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen}>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" className="bg-red-500 hover:bg-red-600 text-white">
-                        <Ban className="w-4 h-4 mr-2" /> Ban User
+                        <Ban className="w-4 h-4 mr-2" /> Cấm người dùng
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Xác nhận Cấm người dùng</AlertDialogTitle>
+                        <AlertDialogTitle>Xác nhận cấm người dùng</AlertDialogTitle>
                         <AlertDialogDescription>
                           Bạn có chắc chắn muốn cấm người dùng này không?
                           Hành động này sẽ hạn chế quyền truy cập của họ vào một số chức năng của hệ thống.
@@ -212,7 +212,7 @@ const ReportDetail = () => {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction onClick={handleBanUser}>
-                          Xác nhận Cấm
+                          Xác nhận cấm
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -221,12 +221,12 @@ const ReportDetail = () => {
                   <AlertDialog open={isUnbanDialogOpen} onOpenChange={setIsUnbanDialogOpen}>
                     <AlertDialogTrigger asChild>
                       <Button variant="secondary" className="bg-blue-500 hover:bg-blue-600 text-white">
-                        <Globe className="w-4 h-4 mr-2" /> Unban User
+                        <Globe className="w-4 h-4 mr-2" /> Bỏ cấm người dùng
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Xác nhận Bỏ cấm người dùng</AlertDialogTitle>
+                        <AlertDialogTitle>Xác nhận bỏ cấm người dùng</AlertDialogTitle>
                         <AlertDialogDescription>
                           Bạn có chắc chắn muốn bỏ cấm người dùng này không?
                           Họ sẽ có thể truy cập lại tất cả các chức năng.
@@ -235,7 +235,7 @@ const ReportDetail = () => {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction onClick={handleUnbanUser}>
-                          Xác nhận Bỏ cấm
+                          Xác nhận bỏ cấm
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
