@@ -3,7 +3,7 @@ const Bid = require("../../model/bid.model");
 const { Status } = require("../../model/status.model");
 const { clerkClient } = require("../../config/clerk");
 const Item = require("../../model/item.model");
-
+const ActivityLog = require("../../model/ActivityLog.model");
 exports.placeBid = async (req, res) => {
   try {
     // Lấy userId từ middleware authenticate (ưu tiên bảo mật)
@@ -117,7 +117,29 @@ exports.placeBid = async (req, res) => {
         bids: updatedBids,
       });
     }
-
+    // Log the activity
+     try {
+      await ActivityLog.create({
+        userId: userId, 
+        actionType: 'BID_PLACED', 
+       
+        description: `Người dùng ${user.firstName || user.emailAddresses[0]?.emailAddress || userId} đã đặt giá ${amount} cho sản phẩm "${item?.name || 'Không rõ tên'}".`, // Mô tả chi tiết
+        entityType: 'Bid', 
+        entityId: bid._id, 
+        ipAddress: req.ip, 
+        userAgent: req.headers['user-agent'], 
+        payload: {
+          auctionId: auctionId,
+          bidAmount: amount,
+          auctionItemName: item?.name, 
+          bidId: bid._id,
+        },
+      });
+      console.log("✅ Activity Log for BID_PLACED created successfully!");
+    } catch (logError) {
+      console.error("❌ Lỗi khi tạo Activity Log cho BID_PLACED:", logError);
+     
+    }
     res.status(201).json({
       message: "Bid placed successfully",
       bid: bid.toObject(),

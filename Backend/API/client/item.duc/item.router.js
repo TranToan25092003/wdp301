@@ -27,11 +27,11 @@ router.get("/recent", getRecentItems);
 router.get("/by-owner/:ownerId", getItemsByOwner);
 router.post(
   "/",
-  authenticate, // Đã có middleware xác thực
-  checkBanStatus, // <-- THÊM MIDDLEWARE KIỂM TRA BAN TẠI ĐÂY
+  authenticate, 
+  checkBanStatus, 
   createItemLimiter,
-  checkSpamContent("name", "item_name_spam"),
-  checkSpamContent("description", "item_description_spam"),
+ checkSpamContent('name', 'spam_content'), 
+  checkSpamContent('description', 'spam_content'),
   createItem
 );
 

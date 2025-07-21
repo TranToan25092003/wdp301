@@ -13,6 +13,8 @@ const { authenticate } = require("../../middleware/guards/authen.middleware");
 const testRouter = require("./test.router");const followRouter = require("./follow.duy/followRoutes");
 const notificationRouter = require("./notification.duy/notificationRoutes");
 const { getUsersWithPosts } = require("../../controller/user.duy/userController");
+const activityLogRouter = require("./duy/activityLogRoutes");
+
 module.exports = (app) => {
   // this router only for testing app do not use this router to write data ok
   app.use("/test", authenticate, testRouter);
@@ -32,5 +34,6 @@ module.exports = (app) => {
   app.use("/reports", reportRouter);
   app.use("/follows", followRouter);
   app.use("/notifications", notificationRouter);
+  app.use("/activity-logs", activityLogRouter);
  // GET /api/users/with-posts
 };

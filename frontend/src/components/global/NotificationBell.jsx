@@ -73,32 +73,37 @@ const NotificationBell = () => {
     };
   }, [userId]);
 
-  const handleNotificationClick = async (notification) => {
-    if (!notification.isRead) {
-      try {
-        const token = await getToken();
-        await fetch(`${API_URL}/notifications/mark-read/${notification._id}`, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+ const handleNotificationClick = async (notification) => {
+ 
+  if (!notification.isRead) {
+    try {
+      const token = await getToken();
+     
+      await fetch(`${API_URL}/notifications/mark-read/${notification._id}`, {
+        method: "PATCH", 
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        // Refresh notifications
-        fetchNotifications();
-      } catch (error) {
-        console.error("Error marking notification as read:", error);
-      }
+    
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
     }
+  }
 
-    // Navigate to link if provided
-    if (notification.link && notification.link !== "#") {
-      navigate(notification.link);
-      setDropdownOpen(false);
-    }
-  };
-
+  if (notification.type !== "follow" && notification.link && notification.link !== "#") {
+    navigate(notification.link);
+    setDropdownOpen(false);
+  }
+  
+  
+  if (notification.type === "follow") {
+    setDropdownOpen(false);
+  }
+};
   const handleDeleteNotification = async (id) => {
     try {
       const token = await getToken();

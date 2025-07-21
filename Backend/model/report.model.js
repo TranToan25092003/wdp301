@@ -14,17 +14,17 @@ const reportSchema = new mongoose.Schema(
       trim: true,
       maxlength: [1000, "Description cannot exceed 1000 characters"],
     },
-    userId: { // Người dùng GỬI BÁO CÁO (reporter)
+    userId: { 
       type: String,
-      required: false, // Cho phép null cho báo cáo hệ thống
+      required: false, 
     },
-    reportType: { // Loại báo cáo
+    reportType: { 
       type: String,
       enum: ['item_feedback', 'user_behavior', 'spam', 'system_generated_violation', 'admin_action_ban', 'admin_action_unban'], // Thêm system_generated_violation
       default: 'item_feedback',
       required: [true, "Report type is required"],
     },
-    reportedUserId: { // ID của người dùng bị báo cáo (cho user_behavior, spam, system_generated_violation)
+    reportedUserId: { 
       type: String,
       required: function() {
         return this.reportType === 'user_behavior' || 
@@ -32,14 +32,14 @@ const reportSchema = new mongoose.Schema(
                this.reportType === 'system_generated_violation';
       },
     },
-    itemId: { // Liên kết phản hồi với sản phẩm (cho item_feedback)
+    itemId: { 
       type: mongoose.Schema.Types.ObjectId,
       ref: "Item",
       required: function() {
         return this.reportType === 'item_feedback';
       },
     },
-    rating: { // Đánh giá số sao (cho item_feedback)
+    rating: { 
       type: Number,
       min: 1,
       max: 5,
@@ -53,7 +53,7 @@ const reportSchema = new mongoose.Schema(
       default: 'pending',
       required: true,
     },
-    payload: { // Thêm trường để lưu thông tin bổ sung (như ip, userAgent)
+    payload: { 
       type: Object,
       default: {},
     },

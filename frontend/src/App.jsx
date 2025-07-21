@@ -24,6 +24,7 @@ import FilterPage, { filterPageLoader } from "./pages/FilterPage";
 import CreateReportPage from "./pages/CreateReportPage";
 import ReportDetail, { reportDetailLoader } from "./pages/admin/ReportDetail";
 import SellerList from "./pages/SellerList";
+import GlobalLoginLogger from "./components/global/GlobalLoginLogger";
 // IMPORT COMPONENT VÀ LOADER MỚI CHO THỐNG KÊ
 import DashboardStats, {
   dashboardStatsLoader,
@@ -48,7 +49,7 @@ import {
   CategoryAdminDashboard,
   categoryAdminDashboardLoader,
 } from "./pages/admin/CategoryAdminDashboard";
-
+import ActivityLogList from "./pages/admin/ActivityLogList";
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const router = createBrowserRouter([
@@ -206,6 +207,10 @@ const router = createBrowserRouter([
             element: <CategoryAdminDashboard></CategoryAdminDashboard>,
             loader: categoryAdminDashboardLoader,
           },
+          {
+            path: "activity-logs", // Đường dẫn để truy cập trang này: /admin/activity-logs
+            element: <ActivityLogList />,
+          },
         ],
       },
       {
@@ -226,6 +231,7 @@ function App() {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
       <Toaster></Toaster>
+      <GlobalLoginLogger />
       <RouterProvider router={router} />
     </ClerkProvider>
   );

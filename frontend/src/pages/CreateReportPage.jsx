@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { customFetch } from "@/utils/customAxios";
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react'; // Import useUser
 import { AlertCircle, FileText, User, Star, Mail, Search, Send } from 'lucide-react';
 
 const CreateReportPage = () => {
   const { userId } = useAuth();
+  const { user } = useUser(); // Lấy thông tin người dùng từ useUser
   const currentUserId = userId;
+  const currentUserEmail = user?.primaryEmailAddress?.emailAddress; // Lấy email chính của người dùng hiện tại
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -103,6 +105,13 @@ const CreateReportPage = () => {
     } else if (reportType === 'user_behavior' || reportType === 'spam') {
       if (!reportedUserEmail) {
         toast.error("Vui lòng nhập email người bị báo cáo.");
+        setIsLoading(false);
+        return;
+      }
+
+      // THÊM LOGIC KIỂM TRA NGƯỜI DÙNG TỰ BÁO CÁO MÌNH
+      if (currentUserEmail && reportedUserEmail.toLowerCase() === currentUserEmail.toLowerCase()) {
+        toast.error("Bạn không thể báo cáo chính mình.");
         setIsLoading(false);
         return;
       }

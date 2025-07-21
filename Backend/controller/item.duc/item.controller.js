@@ -2,10 +2,11 @@ const { Mongoose, default: mongoose } = require("mongoose");
 const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
 const { clerkClient } = require("../../config/clerk");
-const { Follow, Borrow, Buy } = require("../../model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL FOLLOW
+const { Follow, Borrow, Buy } = require("../../model"); 
 const {
   createNotification,
-} = require("../notification.duy/notificationController"); // THÊM DÒNG NÀY ĐỂ IMPORT HÀM GỬI THÔNG BÁO
+} = require("../notification.duy/notificationController"); 
+const logActivity = require("../../utils/activityLogger");
 const Status = require("../../model/status.model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL STATUS
 const getAllItems = async (req, res) => {
   try {
@@ -380,9 +381,37 @@ const createItem = async (req, res) => {
     });
 
     await item.save();
-    // ===============================================
+    try {
+      // Lấy thông tin người dùng từ Clerk để có tên hiển thị trong log
+      const ownerUser = await clerkClient.users.getUser(owner);
+      let ownerName = "Người dùng ẩn danh";
+      if (ownerUser) {
+        const fullName = `${ownerUser.firstName || ""} ${ownerUser.lastName || ""}`.trim();
+        if (fullName) {
+          ownerName = fullName;
+        } else if (ownerUser.username) {
+          ownerName = ownerUser.username;
+        } else if (ownerUser.emailAddresses?.length > 0) {
+          ownerName = ownerUser.emailAddresses[0].emailAddress;
+        }
+      }
+
+      await logActivity(
+        owner, 
+        "ITEM_CREATED", 
+        `${ownerName} đã đăng tải vật phẩm mới: "${item.name}" (ID: ${item._id}).`, 
+        "Item", 
+        item._id, 
+        req 
+      );
+      console.log(`Activity logged: Item "${item.name}" created by ${ownerName}.`);
+    } catch (logError) {
+      console.error("Error logging ITEM_CREATED activity:", logError);
+      
+    }
+   
     // THÊM LOGIC GỬI THÔNG BÁO TẠI ĐÂY
-    // ===============================================
+
     const io = req.app.get("socketio");
 
     // GỬI THÔNG BÁO CHO NGƯỜI THEO DÕI

@@ -7,6 +7,7 @@ const Category = require("../../model/category.model");
 const Type = require("../../model/type.model");
 const Notification = require("../../model/Notification.model");
 const nodemailer = require('nodemailer');
+const logActivity = require("../../utils/activityLogger");
 const mongoose = require('mongoose');
 
 const createBorrow = async (req, res) => {
@@ -124,7 +125,35 @@ const createBorrow = async (req, res) => {
 
     item.statusId = borrowedStatus._id;
     await item.save();
+    try {
+        const borrowerClerk = user;
+        const ownerClerk = seller;
 
+        const borrowerName = borrowerClerk?.username || borrowerClerk?.firstName || "Người dùng ẩn danh";
+        const ownerName = ownerClerk?.username || ownerClerk?.firstName || "Người dùng ẩn danh";
+
+        await logActivity(
+            borrowerId, // userId: ID của người mượn
+            "BORROW_REQUESTED", // actionType: Yêu cầu mượn đã được tạo
+            `${borrowerName} đã yêu cầu mượn vật phẩm "${item.name}" từ ${ownerName} trong ${totalTime} giờ với giá ${totalPrice} coins.`, // description
+            "Borrow", // entityType: Đối tượng bị ảnh hưởng là 'Borrow'
+            borrow._id, // entityId: ID của bản ghi Borrow vừa tạo
+            req, // Truyền đối tượng request để log IP và User-Agent
+            {
+                itemId: item._id,
+                itemName: item.name,
+                itemPrice: item.price,
+                itemOwnerId: item.owner,
+                borrowDurationHours: totalTime,
+                borrowCost: totalPrice,
+                borrowStartTime: startTime,
+                borrowEndTime: endTime
+            } // Payload bổ sung
+        );
+        console.log(`Activity logged: Borrow request for "${item.name}" created by ${borrowerName}.`);
+    } catch (logError) {
+        console.error("Error logging BORROW_REQUESTED activity:", logError);
+    }
     return res.status(201).json({
       status: 201,
       message: "Borrow created and item status updated.",
@@ -257,7 +286,27 @@ const requestForReturnBorrow = async (req, res) => {
       };
       await transporter.sendMail(mailOptions);
     }
-
+    try {
+        const borrowerName = user.firstName + " " + user.lastName; // Lấy từ req.user
+        await logActivity(
+            borrowerId, // userId: ID của người yêu cầu trả
+            "BORROW_RETURN_REQUESTED", // actionType: Loại hành động
+            `${borrowerName} đã yêu cầu trả lại vật phẩm "${item.name}" (ID mượn: ${borrowId}) cho ${ownerNameForNotification}.`, // description
+            "Borrow", // entityType: Đối tượng bị ảnh hưởng là 'Borrow'
+            borrowId, // entityId: ID của bản ghi Borrow
+            req, // Truyền đối tượng request để log IP và User-Agent
+            {
+                itemId: item._id,
+                itemName: item.name,
+                borrowerId: borrowerId,
+                itemOwnerId: item.owner,
+                requestMessage: message
+            } // Payload bổ sung
+        );
+        console.log(`Activity logged: Return request for "${item.name}" by ${borrowerName}.`);
+    } catch (logError) {
+        console.error("Error logging BORROW_RETURN_REQUESTED activity:", logError);
+    }
     return res.status(200).json({ success: true, message: 'Return request submitted and notifications sent', data: notification });
   } catch (error) {
     console.error('Error requesting return:', error);
@@ -396,7 +445,35 @@ const confirmReturnBorrow = async (req, res) => {
         }
       }
     }
+     try {
+        const ownerClerk = await clerkClient.users.getUser(ownerId);
+        const borrowerClerk = await clerkClient.users.getUser(borrow.borrowers);
 
+        const ownerName = ownerClerk?.username || ownerClerk?.firstName || "Người dùng ẩn danh";
+        const borrowerName = borrowerClerk?.username || borrowerClerk?.firstName || "Người dùng ẩn danh";
+
+        await logActivity(
+            ownerId, // userId: ID của người xác nhận (chủ sở hữu)
+            `BORROW_${newStatus.toUpperCase()}`, // actionType: BORROW_RETURNED hoặc BORROW_LATE
+            `${ownerName} đã xác nhận trả lại vật phẩm "${borrow.itemId.name}" từ ${borrowerName}. Trạng thái: ${newStatus}.${isLate ? ` Phí phạt: ${lateFee} coins.` : ''}`, // description
+            "Borrow", // entityType: Đối tượng bị ảnh hưởng là 'Borrow'
+            borrow._id, // entityId: ID của bản ghi Borrow
+            req, // Truyền đối tượng request để log IP và User-Agent
+            {
+                itemId: borrow.itemId._id,
+                itemName: borrow.itemId.name,
+                borrowerId: borrow.borrowers,
+                itemOwnerId: borrow.itemId.owner,
+                actualReturnTime: actualTime,
+                statusAfterConfirmation: newStatus,
+                isLate: isLate,
+                lateFee: lateFee
+            } // Payload bổ sung
+        );
+        console.log(`Activity logged: Return for "${borrow.itemId.name}" confirmed by ${ownerName}.`);
+    } catch (logError) {
+        console.error("Error logging BORROW_CONFIRM_RETURN activity:", logError);
+    }
     return res.status(200).json({
       success: true,
       message: `Return confirmed. Status: ${newStatus}${isLate ? ` with late fee of ${lateFee} coins applied` : ''}`,

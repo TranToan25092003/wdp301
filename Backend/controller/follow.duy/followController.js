@@ -4,6 +4,7 @@ const { clerkClient } = require("../../config/clerk");
 const {
   createNotification,
 } = require("../notification.duy/notificationController");
+const logActivity = require("../../utils/activityLogger"); // Hàm logActivity
 
 /**
  * ====================================
@@ -37,13 +38,15 @@ const followUser = async (req, res) => {
       });
     }
 
-    await Follow.create({ followerId, followedId });
+    const newFollow = await Follow.create({ followerId, followedId }); // Lưu bản ghi follow để lấy _id
 
     let followerUser = null;
+    let followedUser = null; 
     try {
       followerUser = await clerkClient.users.getUser(followerId);
+      followedUser = await clerkClient.users.getUser(followedId); 
     } catch (err) {
-      console.warn(`Cannot fetch follower ${followerId}:`, err.message);
+      console.warn(`Cannot fetch user data for follow log:`, err.message);
     }
 
     const notificationMessage = `${
@@ -57,16 +60,14 @@ const followUser = async (req, res) => {
       senderId: followerId,
       type: "follow",
       message: notificationMessage,
-      entityId: null,
-      entityRef: null,
+      entityId: newFollow._id, // Gắn entityId là ID của bản ghi Follow
+      entityRef: 'Follow', // Gắn entityRef là 'Follow'
       link: notificationLink,
     });
 
-    // ✅ Gửi realtime qua socket nếu có
     const io = req.app.get("socketio");
     if (io) {
       io.to(followedId).emit("new_notification", {
-        // Đổi từ "notification" thành "new_notification"
         ...newNotification._doc,
         sender: {
           id: followerUser?.id,
@@ -74,6 +75,31 @@ const followUser = async (req, res) => {
           imageUrl: followerUser?.imageUrl,
         },
       });
+    }
+
+    try {
+      const followerName =
+        followerUser?.username ||
+        followerUser?.firstName ||
+        "Người dùng ẩn danh";
+      const followedName =
+        followedUser?.username ||
+        followedUser?.firstName ||
+        "Người dùng ẩn danh";
+
+      await logActivity(
+        followerId,
+        "USER_FOLLOWED",
+        `${followerName} đã theo dõi ${followedName}.`,
+        'Follow', // ✅ Thay đổi từ null thành 'Follow'
+        newFollow._id, // ✅ Truyền ID của bản ghi Follow vừa tạo
+        req,
+        { followedUserId: followedId }
+      );
+
+      console.log(`Activity logged: ${followerName} followed ${followedName}.`);
+    } catch (logError) {
+      console.error("Error logging USER_FOLLOWED activity:", logError);
     }
 
     return res.status(201).json({
@@ -89,6 +115,7 @@ const followUser = async (req, res) => {
     });
   }
 };
+
 
 /**
  * ====================================
@@ -128,7 +155,46 @@ const unfollowUser = async (req, res) => {
         message: "You are not following this user.",
       });
     }
+    try {
+      let followerUser = null;
+      let followedUser = null;
+      try {
+        followerUser = await clerkClient.users.getUser(followerId);
+        followedUser = await clerkClient.users.getUser(followedId);
+      } catch (err) {
+        console.warn(
+          `Cannot fetch user details for logging unfollow:`,
+          err.message
+        );
+      }
 
+      const followerName =
+        followerUser?.username ||
+        followerUser?.firstName ||
+        "Người dùng ẩn danh";
+      const followedName =
+        followedUser?.username ||
+        followedUser?.firstName ||
+        "Người dùng ẩn danh";
+
+      // Khi unfollow, bản ghi Follow đã bị xóa, nên không có _id để truyền vào entityId.
+      // Tuy nhiên, chúng ta vẫn có thể truyền entityType là 'Follow' để phân loại.
+      await logActivity(
+        followerId,
+        "USER_UNFOLLOWED",
+        `${followerName} đã bỏ theo dõi ${followedName}.`,
+        'Follow', // ✅ Thay đổi từ null thành 'Follow'
+        null, // Giữ nguyên null vì bản ghi Follow đã bị xóa
+        req,
+        { unfollowedUserId: followedId } // ✅ Lưu ID thủ công vào payload
+      );
+
+      console.log(
+        `Activity logged: ${followerName} unfollowed ${followedName}.`
+      );
+    } catch (logError) {
+      console.error("Error logging USER_UNFOLLOWED activity:", logError);
+    }
     return res.status(200).json({
       success: true,
       message: "Successfully unfollowed user.",

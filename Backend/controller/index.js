@@ -7,12 +7,13 @@ const userAdminController = require("./admin/userAdminController"); // Import us
 const auctionAdminController = require("./admin/auction.controller");
 const transactionAdminController = require("./admin/transaction.controller");
 const categoryAdminController = require("./admin/category.controller");
-
+const activityLogAdminController = require("./admin/activityLogAdminController"); // Import activity log admin controller
 module.exports = {
   itemController,
   coinController,
   contactController,
   reportAdminController, // THÊM DÒNG NÀY VÀO ĐÂY
+  activityLogAdminController,
   adminStatsController,
   userAdminController,
   auctionAdminController,

@@ -4,12 +4,12 @@ const Report = require('../model/report.model');
 
 const createAutoReport = async (userId, violationType, description, payload) => {
   try {
-    console.log(`Attempting to create auto-report for user ${userId} with payload:`, payload);
+   
     const reportedUserId = userId !== 'unknown' ? userId : `IP_${payload.ip}`;
-    console.log(`Setting reportedUserId to: ${reportedUserId}`);
+  
     const report = await Report.create({
-      title: 'System: Spam Behavior Detected',
-      description: `Automatic report: User has exceeded the posting limit (3 posts in 1 minute), indicating potential spam behavior.`,
+      title: 'Hệ thống: Phát hiện hành vi spam',
+      description: `Báo cáo tự động: Người dùng đã vượt quá giới hạn đăng bài (3 bài trong 1 phút), có dấu hiệu spam.`,
       userId: null,
       reportType: 'system_generated_violation',
       reportedUserId: reportedUserId,
@@ -30,11 +30,11 @@ const createAutoReport = async (userId, violationType, description, payload) => 
 };
 
 const onLimitReached = async (req, res, options) => {
-  console.log('Request userId:', req.userId, 'Auth:', req.auth);
+
   const userId = req.userId || 'unknown'; // Dùng req.userId thay vì req.auth.userId
   const userIp = req.ip;
 
-  console.log(`Rate limit exceeded for user ${userId} (IP: ${userIp}) on ${req.path}.`);
+
 
   try {
     const violation = await UserViolation.create({
