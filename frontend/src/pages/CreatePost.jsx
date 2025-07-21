@@ -62,7 +62,6 @@ const CreatePost = () => {
   const [firstStepData, setFirstStepData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [shouldShowNotification, setShouldShowNotification] = useState(false);
-  const [aiChecking, setAiChecking] = useState(false);
 
   useEffect(() => {
     if (shouldShowNotification) {
@@ -167,6 +166,7 @@ const CreatePost = () => {
       const imageUrls = await Promise.all(uploadPromises);
 
       // Find pending status (changed from approved to pending)
+
       const pendingStatus = statuses.find(
         (status) => status.name.toLowerCase() === "pending"
       );
@@ -219,8 +219,8 @@ const CreatePost = () => {
 
       // =====================================
       // AI checking
-      console.log(AI_WEBHOOK_URL);
-      if (aiChecking && AI_WEBHOOK_URL) {
+
+      if (AI_WEBHOOK_URL) {
         const toastLoading = toast.loading(
           "checking by AI please waiting 😊😊😊"
         );
@@ -228,7 +228,7 @@ const CreatePost = () => {
         try {
           const checkingAiResponse = (
             await axios.post(
-              "https://biduck5.app.n8n.cloud/webhook/d07d78a8-888d-45dc-ae10-d532de50d67b",
+              AI_WEBHOOK_URL,
 
               {
                 name: itemData.name,
@@ -241,14 +241,26 @@ const CreatePost = () => {
           const { isAccept, rejectReason } = checkingAiResponse;
 
           if (!isAccept) {
-            toast.error(rejectReason, {
+            toast.error(
+              `Hmm Your item is: ${rejectReason} need to review to be available😕😕😕`,
+              {
+                id: toastLoading,
+              }
+            );
+          } else {
+            toast.success("Pass AI checking", {
               id: toastLoading,
             });
-            return;
+
+            const approvedStatus = statuses.find(
+              (status) => status.name.toLowerCase() === "approved"
+            );
+            if (!approvedStatus) {
+              throw new Error("Pending status not found");
+            }
+
+            itemData.statusId = approvedStatus._id;
           }
-          toast.success("Pass AI checking", {
-            id: toastLoading,
-          });
         } catch (err) {
           console.error("AI checking error:", err);
           toast.error("Something wrong with AI please try later 😅😅😅", {
@@ -256,6 +268,8 @@ const CreatePost = () => {
           });
         }
       }
+
+      console.log(itemData);
       // =====================================
 
       const itemRes = await createItem(itemData);
@@ -520,14 +534,9 @@ const CreatePost = () => {
             <div className=" flex items-center justify-center">
               <div className="relative p-1.5 animated-border rounded-xl">
                 <div className="p-4 rounded-lg flex gap-2 items-center">
-                  <Text className="text-white">AI checking</Text>
-                  <Switch
-                    checked={aiChecking}
-                    onChange={() => setAiChecking(!aiChecking)}
-                    checkedChildren="Enabled"
-                    unCheckedChildren="Disabled"
-                    style={{ background: aiChecking ? "#4ae23a" : "#d9d9d9" }}
-                  />
+                  <Text className="text-white ">
+                    Sản phẩm của bạn sẽ được kiểm tra bằng AI 🤖🤖🤖
+                  </Text>
                 </div>
               </div>
               <style jsx>{`
