@@ -7,6 +7,7 @@ const {
   createNotification,
 } = require("../notification.duy/notificationController"); 
 const logActivity = require("../../utils/activityLogger");
+const Status = require("../../model/status.model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL STATUS
 const getAllItems = async (req, res) => {
   try {
     const items = await Item.find()
@@ -158,7 +159,6 @@ const getItemDetailById = async (req, res) => {
     let userInfo = null;
     if (item.owner) {
       const user = await clerkClient.users.getUser(item.owner);
-      
 
       if (user) {
         userInfo = {
@@ -312,7 +312,6 @@ const createItem = async (req, res) => {
       statusId,
     } = req.body;
 
-
     // Validate required fields
     if (
       !name ||
@@ -370,6 +369,14 @@ const createItem = async (req, res) => {
       owner,
       typeId,
       categoryId,
+      statusId,
+      pendingChanges: null, // Đảm bảo không có pendingChanges khi tạo sản phẩm mới
+    });
+
+    console.log("Creating new item without pendingChanges:", {
+      name,
+      price,
+      owner,
       statusId,
     });
 
@@ -437,7 +444,7 @@ const createItem = async (req, res) => {
             link: `/item/${item._id}`, // ✅ Chính xác với route
             sourceId: item._id,
             sourceModel: "Item",
-              io: io,
+            io: io,
           });
 
           // ✅ Gửi qua socket nếu có
@@ -475,107 +482,184 @@ const createItem = async (req, res) => {
   }
 };
 
-
 const getUserUploadedItems = async (req, res) => {
   try {
     const userId = req.userId; // Assuming middleware sets req.userId
     if (!userId) {
-      return res.status(401).json({ success: false, message: 'No user ID provided' });
+      return res
+        .status(401)
+        .json({ success: false, message: "No user ID provided" });
     }
 
     // Query database for items uploaded by the user
     const items = await Item.find({ owner: userId })
-      .populate('typeId', 'name')
-      .populate('categoryId', 'name')
-      .populate('statusId', 'name')
+      .populate("typeId", "name")
+      .populate("categoryId", "name")
+      .populate("statusId", "name")
       .sort({ createdAt: -1 })
       .lean();
 
     // Transform data to include relevant fields
-    const formattedItems = await Promise.all(items.map(async (item) => {
-      const baseItem = {
-        id: item._id,
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        images: item.images,
-        ratePrice: item.ratePrice,
-        type: item.typeId.name,
-        category: item.categoryId.name,
-        status: item.statusId.name,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      };
+    const formattedItems = await Promise.all(
+      items.map(async (item) => {
+        // Xử lý pendingChanges nếu có
+        let pendingChangesWithCategory = null;
+        if (
+          item.pendingChanges &&
+          Object.keys(item.pendingChanges).length > 0
+        ) {
+          pendingChangesWithCategory = { ...item.pendingChanges };
 
-      // Sold item
-      if (item.typeId.name === 'Sell' && item.statusId.name === 'Sold') {
-        const buyRecord = await Buy.findOne({ itemId: item._id }).lean();
-        if (buyRecord) {
-          baseItem.purchaseDate = buyRecord.createdAt;
-          baseItem.buyerId = buyRecord.buyer;
-          try {
-            const buyerInfo = await clerkClient.users.getUser(buyRecord.buyer);
-            if (buyerInfo) {
-              baseItem.buyer = {
-                name: `${buyerInfo.firstName || ''} ${buyerInfo.lastName || ''}`.trim(),
-                imageUrl: buyerInfo.imageUrl || '',
-                hasImage: buyerInfo.hasImage || false,
-                emailAddresses: buyerInfo.emailAddresses.map(email => email.emailAddress) || [],
-                phoneNumbers: buyerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
-              };
+          // Thêm category name nếu có categoryId
+          if (pendingChangesWithCategory.categoryId) {
+            try {
+              const category = await mongoose
+                .model("Category")
+                .findById(pendingChangesWithCategory.categoryId);
+              if (category) {
+                pendingChangesWithCategory.category = category.name;
+              }
+            } catch (err) {
+              console.error(
+                `Error fetching category for item ${item._id}:`,
+                err
+              );
+              // Nếu không tìm được, sử dụng category hiện tại
+              pendingChangesWithCategory.category = item.categoryId.name;
             }
-          } catch (buyerError) {
-            console.error(`Error fetching buyer details for ${buyRecord.buyer}:`, buyerError);
-            baseItem.buyer = { name: 'Unknown', imageUrl: '', hasImage: false, emailAddresses: [], phoneNumbers: [] };
+          } else {
+            pendingChangesWithCategory.category = item.categoryId.name;
           }
         }
-      }
 
-      if (item.typeId.name === 'Borrow' && item.statusId.name === 'Borrowed') {
-        const borrowRecords = await Borrow.find({ itemId: item._id})
-          .sort({ startTime: -1 }) // Latest borrowing first
-          .lean();
+        const baseItem = {
+          id: item._id,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          images: item.images,
+          ratePrice: item.ratePrice,
+          type: item.typeId.name,
+          category: item.categoryId.name,
+          status: item.statusId.name,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          pendingChanges: pendingChangesWithCategory,
+        };
 
-        if (borrowRecords.length > 0) {
-          baseItem.borrowingHistory = await Promise.all(borrowRecords.map(async (borrow) => {
-            const history = {
-              borrowId: borrow._id,
-              totalPrice: borrow.totalPrice,
-              startTime: borrow.startTime,
-              endTime: borrow.endTime,
-              borrowerId: borrow.borrowers,
-              borrower: null
-            };
+        // Sold item
+        if (item.typeId.name === "Sell" && item.statusId.name === "Sold") {
+          const buyRecord = await Buy.findOne({ itemId: item._id }).lean();
+          if (buyRecord) {
+            baseItem.purchaseDate = buyRecord.createdAt;
+            baseItem.buyerId = buyRecord.buyer;
             try {
-              const borrowerInfo = await clerkClient.users.getUser(borrow.borrowers);
-              if (borrowerInfo) {
-                history.borrower = {
-                  name: `${borrowerInfo.firstName || ''} ${borrowerInfo.lastName || ''}`.trim(),
-                  imageUrl: borrowerInfo.imageUrl || '',
-                  hasImage: borrowerInfo.hasImage || false,
-                  emailAddresses: borrowerInfo.emailAddresses.map(email => email.emailAddress) || [],
-                  phoneNumbers: borrowerInfo.phoneNumbers.map(phone => phone.phoneNumber) || [],
+              const buyerInfo = await clerkClient.users.getUser(
+                buyRecord.buyer
+              );
+              if (buyerInfo) {
+                baseItem.buyer = {
+                  name: `${buyerInfo.firstName || ""} ${
+                    buyerInfo.lastName || ""
+                  }`.trim(),
+                  imageUrl: buyerInfo.imageUrl || "",
+                  hasImage: buyerInfo.hasImage || false,
+                  emailAddresses:
+                    buyerInfo.emailAddresses.map(
+                      (email) => email.emailAddress
+                    ) || [],
+                  phoneNumbers:
+                    buyerInfo.phoneNumbers.map((phone) => phone.phoneNumber) ||
+                    [],
                 };
               }
-            } catch (borrowerError) {
-              console.error(`Error fetching borrower details for ${borrow.borrowers}:`, borrowerError);
-              history.borrower = { name: 'Unknown', imageUrl: '', hasImage: false, emailAddresses: [], phoneNumbers: [] };
+            } catch (buyerError) {
+              console.error(
+                `Error fetching buyer details for ${buyRecord.buyer}:`,
+                buyerError
+              );
+              baseItem.buyer = {
+                name: "Unknown",
+                imageUrl: "",
+                hasImage: false,
+                emailAddresses: [],
+                phoneNumbers: [],
+              };
             }
-            return history;
-          }));
+          }
         }
-      }
 
-      return baseItem;
-    }));
+        if (
+          item.typeId.name === "Borrow" &&
+          item.statusId.name === "Borrowed"
+        ) {
+          const borrowRecords = await Borrow.find({ itemId: item._id })
+            .sort({ startTime: -1 }) // Latest borrowing first
+            .lean();
+
+          if (borrowRecords.length > 0) {
+            baseItem.borrowingHistory = await Promise.all(
+              borrowRecords.map(async (borrow) => {
+                const history = {
+                  borrowId: borrow._id,
+                  totalPrice: borrow.totalPrice,
+                  startTime: borrow.startTime,
+                  endTime: borrow.endTime,
+                  borrowerId: borrow.borrowers,
+                  borrower: null,
+                };
+                try {
+                  const borrowerInfo = await clerkClient.users.getUser(
+                    borrow.borrowers
+                  );
+                  if (borrowerInfo) {
+                    history.borrower = {
+                      name: `${borrowerInfo.firstName || ""} ${
+                        borrowerInfo.lastName || ""
+                      }`.trim(),
+                      imageUrl: borrowerInfo.imageUrl || "",
+                      hasImage: borrowerInfo.hasImage || false,
+                      emailAddresses:
+                        borrowerInfo.emailAddresses.map(
+                          (email) => email.emailAddress
+                        ) || [],
+                      phoneNumbers:
+                        borrowerInfo.phoneNumbers.map(
+                          (phone) => phone.phoneNumber
+                        ) || [],
+                    };
+                  }
+                } catch (borrowerError) {
+                  console.error(
+                    `Error fetching borrower details for ${borrow.borrowers}:`,
+                    borrowerError
+                  );
+                  history.borrower = {
+                    name: "Unknown",
+                    imageUrl: "",
+                    hasImage: false,
+                    emailAddresses: [],
+                    phoneNumbers: [],
+                  };
+                }
+                return history;
+              })
+            );
+          }
+        }
+
+        return baseItem;
+      })
+    );
 
     return res.status(200).json({ success: true, data: formattedItems });
   } catch (error) {
-    console.error('Error fetching user uploaded items:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
+    console.error("Error fetching user uploaded items:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
-
 
 // 📌 API: GET /api/items/by-owner/:ownerId
 const getItemsByOwner = async (req, res) => {
@@ -583,21 +667,235 @@ const getItemsByOwner = async (req, res) => {
     const { ownerId } = req.params;
 
     if (!ownerId) {
-      return res.status(400).json({ success: false, message: "Missing ownerId" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing ownerId" });
     }
 
     const items = await Item.find({ owner: ownerId })
-      .select('_id name') // chỉ trả về id và tên
+      .select("_id name") // chỉ trả về id và tên
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       count: items.length,
-      data: items
+      data: items,
     });
   } catch (err) {
     console.error("Error fetching items by owner:", err);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Function to handle item edit requests that require approval
+const submitItemEditRequest = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const userId = req.userId;
+    const { name, description, price, categoryId, images } = req.body;
+
+    console.log("Received edit request for item:", {
+      itemId,
+      userId,
+      name,
+      description,
+      price,
+      categoryId,
+      imagesCount: images ? images.length : 0,
+    });
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      console.log("Invalid item ID format:", itemId);
+      return res.status(400).json({
+        success: false,
+        message: "Invalid item ID format",
+      });
+    }
+
+    // Find the item
+    const item = await Item.findById(itemId);
+
+    if (!item) {
+      console.log("Item not found:", itemId);
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    // Check if the user is the owner of the item
+    if (item.owner !== userId) {
+      console.log("Unauthorized edit attempt:", {
+        itemOwner: item.owner,
+        requestedBy: userId,
+      });
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to edit this item",
+      });
+    }
+
+    // Check if item is eligible for editing (not sold, borrowed, or in auction)
+    const statusName = (await item.populate("statusId")).statusId.name;
+    const typeName = (await item.populate("typeId")).typeId.name;
+
+    console.log("Item status check:", {
+      itemId,
+      status: statusName,
+      type: typeName,
+    });
+
+    if (
+      statusName === "Sold" ||
+      statusName === "Borrowed" ||
+      statusName === "In Auction"
+    ) {
+      console.log(`Cannot edit item with status ${statusName}:`, itemId);
+      return res.status(400).json({
+        success: false,
+        message: `Cannot edit an item that is ${statusName}`,
+      });
+    }
+
+    // Validate categoryId if provided
+    if (categoryId && !mongoose.Types.ObjectId.isValid(categoryId)) {
+      console.log("Invalid category ID format:", categoryId);
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category ID format",
+      });
+    }
+
+    // Create a pending edit request in the database
+    // Store the pending changes in the item document
+    const pendingChanges = {
+      name: name || item.name,
+      description: description || item.description,
+      price: price !== undefined ? Number(price) : item.price,
+      categoryId: categoryId || item.categoryId,
+      images: images || item.images,
+      requestDate: new Date(),
+      requestedBy: userId,
+      status: "pending", // pending, approved, rejected
+    };
+
+    console.log(
+      "Creating pending changes:",
+      JSON.stringify(pendingChanges, null, 2)
+    );
+
+    // Assign the pending changes to the item
+    item.pendingChanges = pendingChanges;
+
+    // Set the item status to Pending
+    try {
+      const pendingStatus = await Status.findOne({ name: "Pending" });
+      if (pendingStatus) {
+        // Only update status if current status is not already "Pending"
+        if (!item.statusId.equals(pendingStatus._id)) {
+          console.log(`Updating item status to Pending for item ${itemId}`);
+          item.statusId = pendingStatus._id;
+        }
+      } else {
+        console.warn("Pending status not found in database");
+      }
+    } catch (statusError) {
+      console.error("Error updating item status:", statusError);
+    }
+
+    try {
+      await item.save();
+      console.log("Edit request saved successfully for item:", itemId);
+    } catch (saveError) {
+      console.error("Error saving item with pending changes:", saveError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save edit request",
+        error: saveError.message,
+      });
+    }
+
+    // Notify admin about the edit request (could implement email or in-app notification)
+    const io = req.app.get("socketio");
+    if (io) {
+      try {
+        // Emit event to admin users
+        io.to("admin").emit("item_edit_request", {
+          itemId: item._id,
+          itemName: item.name,
+          requestDate: new Date(),
+          requestedBy: userId,
+        });
+        console.log("Admin notification sent for edit request:", itemId);
+      } catch (notifyError) {
+        console.error("Error sending admin notification:", notifyError);
+        // Continue even if notification fails
+      }
+    }
+
+    // Get the updated item with populated fields for the response
+    const updatedItem = await Item.findById(itemId)
+      .populate("typeId")
+      .populate("categoryId")
+      .populate("statusId")
+      .lean();
+
+    // Lấy thêm thông tin category nếu có
+    let categoryName = updatedItem.categoryId?.name || "Unknown";
+
+    // Nếu có categoryId mới trong pendingChanges, cần lấy tên của category đó
+    if (
+      pendingChanges.categoryId &&
+      pendingChanges.categoryId.toString() !==
+        updatedItem.categoryId?._id?.toString()
+    ) {
+      try {
+        const newCategory = await mongoose
+          .model("Category")
+          .findById(pendingChanges.categoryId);
+        if (newCategory) {
+          pendingChanges.category = newCategory.name; // Thêm tên category vào pendingChanges
+        }
+      } catch (err) {
+        console.error("Error fetching category name:", err);
+      }
+    } else {
+      // Sử dụng category hiện tại nếu không có thay đổi
+      pendingChanges.category = categoryName;
+    }
+
+    // Format the response data
+    const responseData = {
+      id: updatedItem._id,
+      name: updatedItem.name,
+      description: updatedItem.description,
+      price: updatedItem.price,
+      category: categoryName,
+      type: updatedItem.typeId?.name || "Unknown",
+      status: updatedItem.statusId?.name || "Unknown",
+      images: updatedItem.images,
+      createdAt: updatedItem.createdAt,
+      updatedAt: updatedItem.updatedAt,
+      pendingChanges: {
+        ...pendingChanges,
+        categoryId: pendingChanges.categoryId
+          ? pendingChanges.categoryId.toString()
+          : null,
+      },
+    };
+
+    res.status(200).json({
+      success: true,
+      message: "Edit request submitted for approval",
+      data: responseData,
+    });
+  } catch (error) {
+    console.error("Error submitting item edit request:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while submitting edit request",
+      error: error.message,
+    });
   }
 };
 
@@ -611,4 +909,5 @@ module.exports = {
   createItem,
   getUserUploadedItems,
   getItemsByOwner,
+  submitItemEditRequest,
 };

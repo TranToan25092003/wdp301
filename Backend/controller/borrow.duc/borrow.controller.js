@@ -190,9 +190,10 @@ const getAllBorrowRecordByUserId = async (req, res) => {
 
     // Check if records exist
     if (!borrowRecords || borrowRecords.length === 0) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "No borrow records found for this user",
+        data: []
       });
     }
 
