@@ -72,7 +72,7 @@ const onLimitReached = async (req, res, options) => {
 
 exports.createItemLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 3,
+  max: 2,
   message: 'Bạn đang đăng tin quá nhanh. Vui lòng đợi một lát rồi thử lại.',
   statusCode: 429,
   handler: onLimitReached,
@@ -81,7 +81,7 @@ exports.createItemLimiter = rateLimit({
 
 exports.submitReportLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 3,
+  max: 4,
   message: 'Bạn đang gửi báo cáo quá thường xuyên. Vui lòng đợi một lát rồi thử lại.',
   statusCode: 429,
   handler: onLimitReached,

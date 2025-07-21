@@ -2,9 +2,9 @@ const { Buy, Borrow, Report, Item } = require("../../model");
 const { clerkClient } = require("../../config/clerk");
 
 // Define constants for automatic reporting thresholds
-const MIN_PROBLEMATIC_BORROW_VIOLATIONS = 2;
-const MIN_REPORT_COUNT_FOR_AUTO_FLAG = 3;
-const AUTO_REPORT_COOL_DOWN_DAYS = 7;
+const MIN_PROBLEMATIC_BORROW_VIOLATIONS = 2; // This constant is no longer used for auto-reporting but kept for potential future use or if other parts of the system rely on it.
+const MIN_REPORT_COUNT_FOR_AUTO_FLAG = 3; // This constant is no longer used for auto-reporting but kept for potential future use.
+const AUTO_REPORT_COOL_DOWN_DAYS = 7; // This constant is no longer used for auto-reporting but kept for potential future use.
 
 async function getClerkUsersInfo(clerkUserIds) {
   const uniqueUserIds = [...new Set(clerkUserIds)].filter(
@@ -329,40 +329,40 @@ module.exports.getAdminReport = async (req, res) => {
     });
 
     const reliableSellers = Object.entries(sellerPerformance)
-  .map(([ownerId, stats]) => ({
-    user: clerkUserMap[ownerId] || {
-      id: ownerId,
-      name: `Unknown (${ownerId})`,
-      email: "N/A",
-      isBanned: false,
-    },
-    ...stats,
-    totalCancellations: stats.canceledBuys + stats.canceledBorrows,
-    averageRating:
-      stats.ratedReportsCount > 0
-        ? stats.summedRatings / stats.ratedReportsCount
-        : null,
-  }))
-  .filter((seller) => {
-    const meetsTransactionCount = seller.totalTransactions >= 5;
-    const meetsCancellationCriteria = seller.totalCancellations <= 2;
-    const meetsRatingCriteria = seller.averageRating !== null && seller.averageRating >= 3.0;
-    const hasEnoughRatings = seller.ratedReportsCount >= 3;
-    return (
-      meetsTransactionCount &&
-      meetsCancellationCriteria &&
-      meetsRatingCriteria &&
-      hasEnoughRatings
-    );
-  })
-  .sort((a, b) => {
-    if (b.averageRating !== a.averageRating) {
-      return b.averageRating - a.averageRating;
-    }
-    return b.totalTransactions - a.totalTransactions;
-  })
-  .slice(0, 5);
-
+      .map(([ownerId, stats]) => ({
+        user: clerkUserMap[ownerId] || {
+          id: ownerId,
+          name: `Unknown (${ownerId})`,
+          email: "N/A",
+          isBanned: false,
+        },
+        ...stats,
+        totalCancellations: stats.canceledBuys + stats.canceledBorrows,
+        averageRating:
+          stats.ratedReportsCount > 0
+            ? stats.summedRatings / stats.ratedReportsCount
+            : null,
+      }))
+      .filter((seller) => {
+        const meetsTransactionCount = seller.totalTransactions >= 5;
+        const meetsCancellationCriteria = seller.totalCancellations <= 2;
+        const meetsRatingCriteria =
+          seller.averageRating !== null && seller.averageRating >= 3.0;
+        const hasEnoughRatings = seller.ratedReportsCount >= 3;
+        return (
+          meetsTransactionCount &&
+          meetsCancellationCriteria &&
+          meetsRatingCriteria &&
+          hasEnoughRatings
+        );
+      })
+      .sort((a, b) => {
+        if (b.averageRating !== a.averageRating) {
+          return b.averageRating - a.averageRating;
+        }
+        return b.totalTransactions - a.totalTransactions;
+      })
+      .slice(0, 5);
 
     const problematicBorrowers = {};
     const lateUnreturnedBorrows = await Borrow.find({
@@ -406,66 +406,12 @@ module.exports.getAdminReport = async (req, res) => {
         totalViolations: stats.totalViolations,
       }));
 
-    const now = new Date();
-    const coolDownDate = new Date(
-      now.getTime() - AUTO_REPORT_COOL_DOWN_DAYS * 24 * 60 * 60 * 1000
-    );
+    // --- START: Removed automatic report generation logic ---
+    // The following blocks have been removed as per the request:
+    // 1. Automatic reporting for problematic borrow behavior.
+    // 2. Automatic reporting for frequently reported users.
+    // --- END: Removed automatic report generation logic ---
 
-    for (const borrower of mostProblematicBorrowers) {
-      if (borrower.totalViolations >= MIN_PROBLEMATIC_BORROW_VIOLATIONS) {
-        const existingAutoReport = await Report.findOne({
-          reportedUserId: borrower.user.id,
-          reportType: "system_generated_violation",
-          description: { $regex: /problematic borrow behavior/i },
-          createdAt: { $gte: coolDownDate },
-        });
-
-        if (!existingAutoReport) {
-          await Report.create({
-            title: `System: Problematic Borrow Behavior Detected for ${
-              borrower.user.name || borrower.user.id
-            }`,
-            userId: null,
-            reportedUserId: borrower.user.id,
-            reportType: "system_generated_violation",
-            description: `Automatic report: User has ${borrower.totalViolations} problematic borrow(s) (late: ${borrower.lateCount}, unreturned: ${borrower.unreturnedCount}).`,
-            status: "pending",
-            createdAt: new Date(),
-          });
-          console.log(
-            `Auto-reported problematic borrower: ${borrower.user.name} (${borrower.user.id})`
-          );
-        }
-      }
-    }
-
-    for (const reportedUser of mostReportedUsers) {
-      if (reportedUser.reportCount >= MIN_REPORT_COUNT_FOR_AUTO_FLAG) {
-        const existingAutoReport = await Report.findOne({
-          reportedUserId: reportedUser.user.id,
-          reportType: "system_generated_violation",
-          description: { $regex: /frequently reported/i },
-          createdAt: { $gte: coolDownDate },
-        });
-
-        if (!existingAutoReport) {
-          await Report.create({
-            title: `System: User Frequently Reported - ${
-              reportedUser.user.name || reportedUser.user.id
-            }`,
-            userId: null,
-            reportedUserId: reportedUser.user.id,
-            reportType: "system_generated_violation",
-            description: `Automatic report: User has been frequently reported (${reportedUser.reportCount} times).`,
-            status: "pending",
-            createdAt: new Date(),
-          });
-          console.log(
-            `Auto-reported frequently reported user: ${reportedUser.user.name} (${reportedUser.user.id})`
-          );
-        }
-      }
-    }
     // Thống kê các loại báo cáo KHÁC ngoài spam, user_behavior, system_generated_violation
     const otherTypeReports = await Report.find({
       ...dateFilter,
@@ -492,7 +438,7 @@ module.exports.getAdminReport = async (req, res) => {
         mostReportedUsers,
         reliableSellers,
         mostProblematicBorrowers,
-         otherReportStats: otherReportStats || {}
+        otherReportStats: otherReportStats || {},
       },
     });
   } catch (error) {
