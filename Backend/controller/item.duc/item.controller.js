@@ -673,7 +673,7 @@ const getItemsByOwner = async (req, res) => {
     }
 
     const items = await Item.find({ owner: ownerId })
-      .select("_id name") // chỉ trả về id và tên
+      .select("_id name images owner") // chỉ trả về id và tên
       .sort({ createdAt: -1 });
 
     res.status(200).json({

@@ -46,23 +46,34 @@ const CreateReportPage = () => {
       return;
     }
 
-    try {
+     try {
       const resUser = await customFetch.get(`/users/by-email/${sellerEmail}`);
-      const userId = resUser.data?.id;
+      const sellerClerkId = resUser.data?.id; // Đổi tên biến để rõ ràng hơn
 
-      if (!userId) {
+      if (!sellerClerkId) {
         toast.error("Không tìm thấy người dùng với email này.");
         return;
       }
 
-      const resItems = await customFetch.get(`/items/by-owner/${userId}`);
-      const itemList = resItems.data?.data || [];
+      const resItems = await customFetch.get(`/items/by-owner/${sellerClerkId}`);
+      let itemList = resItems.data?.data || [];
 
-      if (itemList.length === 0) {
-        toast.warning("Người bán này chưa có sản phẩm nào.");
+      // 1. Logic ngăn chặn tự đánh giá sản phẩm của chính mình
+      // 2. Logic chỉ hiển thị sản phẩm có ảnh
+      const filteredItems = itemList.filter(item =>
+        item.owner !== currentUserId && // Lọc bỏ sản phẩm của chính người dùng
+        item.images && item.images.length > 0 // Lọc bỏ sản phẩm không có ảnh
+      );
+
+      if (filteredItems.length === 0) {
+          if (itemList.length > 0) {
+              toast.warning("Người bán này chỉ có sản phẩm của bạn, hoặc các sản phẩm không có ảnh. Bạn không thể tự đánh giá sản phẩm của mình hoặc chọn sản phẩm không có ảnh.");
+          } else {
+              toast.warning("Người bán này chưa có sản phẩm nào.");
+          }
       }
 
-      setItems(itemList);
+      setItems(filteredItems);
     } catch (err) {
       console.error(err);
       toast.error("Lỗi khi tìm người dùng hoặc sản phẩm.");
@@ -283,11 +294,20 @@ const CreateReportPage = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {items.map((item) => (
-                          <SelectItem key={item._id} value={item._id}>
+                           <SelectItem key={item._id} value={item._id}>
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <FileText className="w-4 h-4 text-gray-600" />
-                              </div>
+                              {/* THAY THẾ BIỂU TƯỢNG BẰNG ẢNH SẢN PHẨM NẾU CÓ */}
+                              {item.images && item.images.length > 0 ? (
+                                <img
+                                  src={item.images[0]} // Hiển thị ảnh đầu tiên
+                                  alt={item.name}
+                                  className="w-8 h-8 object-cover rounded-lg"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                  <FileText className="w-4 h-4 text-gray-600" />
+                                </div>
+                              )}
                               <span className="font-medium">{item.name}</span>
                             </div>
                           </SelectItem>

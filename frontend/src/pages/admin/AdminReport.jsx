@@ -430,14 +430,6 @@ const AdminReport = () => {
                         <p>Trả Muộn: {borrowerStat.lateCount}</p>
                         <p>Không Trả: {borrowerStat.unreturnedCount}</p>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/admin/reports/user/${borrowerStat.user.id}`)}
-                        className="mt-2 text-red-600 border-red-300 hover:bg-red-50"
-                      >
-                        Xem Chi Tiết Người Dùng
-                      </Button>
                     </div>
                   ))}
                 </div>
