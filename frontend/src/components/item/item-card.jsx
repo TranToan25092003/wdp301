@@ -22,7 +22,10 @@ const ProductCard = ({ item }) => {
       currency: "USD",
     }).format(price);
 
-  const displayPrice = ratePrice !== "no" ? `${formatPrice(price)} / ${ratePrice}` : formatPrice(price);
+  const displayPrice =
+    ratePrice !== "no"
+      ? `${formatPrice(price)} / ${ratePrice}`
+      : formatPrice(price);
 
   // Format time since uploaded
   const formatTimeAgo = (createdAt) => {
@@ -32,13 +35,16 @@ const ProductCard = ({ item }) => {
     const diffInMs = now - created;
     const diffInSeconds = Math.floor(diffInMs / 1000);
 
-    if (diffInSeconds < 60) return `${diffInSeconds} second${diffInSeconds !== 1 ? 's' : ''} ago`;
+    if (diffInSeconds < 60)
+      return `${diffInSeconds} second${diffInSeconds !== 1 ? "s" : ""} ago`;
     const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+    if (diffInMinutes < 60)
+      return `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`;
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+    if (diffInHours < 24)
+      return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`;
     const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+    return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`;
   };
 
   // Handle image display
@@ -67,7 +73,11 @@ const ProductCard = ({ item }) => {
 
     // Case: Multiple images (use carousel)
     return (
-      <Carousel autoplay dots={{ className: "carousel-dots" }} style={{ height: "200px" }}>
+      <Carousel
+        autoplay
+        dots={{ className: "carousel-dots" }}
+        style={{ height: "200px" }}
+      >
         {images.map((image, index) => (
           <div key={index}>
             <img
@@ -89,13 +99,19 @@ const ProductCard = ({ item }) => {
       bodyStyle={{ padding: "12px" }}
     >
       <Card.Meta
-        title={<Title level={5} style={{ margin: 0 }}>{name}</Title>}
+        title={
+          <Title level={5} style={{ margin: 0 }}>
+            {name}
+          </Title>
+        }
         description={
           <>
             <Paragraph strong style={{ margin: "4px 0" }}>
               {displayPrice}
             </Paragraph>
-            <Paragraph style={{ margin: "4px 0", color: "#888", fontSize: "12px" }}>
+            <Paragraph
+              style={{ margin: "4px 0", color: "#888", fontSize: "12px" }}
+            >
               Uploaded {formatTimeAgo(createdAt)}
             </Paragraph>
             <Tag color="blue">{categoryId?.name || "Unknown"}</Tag>

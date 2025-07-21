@@ -12,7 +12,7 @@ const AuctionCard = ({ auction, onViewDetails }) => {
       hoverable
       style={{
         borderRadius: 18,
-        boxShadow: "0 4px 24px rgba(34,197,94,0.10)",
+        boxShadow: "0 4px 24px rgba(22, 101, 52, 0.15)",
         border: "1px solid #e5e7eb",
         padding: 0,
         margin: 0,
@@ -22,38 +22,67 @@ const AuctionCard = ({ auction, onViewDetails }) => {
       }}
       bodyStyle={{ padding: 18 }}
       cover={
-        <img
-          alt={auction.itemId?.name}
-          src={auction.itemId?.images?.[0] || "/assets/fallback.png"}
-          style={{
-            height: 180,
-            objectFit: "cover",
-            borderTopLeftRadius: 18,
-            borderTopRightRadius: 18,
-          }}
-        />
+        <div className="relative">
+          <img
+            alt={auction.itemId?.name}
+            src={auction.itemId?.images?.[0] || "/assets/fallback.png"}
+            style={{
+              height: 180,
+              objectFit: "cover",
+              borderTopLeftRadius: 18,
+              borderTopRightRadius: 18,
+            }}
+          />
+          <div className="absolute top-3 right-3">
+            <Tag
+              color="#16a34a"
+              style={{ fontWeight: "bold", fontSize: "12px" }}
+            >
+              ĐANG ĐẤU GIÁ
+            </Tag>
+          </div>
+        </div>
       }
       onClick={onViewDetails}
     >
       <div style={{ minHeight: 60 }}>
-        <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>
+        <h3
+          style={{
+            fontWeight: 700,
+            fontSize: 18,
+            marginBottom: 4,
+            color: "#166534",
+          }}
+        >
           {auction.itemId?.name}
         </h3>
-        <div style={{ color: "#64748b", fontSize: 13, marginBottom: 8 }}>
+        <div style={{ color: "#4b5563", fontSize: 13, marginBottom: 12 }}>
           {auction.itemId?.description?.slice(0, 60) || ""}
         </div>
-        <div style={{ marginBottom: 8 }}>
-          <Tag color="green">Hiện tại: {auction.currentPrice} đ</Tag>
-          {/* <Tag color="blue">
-            {typeof bidCount === "number"
-              ? bidCount
-              : auction.bids?.length || 0}{" "}
-            lượt bid
-          </Tag> */}
+        <div
+          style={{
+            marginBottom: 8,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Tag color="#16a34a" style={{ fontSize: "14px", padding: "2px 8px" }}>
+            Giá hiện tại: {auction.currentPrice.toLocaleString()} ₫
+          </Tag>
+          <Tag color="#0891b2" style={{ fontSize: "12px" }}>
+            {auction.bids?.length || 0} lượt đấu
+          </Tag>
         </div>
-        <div>
-          <span style={{ fontSize: 14, color: "#64748b" }}>
-            {isNotStarted ? "" : "Kết thúc sau: "}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontSize: 14, color: "#4b5563", fontWeight: 500 }}>
+            {isNotStarted ? "Bắt đầu sau: " : "Kết thúc sau: "}
           </span>
           <CountdownTimer
             endTime={auction.endTime}
@@ -66,16 +95,18 @@ const AuctionCard = ({ auction, onViewDetails }) => {
         style={{
           marginTop: 16,
           width: "100%",
-          background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+          background: "linear-gradient(135deg, #166534 0%, #16a34a 100%)",
           border: "none",
           fontWeight: 600,
+          height: "40px",
+          borderRadius: "10px",
         }}
         onClick={(e) => {
           e.stopPropagation();
           onViewDetails();
         }}
       >
-        Xem chi tiết
+        Đấu giá ngay
       </Button>
     </Card>
   );
