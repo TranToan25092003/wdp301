@@ -16,6 +16,7 @@ export const adminLinks = [
   { href: "/admin/report", label: "report" },
   { href: "/admin/auction-items", label: "auction items" },
   { href: "/admin/category", label: "category" },
+  
   {
     href: "/admin/contact",
     label: "contact info",
@@ -24,6 +25,7 @@ export const adminLinks = [
     href: "/admin/transaction",
     label: "Transactions",
   },
+   { href: "/admin/item-feedback", label: "Phản Hồi Sản Phẩm" },
    {
     href: "/admin/activity-logs",
     label: "Lịch Sử Hoạt Động",

@@ -50,6 +50,7 @@ import {
   categoryAdminDashboardLoader,
 } from "./pages/admin/CategoryAdminDashboard";
 import ActivityLogList from "./pages/admin/ActivityLogList";
+import ItemFeedbackReport, { itemFeedbackReportLoader } from "./pages/admin/ItemFeedbackReport";
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const router = createBrowserRouter([
@@ -211,6 +212,11 @@ const router = createBrowserRouter([
             path: "activity-logs", // Đường dẫn để truy cập trang này: /admin/activity-logs
             element: <ActivityLogList />,
           },
+          {
+          path: "item-feedback",
+          element: <ItemFeedbackReport />,
+          loader: itemFeedbackReportLoader,
+}
         ],
       },
       {
