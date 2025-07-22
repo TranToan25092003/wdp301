@@ -10,7 +10,7 @@ const UserViolation = require('../model/userViolation.model');
  * @param {string} violationType - Loại vi phạm sẽ ghi vào UserViolation (ví dụ: 'item_spam', 'message_spam').
  * @returns {function} - Hàm middleware Express.
  */
-const checkSpamContent = (fieldToCheck, violationType = 'spam_content') => { // Đã sửa: giá trị mặc định của violationType thành 'spam_content'
+const checkSpamContent = (fieldToCheck, violationType = 'spam_content') => { 
     return async (req, res, next) => {
 
         const content = req.body[fieldToCheck];
