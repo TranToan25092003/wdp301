@@ -91,7 +91,7 @@ const createReport = async (req, res) => {
         if (isSpamDetected) {
             const userViolationDoc = await UserViolation.create({ // Ghi lại UserViolation
                 userId,
-                violationType: 'content_spam', // Đảm bảo giá trị này hợp lệ
+                violationType: 'spam_content', // Đảm bảo giá trị này hợp lệ
                 description: `Nội dung báo cáo có thể chứa spam hoặc nội dung không phù hợp: "${title}" - "${description}"`,
                 payload: { // Sử dụng 'payload' thay vì 'details' để nhất quán với schema UserViolation
                     reportTitle: title,

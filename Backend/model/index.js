@@ -11,7 +11,7 @@ const Test = require("./test.model");
 const Type = require("./type.model");
 const Session = require("./session.model");
 const Contact = require("./contact.model");
-const userViolation = require("./userViolation.model");
+const UserViolation = require("./userViolation.model");
 const Follow = require("./Follow.model");
 const Notification = require("./notification.model");
 const ActivityLog = require("./ActivityLog.model");
@@ -30,7 +30,7 @@ module.exports = {
   Bid,
   Session,
   Contact,
-  userViolation,
+  UserViolation,
   Notification,
   ActivityLog,
 };
