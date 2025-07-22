@@ -41,6 +41,7 @@ import { getAllItems, getRecentItems } from "@/API/duc.api/item.api";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
 import { getAllAuctions } from "@/API/huynt.api/auction.api";
 import AuctionCard from "@/components/auction/AuctionCard";
+import { filterNonDisplayableItems } from "@/lib/utils";
 
 export const homepageLoader = async () => {
   try {
@@ -88,7 +89,7 @@ const HeroSection = () => {
     <div className="relative overflow-hidden bg-gradient-to-r from-green-900 to-green-700 rounded-3xl py-16 px-6 md:px-12 my-8">
       {/* Animated circles in background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-        <div className="absolute w-72 h-72 rounded-full bg-green-500 opacity-20 -top-10 -right-10 animate-pulse"></div>
+        <div className="absolute w-72 h-72 rounded-full bg-green-500 opacity-10 -top-10 -right-10 animate-pulse"></div>
         <div className="absolute w-96 h-96 rounded-full bg-green-600 opacity-10 -bottom-20 -left-20"></div>
         <div
           className="absolute w-48 h-48 rounded-full bg-green-400 opacity-10 bottom-20 right-20 animate-bounce"
@@ -100,13 +101,31 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-7xl mx-auto">
         <Row gutter={[48, 32]} align="middle">
           <Col xs={24} md={14} lg={12}>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight">
-              OldWays - <span className="text-green-300">Chợ Đồ Cũ</span> Trực
-              Tuyến Hàng Đầu
+            <h1
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+              style={{
+                color: "#ffffff",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+              }}
+            >
+              OldWays -{" "}
+              <span
+                className="text-green-300"
+                style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.3)" }}
+              >
+                Chợ Đồ Cũ
+              </span>{" "}
+              Trực Tuyến Hàng Đầu
             </h1>
-            <p className="text-xl md:text-2xl text-green-100 mb-8">
+            <p
+              className="text-xl md:text-2xl mb-8"
+              style={{
+                color: "#ffffff",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.2)",
+              }}
+            >
               Nền tảng mua bán, đấu giá, cho mượn đồ cũ với giá trị hơn 10.000
-              đô
+              đồ
             </p>
             <div className="flex flex-wrap gap-4">
               <Button
@@ -114,9 +133,9 @@ const HeroSection = () => {
                 size="large"
                 onClick={() => (window.location.href = "/auctions")}
                 style={{
-                  background: "#ecfccb",
-                  borderColor: "#84cc16",
-                  color: "#166534",
+                  background: "#4ade80",
+                  borderColor: "#22c55e",
+                  color: "#052e16",
                   fontWeight: 600,
                   height: 50,
                   width: 180,
@@ -129,9 +148,9 @@ const HeroSection = () => {
               <Button
                 size="large"
                 style={{
-                  background: "rgba(255,255,255,0.2)",
-                  borderColor: "#d9f99d",
-                  color: "white",
+                  background: "rgba(255,255,255,0.9)",
+                  borderColor: "#4ade80",
+                  color: "#166534",
                   fontWeight: 600,
                   height: 50,
                   width: 180,
@@ -170,11 +189,11 @@ const HeroSection = () => {
               />
 
               {/* Price tags */}
-              <div className="absolute top-20 right-0 bg-green-100 text-green-800 font-bold py-2 px-4 rounded-full shadow-lg">
+              <div className="absolute top-20 right-0 bg-white text-green-800 font-bold py-2 px-4 rounded-full shadow-lg">
                 -30% Giảm
               </div>
 
-              <div className="absolute bottom-12 right-4 bg-amber-100 text-amber-800 font-bold py-2 px-4 rounded-full shadow-lg animate-pulse">
+              <div className="absolute bottom-12 right-4 bg-white text-amber-800 font-bold py-2 px-4 rounded-full shadow-lg animate-pulse">
                 Đấu giá sôi động
               </div>
             </div>
@@ -184,18 +203,57 @@ const HeroSection = () => {
         {/* Stats */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 text-center">
-            <div className="text-4xl font-bold text-white mb-2">1.5K+</div>
-            <div className="text-green-100">Sản phẩm đang bán</div>
+            <div
+              className="text-4xl font-bold mb-2"
+              style={{
+                color: "#22c55e",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              150+
+            </div>
+            <div
+              className="text-green-500 font-medium"
+              style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.2)" }}
+            >
+              Sản phẩm đang bán
+            </div>
           </div>
 
           <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 text-center">
-            <div className="text-4xl font-bold text-white mb-2">500+</div>
-            <div className="text-green-100">Phiên đấu giá thành công</div>
+            <div
+              className="text-4xl font-bold mb-2"
+              style={{
+                color: "#22c55e",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              500+
+            </div>
+            <div
+              className="text-green-500 font-medium"
+              style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.2)" }}
+            >
+              Phiên đấu giá thành công
+            </div>
           </div>
 
           <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 text-center">
-            <div className="text-4xl font-bold text-white mb-2">10K+</div>
-            <div className="text-green-100">Khách hàng hài lòng</div>
+            <div
+              className="text-4xl font-bold mb-2"
+              style={{
+                color: "#22c55e",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              100+
+            </div>
+            <div
+              className="text-green-500 font-medium"
+              style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.2)" }}
+            >
+              Khách hàng hài lòng
+            </div>
           </div>
         </div>
       </div>
@@ -562,16 +620,19 @@ const BenefitsSection = () => (
 );
 
 const HomePage = () => {
-  // const { dataItems, dataCategories, recentItems } = useLoaderData();
   const { dataCategories, recentItems, auctionsData } = useLoaderData();
   const navigate = useNavigate();
   const location = useLocation();
-  const [recent, setRecent] = useState(recentItems.data);
+  const [recent, setRecent] = useState(
+    filterNonDisplayableItems(recentItems.data)
+  );
   const [page, setPage] = useState(2); // Page 1 loaded
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(recentItems.data.length > 0);
   const [categories] = useState(dataCategories.data);
-  const [auctions] = useState(auctionsData?.auctions || []);
+  const [auctions] = useState(
+    filterNonDisplayableItems(auctionsData?.auctions || [])
+  );
   const [api, contextHolder] = notification.useNotification();
 
   useEffect(() => {
@@ -591,8 +652,9 @@ const HomePage = () => {
     setLoading(true);
     try {
       const res = await getRecentItems(page);
-      if (res.data.length > 0) {
-        setRecent((prev) => [...prev, ...res.data]);
+      const newItems = filterNonDisplayableItems(res.data);
+      if (newItems.length > 0) {
+        setRecent((prev) => [...prev, ...newItems]);
         setPage((prev) => prev + 1);
       } else {
         setHasMore(false); // No more data

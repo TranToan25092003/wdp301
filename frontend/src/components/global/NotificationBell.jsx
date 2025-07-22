@@ -73,37 +73,38 @@ const NotificationBell = () => {
     };
   }, [userId]);
 
- const handleNotificationClick = async (notification) => {
- 
-  if (!notification.isRead) {
-    try {
-      const token = await getToken();
-     
-      await fetch(`${API_URL}/notifications/mark-read/${notification._id}`, {
-        method: "PATCH", 
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+  const handleNotificationClick = async (notification) => {
+    if (!notification.isRead) {
+      try {
+        const token = await getToken();
 
-    
-      fetchNotifications();
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
+        await fetch(`${API_URL}/notifications/mark-read/${notification._id}`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        fetchNotifications();
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
     }
-  }
 
-  if (notification.type !== "follow" && notification.link && notification.link !== "#") {
-    navigate(notification.link);
-    setDropdownOpen(false);
-  }
-  
-  
-  if (notification.type === "follow") {
-    setDropdownOpen(false);
-  }
-};
+    if (
+      notification.type !== "follow" &&
+      notification.link &&
+      notification.link !== "#"
+    ) {
+      navigate(notification.link);
+      setDropdownOpen(false);
+    }
+
+    if (notification.type === "follow") {
+      setDropdownOpen(false);
+    }
+  };
   const handleDeleteNotification = async (id) => {
     try {
       const token = await getToken();
@@ -285,7 +286,7 @@ const NotificationBell = () => {
             placement="bottomRight"
           >
             <div className="flex items-center justify-center relative cursor-pointer">
-              <Bell className="w-6 h-6" />
+              <Bell className="w-8 h-8" />
               {unreadCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {unreadCount}
@@ -299,7 +300,7 @@ const NotificationBell = () => {
           className="flex items-center justify-center relative cursor-pointer"
           onClick={() => setShowAuthModal(true)}
         >
-          <Bell className="w-6 h-6" />
+          <Bell className="w-8 h-8" />
         </div>
       )}
 

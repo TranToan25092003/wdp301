@@ -2,10 +2,10 @@ const { Mongoose, default: mongoose } = require("mongoose");
 const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
 const { clerkClient } = require("../../config/clerk");
-const { Follow, Borrow, Buy } = require("../../model"); 
+const { Follow, Borrow, Buy } = require("../../model");
 const {
   createNotification,
-} = require("../notification.duy/notificationController"); 
+} = require("../notification.duy/notificationController");
 const logActivity = require("../../utils/activityLogger");
 const Status = require("../../model/status.model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL STATUS
 const getAllItems = async (req, res) => {
@@ -386,7 +386,9 @@ const createItem = async (req, res) => {
       const ownerUser = await clerkClient.users.getUser(owner);
       let ownerName = "Người dùng ẩn danh";
       if (ownerUser) {
-        const fullName = `${ownerUser.firstName || ""} ${ownerUser.lastName || ""}`.trim();
+        const fullName = `${ownerUser.firstName || ""} ${
+          ownerUser.lastName || ""
+        }`.trim();
         if (fullName) {
           ownerName = fullName;
         } else if (ownerUser.username) {
@@ -397,19 +399,20 @@ const createItem = async (req, res) => {
       }
 
       await logActivity(
-        owner, 
-        "ITEM_CREATED", 
-        `${ownerName} đã đăng tải vật phẩm mới: "${item.name}" (ID: ${item._id}).`, 
-        "Item", 
-        item._id, 
-        req 
+        owner,
+        "ITEM_CREATED",
+        `${ownerName} đã đăng tải vật phẩm mới: "${item.name}" (ID: ${item._id}).`,
+        "Item",
+        item._id,
+        req
       );
-      console.log(`Activity logged: Item "${item.name}" created by ${ownerName}.`);
+      console.log(
+        `Activity logged: Item "${item.name}" created by ${ownerName}.`
+      );
     } catch (logError) {
       console.error("Error logging ITEM_CREATED activity:", logError);
-      
     }
-   
+
     // THÊM LOGIC GỬI THÔNG BÁO TẠI ĐÂY
 
     const io = req.app.get("socketio");

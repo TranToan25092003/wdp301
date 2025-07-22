@@ -847,7 +847,7 @@ const BrowseItemContent = ({ data }) => {
                                 <div>Original: {product.name}</div>
                                 <div>Update: {product.pendingChanges.name}</div>
                                 <div>
-                                  Price: ${product.price} → $
+                                  Price: ${product.price} → $ 
                                   {product.pendingChanges.price}
                                 </div>
                               </div>

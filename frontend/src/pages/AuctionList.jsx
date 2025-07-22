@@ -1,50 +1,41 @@
-import React, { useState, useEffect } from "react";
-import { Layout, Typography, Divider, Button, Spin } from "antd";
+import React from "react";
+import { Layout, Typography } from "antd";
 import { useLoaderData, useNavigate } from "react-router-dom";
-import { getAllAuctions } from "@/API/huynt.api/auction.api";
 import AuctionCard from "@/components/auction/AuctionCard";
-import CreateAuctionForm from "@/components/auction/CreateAuctionForm";
-import { initializeSocket } from "@/utils/socket";
+import { getAllAuctions } from "@/API/huynt.api/auction.api";
+import { filterNonDisplayableAuctions } from "@/lib/utils";
 
 const { Content } = Layout;
 const { Title } = Typography;
 
 export const auctionListLoader = async () => {
   try {
-    const dataAuctions = await getAllAuctions();
-    return { dataAuctions };
+    const response = await getAllAuctions();
+    console.log("Raw auctions data:", response); // Debug log
+    return response;
   } catch (error) {
-    console.error("Error fetching auctions:", error);
-    return { dataAuctions: { data: [] } };
+    console.error("Error loading auctions:", error);
+    return { auctions: [] };
   }
 };
 
 const AuctionPage = () => {
-  const { dataAuctions } = useLoaderData();
-  const [auctions, setAuctions] = useState(dataAuctions.auctions || []);
+  const { auctions: rawAuctions } = useLoaderData();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const socketInstance = initializeSocket();
-
-    socketInstance.on("bidUpdate", (updatedAuction) => {
-      setAuctions((prev) =>
-        prev.map((auction) =>
-          auction._id === updatedAuction._id ? updatedAuction : auction
-        )
-      );
-    });
-
-    return () => {
-      socketInstance.off("bidUpdate");
-    };
-  }, []);
+  // Lọc các phiên đấu giá không hợp lệ
+  const auctions = filterNonDisplayableAuctions(rawAuctions);
+  console.log("Filtered auctions:", auctions); // Debug log
 
   return (
     <Layout style={{ backgroundColor: "#fff", padding: "20px" }}>
       <Content>
-        {auctions.length === 0 ? (
-          <Title level={4}>No auctions available</Title>
+        {!auctions || auctions.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <Title level={4} style={{ color: "#666" }}>
+              Không có phiên đấu giá nào đang diễn ra
+            </Title>
+          </div>
         ) : (
           <div
             style={{

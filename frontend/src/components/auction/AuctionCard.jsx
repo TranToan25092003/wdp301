@@ -1,11 +1,35 @@
 import React from "react";
-import { Card, Button, Tag } from "antd";
+import { Card, Button, Tag, Tooltip } from "antd";
 import CountdownTimer from "./CountdownTimer";
 
 const AuctionCard = ({ auction, onViewDetails }) => {
   const now = new Date();
   const startTime = new Date(auction.startTime);
+  const endTime = new Date(auction.endTime);
   const isNotStarted = now < startTime;
+  const isEnded = now > endTime;
+
+  // Xác định trạng thái hiển thị
+  const getStatusDisplay = () => {
+    if (isNotStarted) {
+      return {
+        text: "SẮP DIỄN RA",
+        color: "#0891b2",
+      };
+    }
+    if (isEnded) {
+      return {
+        text: "ĐÃ KẾT THÚC",
+        color: "#dc2626",
+      };
+    }
+    return {
+      text: "ĐANG ĐẤU GIÁ",
+      color: "#16a34a",
+    };
+  };
+
+  const status = getStatusDisplay();
 
   return (
     <Card
@@ -35,10 +59,10 @@ const AuctionCard = ({ auction, onViewDetails }) => {
           />
           <div className="absolute top-3 right-3">
             <Tag
-              color="#16a34a"
+              color={status.color}
               style={{ fontWeight: "bold", fontSize: "12px" }}
             >
-              ĐANG ĐẤU GIÁ
+              {status.text}
             </Tag>
           </div>
         </div>
@@ -67,9 +91,14 @@ const AuctionCard = ({ auction, onViewDetails }) => {
             alignItems: "center",
           }}
         >
-          <Tag color="#16a34a" style={{ fontSize: "14px", padding: "2px 8px" }}>
-            Giá hiện tại: {auction.currentPrice.toLocaleString()} ₫
-          </Tag>
+          <Tooltip title="Giá khởi điểm: ${auction.startingPrice.toLocaleString()} ₫">
+            <Tag
+              color="#16a34a"
+              style={{ fontSize: "14px", padding: "2px 8px" }}
+            >
+              Giá hiện tại: {auction.currentPrice.toLocaleString()} ₫
+            </Tag>
+          </Tooltip>
           <Tag color="#0891b2" style={{ fontSize: "12px" }}>
             {auction.bids?.length || 0} lượt đấu
           </Tag>
@@ -82,12 +111,18 @@ const AuctionCard = ({ auction, onViewDetails }) => {
           }}
         >
           <span style={{ fontSize: 14, color: "#4b5563", fontWeight: 500 }}>
-            {isNotStarted ? "Bắt đầu sau: " : "Kết thúc sau: "}
+            {isNotStarted
+              ? "Bắt đầu sau: "
+              : isEnded
+              ? "Đã kết thúc"
+              : "Kết thúc sau: "}
           </span>
-          <CountdownTimer
-            endTime={auction.endTime}
-            startTime={auction.startTime}
-          />
+          {!isEnded && (
+            <CountdownTimer
+              endTime={auction.endTime}
+              startTime={auction.startTime}
+            />
+          )}
         </div>
       </div>
       <Button
@@ -95,7 +130,9 @@ const AuctionCard = ({ auction, onViewDetails }) => {
         style={{
           marginTop: 16,
           width: "100%",
-          background: "linear-gradient(135deg, #166534 0%, #16a34a 100%)",
+          background: isEnded
+            ? "linear-gradient(135deg, #991b1b 0%, #dc2626 100%)"
+            : "linear-gradient(135deg, #166534 0%, #16a34a 100%)",
           border: "none",
           fontWeight: 600,
           height: "40px",
@@ -106,7 +143,11 @@ const AuctionCard = ({ auction, onViewDetails }) => {
           onViewDetails();
         }}
       >
-        Đấu giá ngay
+        {isEnded
+          ? "Xem kết quả"
+          : isNotStarted
+          ? "Xem chi tiết"
+          : "Đấu giá ngay"}
       </Button>
     </Card>
   );

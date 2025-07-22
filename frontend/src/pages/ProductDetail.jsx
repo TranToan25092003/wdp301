@@ -3,7 +3,7 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api"; 
+import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import ProductList from "@/components/item/item-list";
 import { Tag } from "antd";
@@ -14,11 +14,12 @@ import { Clock } from "lucide-react";
 import { CheckSquare } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Gavel } from "lucide-react";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
 import AuthRequiredModal from "../components/global/AuthRequiredModal";
 import { Truck } from "lucide-react";
 import ConfirmBuyReceiptModal from "@/components/item/confirm-buy-receipt-modal";
 import { getBuyRecordByItemId } from "@/API/duc.api/buy.api";
+import { filterNonDisplayableItems } from "@/lib/utils";
 
 const statusConfig = {
   Available: { icon: CheckCircle, color: "text-green-600", label: "Available" },
@@ -29,16 +30,29 @@ const statusConfig = {
   Borrowed: { icon: RotateCcw, color: "text-orange-600", label: "Borrowed" },
   Returned: { icon: CheckCircle, color: "text-teal-600", label: "Returned" },
   Auctioning: { icon: Gavel, color: "text-indigo-600", label: "Auctioning" },
-  "Pending Delivery": { icon: Truck, color: "text-gray-600", label: "Pending Delivery" },
+  "Pending Delivery": {
+    icon: Truck,
+    color: "text-gray-600",
+    label: "Pending Delivery",
+  },
 };
 
 export const productDetailLoader = async ({ params }) => {
   try {
     const data = await getItemDetailById(params.itemId);
+
+    // Nếu sản phẩm có trạng thái pending hoặc rejected, chuyển hướng về trang chủ
+    const status = data.data?.statusId?.name?.toLowerCase();
+    if (status === "pending" || status === "rejected") {
+      throw new Response("Product not available", { status: 404 });
+    }
+
     const relatedItemsData = await getItemsByCategory(data.data.categoryId._id);
-    const relatedItems = relatedItemsData.data.filter(
-      (i) => i._id !== data.data._id
+    // Lọc các sản phẩm liên quan có trạng thái pending hoặc rejected
+    const relatedItems = filterNonDisplayableItems(
+      relatedItemsData.data.filter((i) => i._id !== data.data._id)
     );
+
     return {
       product: data.data,
       relatedItems,
@@ -59,20 +73,20 @@ export default function ProductDetail() {
   const [buyId, setBuyId] = useState(null); // State to store buyId
   const navigate = useNavigate();
   const { isSignedIn, getToken, userId } = useAuth();
-  
+
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
 
-    console.log(buyId)
+  console.log(buyId);
   useEffect(() => {
     const fetchBuyRecord = async () => {
       if (product.statusId?.name === "Pending Delivery") {
         const token = await getToken();
         const response = await getBuyRecordByItemId(product._id, token);
-        console.log(response)
+        console.log(response);
         if (response.success) {
           if (response.data.buyer === userId) {
             setBuyId(response.data._id); // Set buyId if the user is the owner

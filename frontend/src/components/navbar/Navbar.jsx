@@ -83,16 +83,16 @@ const Navbar = () => {
 
   return (
     <div className="border-b w-full bg-gradient-to-r from-green-900 to-green-700 text-white">
-      <div className="w-full px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row lg:justify-between lg:items-center flex-wrap gap-4 py-2">
+      <div className="w-full px-4 sm:px-6 lg:px-10 flex flex-col lg:flex-row lg:justify-between lg:items-center flex-wrap gap-6 py-4">
         <div className="flex items-center gap-4 w-full lg:w-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-white tracking-tighter">
+              <h1 className="text-4xl font-bold text-white tracking-tighter">
                 <span className="text-green-300">OLD</span>
                 <span className="text-white font-light italic">WAYS</span>
               </h1>
-              <div className="text-xs text-green-200 ml-2 border-l border-green-400 pl-2">
+              <div className="text-sm text-green-200 ml-2 border-l border-green-400 pl-2">
                 Nơi Trao Đổi
                 <br />
                 Đồ Cũ Tin Cậy
@@ -101,28 +101,28 @@ const Navbar = () => {
           </Link>
 
           {/* Navigation tabs */}
-          <nav className="hidden md:flex items-center gap-6 ml-8">
+          <nav className="hidden md:flex items-center gap-8 ml-10">
             <Link
               to="/"
-              className="text-white hover:text-green-200 font-medium transition-colors"
+              className="text-white hover:text-green-200 font-medium transition-colors text-lg"
             >
               Trang chủ
             </Link>
             <Link
               to="/auctions"
-              className="text-white hover:text-green-200 font-medium transition-colors"
+              className="text-white hover:text-green-200 font-medium transition-colors text-lg"
             >
               Đấu giá
             </Link>
             <Link
               to="/sellers"
-              className="text-white hover:text-green-200 font-medium transition-colors"
+              className="text-white hover:text-green-200 font-medium transition-colors text-lg"
             >
               Người bán
             </Link>
             <Link
               to="/about"
-              className="text-white hover:text-green-200 font-medium transition-colors"
+              className="text-white hover:text-green-200 font-medium transition-colors text-lg"
             >
               Giới thiệu
             </Link>
@@ -140,27 +140,29 @@ const Navbar = () => {
             size="large"
             style={{
               "--antd-wave-shadow-color": "#166534",
+              height: "46px",
+              fontSize: "16px",
             }}
             className="custom-antd-search"
           />
         </div>
 
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-6 items-center">
           {/* Chat Icon */}
-          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-green-800 transition-colors">
+          <div className="w-12 h-12 flex items-center justify-center rounded-full hover:bg-green-800 transition-colors">
             <ChatList />
           </div>
 
           {/* Notification Bell ✅ */}
-          <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-green-800 transition-colors">
+          <div className="w-12 h-12 flex items-center justify-center rounded-full hover:bg-green-800 transition-colors">
             <NotificationBell />
           </div>
 
           {/* Coin */}
           <Link to={"/topup"} onClick={handleTopUpClick}>
             <div className="flex items-center mx-2 relative text-white">
-              <TbCoinFilled size={30} color="#ebb410" />
-              <p className="ml-1">{coinBalance}</p>
+              <TbCoinFilled size={36} color="#ebb410" />
+              <p className="ml-1 text-lg">{coinBalance}</p>
             </div>
           </Link>
 
@@ -170,15 +172,16 @@ const Navbar = () => {
           {/* Post listing button */}
           <Link to="/create-post" onClick={handlePostClick}>
             <button
-              className="px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-white"
+              className="px-6 py-3 rounded-lg flex items-center gap-2 transition-colors text-white text-lg"
               style={{
-                backgroundColor: "#15803d",
-                ":hover": { backgroundColor: "#166534" },
+                backgroundColor: "#4ade80",
+                boxShadow:
+                  "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
               }}
-              onMouseEnter={(e) => (e.target.style.backgroundColor = "#166534")}
-              onMouseLeave={(e) => (e.target.style.backgroundColor = "#15803d")}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = "#22c55e")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "#4ade80")}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               <span className="hidden sm:inline">Đăng tin</span>
             </button>
           </Link>
