@@ -218,6 +218,9 @@ const router = new express.Router();
  *         description: Internal server error
  */
 router.get("/", reportAdminController.getAdminReport);
+router.get("/item-feedback-reports", reportAdminController.getItemFeedbackReports);
+
+
 router.delete("/:id", reportAdminController.deleteReport); // ✅ Chính xác
 
 router.get("/:reportId", reportAdminController.getReportDetail);

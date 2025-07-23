@@ -547,3 +547,126 @@ module.exports.deleteReport = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+module.exports.getItemFeedbackReports = async (req, res) => {
+  try {
+    const {
+      startDate,
+      endDate,
+      searchUser,
+      searchItem,
+      page = 1,
+      limit = 10,
+    } = req.query;
+    
+    const pageSize = parseInt(limit);
+    const currentPage = parseInt(page);
+    const skip = (currentPage - 1) * pageSize;
+
+    // Build date filter
+    let dateFilter = {};
+    if (startDate) {
+      dateFilter.createdAt = {
+        ...dateFilter.createdAt,
+        $gte: new Date(startDate),
+      };
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setDate(end.getDate() + 1);
+      dateFilter.createdAt = { ...dateFilter.createdAt, $lte: end };
+    }
+
+    // Get item feedback reports
+    let reportQuery = {
+      ...dateFilter,
+      reportType: "item_feedback"
+    };
+
+    const itemFeedbackReports = await Report.find(reportQuery)
+      .populate("itemId", "owner name images price")
+      .lean();
+
+    // Get all unique user IDs for Clerk
+    const allClerkUserIds = new Set();
+    itemFeedbackReports.forEach(report => {
+      if (report.userId) allClerkUserIds.add(report.userId);
+      if (report.itemId && report.itemId.owner) allClerkUserIds.add(report.itemId.owner);
+    });
+
+    // Get user info from Clerk
+    const clerkUserMap = await getClerkUsersInfo(Array.from(allClerkUserIds));
+
+    // Format the reports
+    let formattedReports = itemFeedbackReports.map(report => ({
+      id: report._id.toString(),
+      title: report.title || "Phản hồi sản phẩm",
+      description: report.description || "",
+      reportType: report.reportType,
+      rating: report.rating || 0, // KEY: This is the rating field for stars
+      user: clerkUserMap[report.userId] || {
+        id: report.userId || "unknown",
+        name: report.userId ? `Unknown (${report.userId})` : "Anonymous",
+        email: "N/A",
+        isBanned: false,
+      },
+      item: report.itemId ? {
+        _id: report.itemId._id.toString(),
+        name: report.itemId.name,
+        images: report.itemId.images || [],
+        price: report.itemId.price || 0,
+        owner: clerkUserMap[report.itemId.owner] || {
+          id: report.itemId.owner || "unknown",
+          name: report.itemId.owner ? `Unknown (${report.itemId.owner})` : "Unknown Owner",
+          email: "N/A",
+          isBanned: false,
+        }
+      } : null,
+      date: report.createdAt,
+      status: report.status || 'pending',
+      payload: report.payload || {}
+    }));
+
+    // Apply user search filter
+    if (searchUser) {
+      const searchLower = searchUser.toLowerCase();
+      formattedReports = formattedReports.filter(report =>
+        (report.user?.name && report.user.name.toLowerCase().includes(searchLower)) ||
+        (report.user?.email && report.user.email.toLowerCase().includes(searchLower)) ||
+        (report.user?.id && report.user.id.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply item search filter
+    if (searchItem) {
+      const searchLower = searchItem.toLowerCase();
+      formattedReports = formattedReports.filter(report =>
+        report.item && 
+        report.item.name && 
+        report.item.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Sort by date (newest first)
+    formattedReports.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Pagination
+    const totalReports = formattedReports.length;
+    const paginatedReports = formattedReports.slice(skip, skip + pageSize);
+
+    res.status(200).json({
+      transactions: {
+        data: paginatedReports,
+        totalItems: totalReports,
+        totalPages: Math.ceil(totalReports / pageSize),
+        currentPage: currentPage,
+      }
+    });
+
+  } catch (error) {
+    console.error("Error in getItemFeedbackReports:", error);
+    res.status(500).json({ 
+      message: "Internal server error", 
+      error: error.message 
+    });
+  }
+};

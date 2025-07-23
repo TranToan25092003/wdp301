@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { motion } from "framer-motion";
 
 export const itemDetailDashboardLoader = async ({ params }) => {
   try {
