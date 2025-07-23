@@ -679,12 +679,7 @@ const HomePage = () => {
 
   useEffect(() => {
     if (location.state?.created) {
-      api.success({
-        message: "Tạo sản phẩm thành công!",
-        description: "Sản phẩm của bạn đã được đăng lên hệ thống.",
-        placement: "bottomRight",
-        duration: 4,
-      });
+      // Remove the success notification here
       // Xóa state để reload không hiện lại
       window.history.replaceState({}, document.title);
     }

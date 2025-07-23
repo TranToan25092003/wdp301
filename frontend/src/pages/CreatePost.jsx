@@ -242,7 +242,7 @@ const CreatePost = () => {
 
           if (!isAccept) {
             toast.error(
-              `Hmm Your item is: ${rejectReason} need to review to be available😕😕😕`,
+              ` ${rejectReason}. Admin sẽ kiểm tra và xử lý sản phẩm của bạn!`,
               {
                 id: toastLoading,
               }
@@ -290,15 +290,11 @@ const CreatePost = () => {
         await createAuction(auctionData);
       }
 
-      message.success("Post created successfully!");
+      // Remove success message here since we already show AI success notification
       navigate("/", { state: { created: true } });
     } catch (error) {
       console.error("Error creating post:", error);
-      message.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to create post"
-      );
+      // Remove error message here since we already show AI error notification
     } finally {
       setUploading(false);
     }
