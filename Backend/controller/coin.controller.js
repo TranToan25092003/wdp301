@@ -1,6 +1,6 @@
 const { stripe } = require("../config/stripe");
 const { clerkClient } = require("../config/clerk");
-const { Session } = require("../model");
+const { Session, PayoutRequest } = require("../model");
 /**
  * ====================================
  * [POST] /coin/secret
@@ -85,8 +85,16 @@ module.exports.confirm = async (req, res) => {
       await Session.create({
         session_id,
       });
+
+      await PayoutRequest.create({
+        action: "plus",
+        adminNote: "",
+        amount: totalCoin,
+        status: "completed",
+        customerClerkId: req.userId,
+      });
     } else {
-      return res.status(400).json({
+      return res.status(200).json({
         message: "success",
       });
     }

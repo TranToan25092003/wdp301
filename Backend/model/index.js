@@ -15,6 +15,8 @@ const UserViolation = require("./userViolation.model");
 const Follow = require("./Follow.model");
 const Notification = require("./notification.model");
 const ActivityLog = require("./ActivityLog.model");
+const PayoutRequest = require("./PayoutRequest.model");
+
 module.exports = {
   Test,
   Report,
@@ -33,4 +35,5 @@ module.exports = {
   UserViolation,
   Notification,
   ActivityLog,
+  PayoutRequest,
 };
