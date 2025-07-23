@@ -10,10 +10,14 @@ const buyRouter = require("./buy.duc/buy.router");
 const coinRouter = require("./coin.router");
 const reportRouter = require("./report.duy/report.router");
 const { authenticate } = require("../../middleware/guards/authen.middleware");
-const testRouter = require("./test.router");const followRouter = require("./follow.duy/followRoutes");
+const testRouter = require("./test.router");
+const followRouter = require("./follow.duy/followRoutes");
 const notificationRouter = require("./notification.duy/notificationRoutes");
-const { getUsersWithPosts } = require("../../controller/user.duy/userController");
+const {
+  getUsersWithPosts,
+} = require("../../controller/user.duy/userController");
 const activityLogRouter = require("./duy/activityLogRoutes");
+const withdrawRouter = require("./withdrawMoney.router");
 
 module.exports = (app) => {
   // this router only for testing app do not use this router to write data ok
@@ -24,7 +28,7 @@ module.exports = (app) => {
   app.use("/categories", categoryRouter);
   app.use("/types", typeRouter);
   app.use("/statuses", statusRouter);
-   app.get("/users/with-posts", getUsersWithPosts); 
+  app.get("/users/with-posts", getUsersWithPosts);
   app.use("/users", userRouter);
   app.use("/borrows", borrowRouter);
   app.use("/buys", buyRouter);
@@ -35,5 +39,6 @@ module.exports = (app) => {
   app.use("/follows", followRouter);
   app.use("/notifications", notificationRouter);
   app.use("/activity-logs", activityLogRouter);
- // GET /api/users/with-posts
+  app.use("/withdraw", authenticate, withdrawRouter);
+  // GET /api/users/with-posts
 };

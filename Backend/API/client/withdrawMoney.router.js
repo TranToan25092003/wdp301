@@ -1,51 +1,229 @@
 const express = require("express");
-const { stripe } = require("../../config/stripe");
+const { clerkClient } = require("../../config/clerk");
+const { PayoutRequest } = require("../../model");
+const { default: mongoose } = require("mongoose");
+
 const router = new express.Router();
+
+const checkValidMongoId = (id) => {
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    return true;
+  }
+
+  return false;
+};
+
+const updateCoin = async (req, amount, clerkId, type) => {
+  const oldCoin = Number.parseInt(req.user.publicMetadata?.coin) || 0;
+
+  await clerkClient.users.updateUserMetadata(clerkId, {
+    publicMetadata: {
+      coin: type == "minus" ? oldCoin - amount : oldCoin + amount,
+    },
+  });
+};
 
 /**
  * @swagger
  * /withdraw:
- *   get:
- *     summary: API test trực tiếp từ app
+ *   post:
+ *     summary: Create request to withdraw money
  *     tags:
- *        - Test
+ *       - withdraw money
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 example: 1000
+ *               cardNumber:
+ *                 type: string
+ *                 example: "1234-5678-9876-5432"
+ *               type:
+ *                 type: string
+ *                 enum: [plus, minus]
+ *                 example: "minus"
+ *                 description: Transaction type (e.g. plus for deposit, minus for withdrawal)
+ *               status:
+ *                 type: string
+ *                 enum: [pending, completed, rejected]
+ *                 example: "pending"
+ *                 description: Status of the withdrawal request
  *     responses:
  *       200:
  *         description: OK
  */
-router.get("/", async (req, res) => {
-  //   console.log(req.userId);
-  const data = {
-    userId: "test_user_12345", // Mã định danh người dùng giả
-    coinAmount: 1000, // Số coin muốn rút (giả định 100 coin = 100.000 VND hoặc 100 USD trong test)
-    bankAccount: {
-      accountNumber: "000123456789", // Số tài khoản ngân hàng giả của Stripe (test mode)
-      accountHolderName: "Test User", // Tên chủ tài khoản giả
-      bankName: "Test Bank", // Tên ngân hàng giả (tùy chọn)
-      country: "US", // Quốc gia test (Stripe yêu cầu US cho tài khoản ngân hàng giả)
-      currency: "usd", // Tiền tệ test (VND không được hỗ trợ trong test mode)
-      routingNumber: "110000000", // Mã routing giả (bắt buộc cho US)
-    },
-  };
+router.post("/", async (req, res) => {
+  try {
+    const { amount, cardNumber, type, status } = req.body;
 
-  const account = await stripe.accounts.create({
-    type: "express",
-    country: "US",
-    email: `test${"11111"}@example.com`,
-    capabilities: {
-      card_payments: { requested: true },
-      transfers: { requested: true },
-    },
+    await updateCoin(req, amount, req.userId, type);
+
+    const data = await PayoutRequest.create({
+      action: type,
+      adminNote: "",
+      amount: amount,
+      cardNumber: cardNumber,
+      status: status,
+      customerClerkId: req.userId,
+    });
+
+    return res.json({
+      data: data,
+    });
+  } catch (error) {
+    console.error(error.message);
+  }
+});
+
+/**
+ * @swagger
+ * /withdraw/check:
+ *   get:
+ *     summary: Check if user has enough coin to withdraw
+ *     tags:
+ *       - withdraw money
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: amount
+ *         required: true
+ *         schema:
+ *           type: number
+ *         description: The amount of coins to check
+ *         example: 500
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+router.get("/check", async (req, res) => {
+  const amount = req.query.amount;
+  const user = await clerkClient.users.getUser(req.userId);
+
+  let coin = user.publicMetadata?.coin ?? 0;
+  coin = parseInt(coin);
+
+  console.log(coin, amount);
+
+  if (coin < amount) {
+    return res.status(404).json({
+      isEnoughCoin: false,
+      message: "Số tiền rút vượt quá số dư",
+    });
+  }
+
+  return res.status(200).json({
+    isEnoughCoin: true,
+    message: "enough coin",
   });
-  let stripeAccountId = account.id;
+});
 
-  console.log(stripeAccountId);
+/**
+ * @swagger
+ * /withdraw/list:
+ *   get:
+ *     summary: get list withdraw
+ *     tags:
+ *       - withdraw money
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Status
+ *         example: pending
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+router.get("/list", async (req, res) => {
+  const data = await PayoutRequest.find({
+    customerClerkId: req.userId,
+  })
+    .sort({ createdAt: -1 })
+    .select("amount action createdAt");
 
-  return res.json({
-    message: "hello",
+  res.json({
+    data: data,
   });
+});
+
+/**
+ * @swagger
+ * /withdraw/confirm/{id}:
+ *   patch:
+ *     summary: Update status of a withdraw request
+ *     tags:
+ *       - withdraw money
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the withdraw request to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *                 example: approved
+ *                 description: New status for the withdraw request
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
+ *       400:
+ *         description: Invalid ID or status
+ *       404:
+ *         description: Withdraw request not found
+ */
+router.patch("/confirm/:id", async (req, res) => {
+  const id = req.params.id;
+
+  const checkValidId = checkValidMongoId(id);
+
+  if (!checkValidId) {
+    return res.status(400).json({
+      message: "id is invalid",
+    });
+  }
+
+  const { status, note } = req.body;
+
+  const updated = await PayoutRequest.findByIdAndUpdate(
+    id,
+    {
+      status: status,
+      adminNote: note,
+    },
+    {
+      new: true,
+    }
+  );
+
+  if (!updated) {
+    return res.status(404).json({ message: "Payout request not found" });
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Status updated successfully", data: updated });
 });
 
 module.exports = router;
