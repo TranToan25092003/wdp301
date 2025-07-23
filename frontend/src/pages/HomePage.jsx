@@ -55,34 +55,6 @@ export const homepageLoader = async () => {
   }
 };
 
-// Trending items data - Sản phẩm xu hướng
-const trendingItems = [
-  {
-    id: 1,
-    image: "/assets/dell-g3-1.jpg",
-    title: "Laptop Gaming Dell G3",
-    price: "12.500.000 ₫",
-    tag: "Đấu giá sôi động",
-    bids: 8,
-  },
-  {
-    id: 2,
-    image: "/assets/iphone-15-1.jpg",
-    title: "iPhone 15 Pro Max",
-    price: "22.990.000 ₫",
-    tag: "Mới đăng",
-    bids: 3,
-  },
-  {
-    id: 3,
-    image: "/assets/samsung-galaxy-s24-1.jpg",
-    title: "Samsung Galaxy S24",
-    price: "18.500.000 ₫",
-    tag: "Giảm giá",
-    bids: 5,
-  },
-];
-
 // Hero Section with animated items
 const HeroSection = () => {
   return (
@@ -167,25 +139,34 @@ const HeroSection = () => {
             <div className="relative">
               {/* Floating main image */}
               <img
-                src="/assets/iphone-15-1.jpg"
+                src="assets/iphone-15-1.jpg"
                 alt="Featured product"
                 className="rounded-xl shadow-2xl mx-auto object-cover h-80 w-80 border-4 border-white"
                 style={{ transform: "rotate(3deg)" }}
+                onError={(e) => {
+                  e.target.src = "assets/fallback.png";
+                }}
               />
 
               {/* Floating secondary images */}
               <img
-                src="/assets/dell-g3-2.jpg"
+                src="assets/dell-g3-2.jpg"
                 alt="Dell laptop"
                 className="absolute -bottom-6 -left-10 w-40 h-40 object-cover rounded-lg shadow-lg border-2 border-white"
                 style={{ transform: "rotate(-8deg)" }}
+                onError={(e) => {
+                  e.target.src = "assets/fallback.png";
+                }}
               />
 
               <img
-                src="/assets/table.jpg"
+                src="assets/table.jpg"
                 alt="Furniture"
                 className="absolute -top-4 -right-6 w-32 h-32 object-cover rounded-lg shadow-lg border-2 border-white"
                 style={{ transform: "rotate(8deg)" }}
+                onError={(e) => {
+                  e.target.src = "assets/fallback.png";
+                }}
               />
 
               {/* Price tags */}
@@ -359,85 +340,146 @@ const FeatureShowcase = () => (
 );
 
 // Trending Products Section
-const TrendingProductsSection = () => (
-  <div className="mb-16 bg-white rounded-3xl py-12 px-8 shadow-lg">
-    <div className="text-center mb-10">
-      <Tag color="#16a34a" className="text-base px-4 py-1 mb-4">
-        <FireOutlined /> Xu hướng
-      </Tag>
-      <h2 className="text-3xl font-bold text-green-800 mb-4">
-        Sản Phẩm Nổi Bật
-      </h2>
-      <p className="text-gray-600 max-w-2xl mx-auto">
-        Những sản phẩm được quan tâm nhiều nhất trên nền tảng OldWays trong thời
-        gian gần đây
-      </p>
-    </div>
+const TrendingProductsSection = ({ items = [] }) => {
+  const navigate = useNavigate();
 
-    <Row gutter={[32, 32]}>
-      {trendingItems.map((item) => (
-        <Col xs={24} sm={12} md={8} key={item.id}>
-          <Card
-            hoverable
-            className="overflow-hidden rounded-xl border border-gray-200"
-            cover={
-              <div className="relative">
-                <img
-                  alt={item.title}
-                  src={item.image}
-                  className="h-64 w-full object-cover"
-                />
-                <div className="absolute top-4 right-4">
-                  <Tag
-                    color={
-                      item.tag === "Đấu giá sôi động"
-                        ? "#f59e0b"
-                        : item.tag === "Mới đăng"
-                        ? "#10b981"
-                        : "#ef4444"
-                    }
-                    className="px-3 py-1"
-                  >
-                    {item.tag}
-                  </Tag>
-                </div>
-                {item.bids > 0 && (
-                  <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">
-                    {item.bids} lượt đấu giá
+  // Lọc và sắp xếp items để ưu tiên hiển thị items đấu giá
+  const getTrendingItems = () => {
+    // Tách items thành 2 mảng: đấu giá và không đấu giá
+    const auctionItems = items.filter(
+      (item) => item.typeId?.name?.toLowerCase() === "auction"
+    );
+    const nonAuctionItems = items.filter(
+      (item) => item.typeId?.name?.toLowerCase() !== "auction"
+    );
+
+    // Sắp xếp items đấu giá theo số lượng bid (nếu có) hoặc thời gian tạo
+    const sortedAuctionItems = auctionItems.sort((a, b) => {
+      if (b.bids?.length !== a.bids?.length) {
+        return (b.bids?.length || 0) - (a.bids?.length || 0);
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    // Sắp xếp items không đấu giá theo thời gian tạo
+    const sortedNonAuctionItems = nonAuctionItems.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    // Kết hợp 2 mảng, ưu tiên items đấu giá
+    return [...sortedAuctionItems, ...sortedNonAuctionItems].slice(0, 3);
+  };
+
+  const trendingItems = getTrendingItems();
+
+  const handleItemClick = (item) => {
+    if (item.typeId?.name?.toLowerCase() === "auction") {
+      navigate(`/auctions/${item._id}`);
+    } else {
+      navigate(`/item/${item._id}`);
+    }
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  };
+
+  if (trendingItems.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mb-16 bg-white rounded-3xl py-12 px-8 shadow-lg">
+      <div className="text-center mb-10">
+        <Tag color="#16a34a" className="text-base px-4 py-1 mb-4">
+          <FireOutlined /> Xu hướng
+        </Tag>
+        <h2 className="text-3xl font-bold text-green-800 mb-4">
+          Sản Phẩm Nổi Bật
+        </h2>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Những sản phẩm được quan tâm nhiều nhất trên nền tảng OldWays trong
+          thời gian gần đây
+        </p>
+      </div>
+
+      <Row gutter={[32, 32]}>
+        {trendingItems.map((item) => (
+          <Col xs={24} sm={12} md={8} key={item._id}>
+            <Card
+              hoverable
+              onClick={() => handleItemClick(item)}
+              className="overflow-hidden rounded-xl border border-gray-200"
+              cover={
+                <div className="relative">
+                  <img
+                    alt={item.name}
+                    src={item.images?.[0] || "/fallback.jpg"}
+                    className="h-64 w-full object-cover"
+                  />
+                  <div className="absolute top-4 right-4">
+                    <Tag
+                      color={
+                        item.typeId?.name?.toLowerCase() === "auction"
+                          ? "#f59e0b"
+                          : "#10b981"
+                      }
+                      className="px-3 py-1"
+                    >
+                      {item.typeId?.name?.toLowerCase() === "auction"
+                        ? "Đấu giá sôi động"
+                        : "Mới đăng"}
+                    </Tag>
                   </div>
-                )}
+                  {item.typeId?.name?.toLowerCase() === "auction" &&
+                    item.bids?.length > 0 && (
+                      <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">
+                        {item.bids.length} lượt đấu giá
+                      </div>
+                    )}
+                </div>
+              }
+            >
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                {item.name}
+              </h3>
+              <div className="flex justify-between items-center">
+                <span className="text-green-700 font-bold">
+                  {formatPrice(item.price)}
+                </span>
+                <Button
+                  type="primary"
+                  size="middle"
+                  className="bg-green-600 hover:bg-green-700 border-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleItemClick(item);
+                  }}
+                >
+                  Xem chi tiết
+                </Button>
               </div>
-            }
-          >
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              {item.title}
-            </h3>
-            <div className="flex justify-between items-center">
-              <span className="text-green-700 font-bold">{item.price}</span>
-              <Button
-                type="primary"
-                size="middle"
-                className="bg-green-600 hover:bg-green-700 border-0"
-              >
-                Xem chi tiết
-              </Button>
-            </div>
-          </Card>
-        </Col>
-      ))}
-    </Row>
+            </Card>
+          </Col>
+        ))}
+      </Row>
 
-    <div className="text-center mt-12">
-      <Button
-        type="default"
-        size="large"
-        className="px-8 h-12 border-green-600 text-green-700 hover:text-green-800 hover:border-green-800"
-      >
-        Xem tất cả sản phẩm nổi bật
-      </Button>
+      <div className="text-center mt-12">
+        <Button
+          type="default"
+          size="large"
+          onClick={() => navigate("/filter")}
+          className="px-8 h-12 border-green-600 text-green-700 hover:text-green-800 hover:border-green-800"
+        >
+          Xem tất cả sản phẩm nổi bật
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Featured Auctions Section
 const FeaturedAuctionsSection = ({ auctions = [] }) => {
@@ -692,7 +734,7 @@ const HomePage = () => {
 
       {/* Trending Products Section */}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
-        <TrendingProductsSection />
+        <TrendingProductsSection items={recent} />
       </div>
 
       {/* Danh mục sản phẩm */}

@@ -50,7 +50,7 @@ const itemVariants = {
 
 const developers = [
   {
-    name: "Nguyễn Trọng Huy",
+    name: "Nguyễn Tường Huy",
     role: "Full-stack Developer",
     avatar: "/path/to/huy-avatar.jpg",
     github: "https://github.com/huynguyen",
@@ -58,7 +58,7 @@ const developers = [
     description: "Phát triển hệ thống đấu giá realtime và quản lý giao dịch",
   },
   {
-    name: "Nguyễn Đức",
+    name: "Hà Quốc Minh Đức",
     role: "Backend Developer",
     avatar: "/path/to/duc-avatar.jpg",
     github: "https://github.com/ducnguyen",
@@ -66,7 +66,7 @@ const developers = [
     description: "Xây dựng API và hệ thống quản lý người dùng, mua bán",
   },
   {
-    name: "Nguyễn Duy",
+    name: "Nguyễn Thanh Duy",
     role: "Frontend Developer",
     avatar: "/path/to/duy-avatar.jpg",
     github: "https://github.com/duynguyen",
@@ -74,7 +74,7 @@ const developers = [
     description: "Thiết kế giao diện và trải nghiệm người dùng",
   },
   {
-    name: "Nguyễn Văn A",
+    name: "Trần Tú Toàn",
     role: "Backend Developer",
     avatar: "/path/to/a-avatar.jpg",
     github: "https://github.com/vana",
