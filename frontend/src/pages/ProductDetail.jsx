@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
-import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
+import {
+  ShoppingCart,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getItemDetailById, getItemsByCategory } from "@/API/duc.api/item.api";
 import { useLoaderData, useNavigate } from "react-router-dom";
@@ -34,6 +39,11 @@ const statusConfig = {
     icon: Truck,
     color: "text-gray-600",
     label: "Pending Delivery",
+  },
+  "Awaiting Receipt": {
+    icon: Truck,
+    color: "text-orange-600",
+    label: "Awaiting Receipt",
   },
 };
 
@@ -83,21 +93,44 @@ export default function ProductDetail() {
   console.log(buyId);
   useEffect(() => {
     const fetchBuyRecord = async () => {
-      if (product.statusId?.name === "Pending Delivery") {
-        const token = await getToken();
-        const response = await getBuyRecordByItemId(product._id, token);
-        console.log(response);
-        if (response.success) {
-          if (response.data.buyer === userId) {
-            setBuyId(response.data._id); // Set buyId if the user is the owner
+      try {
+        // Check both status types that need the buyer's attention
+        if (
+          product.statusId?.name === "Pending Delivery" ||
+          product.statusId?.name === "Awaiting Receipt"
+        ) {
+          if (isSignedIn) {
+            console.log("Checking buy record for item:", product._id);
+            const token = await getToken();
+            if (!token) {
+              console.log("No authentication token available");
+              return;
+            }
+
+            const response = await getBuyRecordByItemId(product._id, token);
+            console.log("Buy record response:", response);
+
+            if (response.success) {
+              // If current user is the buyer, set buyId
+              if (response.data.buyer === userId) {
+                console.log(
+                  "User is buyer - setting buyId:",
+                  response.data._id
+                );
+                setBuyId(response.data._id);
+              }
+            }
           }
+        } else {
+          setBuyId(null); // Reset buyId for other statuses
         }
-      } else {
-        setBuyId(null); // Reset buyId for other statuses
+      } catch (error) {
+        console.error("Error fetching buy record:", error);
       }
     };
+
     fetchBuyRecord();
-  }, [product, getToken]);
+  }, [product, getToken, userId, isSignedIn]);
 
   // Handle image display
   const renderImages = () => {
@@ -244,6 +277,36 @@ export default function ProductDetail() {
     }
   };
 
+  // Render a special banner for the buyer when status is "Awaiting Receipt"
+  const renderReceiptBanner = () => {
+    if (product.statusId?.name === "Awaiting Receipt" && buyId) {
+      return (
+        <div className="bg-orange-50 border-l-4 border-orange-500 p-4 my-4 rounded-md">
+          <div className="flex items-start">
+            <AlertTriangle className="text-orange-500 mr-3 mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="text-orange-800 font-medium">
+                Hành động cần thiết
+              </h3>
+              <p className="text-orange-700 mt-1">
+                Người bán đã xác nhận giao hàng. Vui lòng xác nhận bạn đã nhận
+                được hàng sau khi kiểm tra sản phẩm.
+              </p>
+              <Button
+                className="mt-3 bg-orange-500 hover:bg-orange-600 text-white"
+                onClick={() => setConfirmReceiptModalOpen(true)}
+              >
+                <CheckCircle size={16} className="mr-2" />
+                Xác nhận đã nhận hàng
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="container mx-auto p-6">
       <Card className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
@@ -263,9 +326,24 @@ export default function ProductDetail() {
               {product.typeId?.name || "Unknown Type"}
             </Tag>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusIcon className={statusColor} size={20} />
-            <span className={`${statusColor} font-medium`}>{statusLabel}</span>
+          <div className="flex items-center gap-2 my-2">
+            <StatusIcon className={statusColor} size={24} />
+            <span className={`${statusColor} font-medium text-lg`}>
+              {statusLabel}
+            </span>
+
+            {/* Add extra info for Awaiting Receipt status */}
+            {product.statusId?.name === "Awaiting Receipt" && buyId && (
+              <span className="ml-2 bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                Chờ xác nhận nhận hàng
+              </span>
+            )}
+
+            {product.statusId?.name === "Pending Delivery" && buyId && (
+              <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                Đang giao hàng
+              </span>
+            )}
           </div>
           <div>
             <span className="text-sm text-muted-foreground">Seller: </span>
@@ -324,18 +402,28 @@ export default function ProductDetail() {
                 </>
               )}
 
-            {product.statusId?.name === "Pending Delivery" && buyId && (
-              <Button
-                className="flex items-center gap-2 mt-2 bg-green-500 hover:bg-green-600"
-                onClick={() => setConfirmReceiptModalOpen(true)}
-              >
-                <CheckCircle size={18} />
-                Confirm Receipt
-              </Button>
+            {/* Show receipt confirmation button for awaiting receipt status */}
+            {product.statusId?.name === "Awaiting Receipt" && buyId && (
+              <div>
+                <p className="text-sm text-orange-600 mb-2">
+                  <AlertTriangle size={14} className="inline mr-1" />
+                  Người bán đã xác nhận giao hàng! Vui lòng xác nhận khi bạn đã
+                  nhận được hàng.
+                </p>
+                <Button
+                  className="flex items-center gap-2 mt-2 bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => setConfirmReceiptModalOpen(true)}
+                >
+                  <CheckCircle size={18} />
+                  Xác nhận đã nhận hàng
+                </Button>
+              </div>
             )}
           </div>
         </div>
       </Card>
+
+      {renderReceiptBanner()}
 
       <Tabs defaultValue="description" className="w-full mt-4">
         <TabsList className="w-full flex justify-start">

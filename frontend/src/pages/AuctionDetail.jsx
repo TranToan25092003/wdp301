@@ -74,6 +74,7 @@ const AuctionDetailPage = () => {
   const [socketConnected, setSocketConnected] = useState(false);
   const [form] = Form.useForm();
   const socketRef = useRef(null);
+  const carouselRef = useRef(null);
   const { userId, isSignedIn } = useAuth();
   const [userNames, setUserNames] = useState({});
   const [winnerModal, setWinnerModal] = useState({
@@ -249,13 +250,19 @@ const AuctionDetailPage = () => {
     // Handle bid updates from other users - this is the main bidUpdate event
     socketInstance.on("bidUpdate", (data) => {
       console.log("Received bidUpdate:", data);
+      console.log("Current auction images:", auction?.itemId?.images);
 
       // Update auction data when receiving comprehensive update
       if (data.auction) {
         console.log("Updating auction:", data.auction);
+        console.log("New auction images:", data.auction?.itemId?.images);
         setAuction((prev) => ({
           ...prev,
           ...data.auction,
+          itemId: {
+            ...prev.itemId,
+            ...data.auction.itemId,
+          },
           currentPrice: data.auction.currentPrice,
         }));
       }
@@ -774,7 +781,45 @@ const AuctionDetailPage = () => {
 
   // Render image gallery with animation
   const renderImageGallery = () => {
-    const images = auction?.itemId?.images || ["/assets/sample.jpg"];
+    // Remove the default sample.jpg fallback
+    const images = auction?.itemId?.images || [];
+
+    // Don't render carousel if no images
+    if (!images || images.length === 0) {
+      return (
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="image-gallery-container"
+        >
+          <Card className="shadow-lg" style={{ marginBottom: "20px" }}>
+            <div
+              style={{
+                height: "400px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#f8f8f8",
+                borderRadius: "8px",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                src="/assets/fallback.png"
+                alt="No image available"
+                style={{
+                  maxHeight: "400px",
+                  objectFit: "contain",
+                  borderRadius: "8px",
+                }}
+                preview={false}
+              />
+            </div>
+          </Card>
+        </motion.div>
+      );
+    }
 
     return (
       <motion.div
@@ -785,10 +830,12 @@ const AuctionDetailPage = () => {
       >
         <Card className="shadow-lg" style={{ marginBottom: "20px" }}>
           <Carousel
+            ref={carouselRef}
             autoplay={images.length > 1}
             effect="fade"
             afterChange={setActiveImageIndex}
             dots={images.length > 1}
+            initialSlide={activeImageIndex}
           >
             {images.map((image, index) => (
               <motion.div key={index} variants={itemVariants}>
@@ -854,9 +901,8 @@ const AuctionDetailPage = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
-                    const carousel = document.querySelector(".ant-carousel");
-                    if (carousel) {
-                      carousel.goTo(index);
+                    if (carouselRef.current) {
+                      carouselRef.current.goTo(index);
                     }
                   }}
                   style={{

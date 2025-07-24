@@ -139,3 +139,47 @@ export const submitItemEditRequest = async (itemId, editData, token) => {
     };
   }
 };
+
+export const confirmItemDelivery = async (itemId, token) => {
+  try {
+    console.log("Sending confirmation request for item ID:", itemId);
+    const response = await customFetch.post(
+      `/items/confirm-delivery/${itemId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error confirming delivery:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to confirm delivery",
+    };
+  }
+};
+
+export const confirmItemReceipt = async (itemId, token) => {
+  try {
+    console.log("Sending receipt confirmation request for item ID:", itemId);
+    const response = await customFetch.post(
+      `/items/confirm-receipt/${itemId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error confirming receipt:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to confirm receipt",
+    };
+  }
+};

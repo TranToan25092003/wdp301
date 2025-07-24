@@ -163,7 +163,27 @@ exports.getAllAuctions = async (req, res) => {
       .populate("statusId")
       .sort({ startTime: -1 });
 
-    res.status(200).json({ auctions });
+    // Get bid counts for each auction
+    const auctionIds = auctions.map((auction) => auction._id);
+    const bidCounts = await Bid.aggregate([
+      { $match: { auctionId: { $in: auctionIds } } },
+      { $group: { _id: "$auctionId", count: { $sum: 1 } } },
+    ]);
+
+    // Create a map of auction ID to bid count
+    const bidCountMap = {};
+    bidCounts.forEach((item) => {
+      bidCountMap[item._id.toString()] = item.count;
+    });
+
+    // Add bid counts to auction objects
+    const auctionsWithBidCounts = auctions.map((auction) => {
+      const auctionObj = auction.toObject();
+      auctionObj.bidCount = bidCountMap[auction._id.toString()] || 0;
+      return auctionObj;
+    });
+
+    res.status(200).json({ auctions: auctionsWithBidCounts });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -282,7 +302,7 @@ exports.getAuctionByItemId = async (req, res) => {
   }
 };
 
-// Hàm settleAuction: trừ coin người thắng khi auction kết thúc và cộng coin cho người bán
+// Hàm settleAuction: trừ coin người thắng khi auction kết thúc và tạo bản ghi mua hàng
 exports.settleAuction = async (auctionId) => {
   // Tìm và update settled = true chỉ khi settled = false (atomic)
   const auction = await Auction.findOneAndUpdate(
@@ -309,16 +329,14 @@ exports.settleAuction = async (auctionId) => {
   // Get seller information
   const sellerId = auction.itemId.owner;
   const seller = await clerkClient.users.getUser(sellerId);
-  const sellerCoin = Number.parseInt(seller.publicMetadata?.coin) || 0;
   const sellerName =
     `${seller.firstName || ""} ${seller.lastName || ""}`.trim() || sellerId;
 
   // Check if winner has enough coins
   if (winnerCoin >= highestBid.amount) {
     try {
-      // Calculate new coin balances
+      // Calculate new coin balance for winner only
       const newWinnerCoinBalance = winnerCoin - highestBid.amount;
-      const newSellerCoinBalance = sellerCoin + highestBid.amount;
 
       // Deduct coins from winner
       await clerkClient.users.updateUserMetadata(winnerId, {
@@ -327,19 +345,14 @@ exports.settleAuction = async (auctionId) => {
         },
       });
 
-      // Add coins to seller
-      await clerkClient.users.updateUserMetadata(sellerId, {
-        publicMetadata: {
-          coin: newSellerCoinBalance,
-        },
-      });
-
-      // Update item status to "Pending Delivery"
+      // Update item status to "Pending Delivery" and update final price
       const pendingDeliveryStatus = await Status.findOne({
         name: "Pending Delivery",
       });
       if (pendingDeliveryStatus) {
         auction.itemId.statusId = pendingDeliveryStatus._id;
+        // Update item price to final auction price
+        auction.itemId.price = highestBid.amount;
         await auction.itemId.save();
       }
 
@@ -348,12 +361,14 @@ exports.settleAuction = async (auctionId) => {
         total: highestBid.amount,
         buyer: winnerId,
         itemId: auction.itemId._id,
+        isAuction: true,
+        auctionId: auction._id,
       });
 
       // Get socket.io instance from the global app object
       const io = global.io;
       if (io) {
-        // Emit coin update events to both users
+        // Emit coin update event to winner
         io.to(winnerId).emit("coinUpdate", {
           userId: winnerId,
           newBalance: newWinnerCoinBalance,
@@ -364,14 +379,22 @@ exports.settleAuction = async (auctionId) => {
           },
         });
 
-        io.to(sellerId).emit("coinUpdate", {
-          userId: sellerId,
-          newBalance: newSellerCoinBalance,
-          transaction: {
-            type: "credit",
-            amount: highestBid.amount,
-            description: `Auction sale: ${auction.itemId.name}`,
-          },
+        // Emit auction end notification to seller
+        io.to(sellerId).emit("auctionEndedSeller", {
+          itemId: auction.itemId._id,
+          itemName: auction.itemId.name,
+          winnerName: winnerName,
+          amount: highestBid.amount,
+          message: "Đấu giá đã kết thúc! Vui lòng giao hàng cho người thắng.",
+        });
+
+        // Emit auction end notification to winner
+        io.to(winnerId).emit("auctionEndedWinner", {
+          itemId: auction.itemId._id,
+          itemName: auction.itemId.name,
+          amount: highestBid.amount,
+          message:
+            "Chúc mừng! Bạn đã thắng đấu giá. Vui lòng đợi người bán giao hàng.",
         });
       }
 

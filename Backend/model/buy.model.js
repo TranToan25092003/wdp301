@@ -5,24 +5,41 @@ const buySchema = new mongoose.Schema(
   {
     total: {
       type: Number,
-      required: [true, "Total is required"],
-      min: [0, "Total cannot be negative"],
+      required: true,
     },
     buyer: {
-      // Người mua (Buyer)
       type: String,
-      required: [true, "Buyer is required"],
+      required: true,
     },
     itemId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Item", // Reference to the Item model
-      required: [true, "Item ID is required"],
+      ref: "Item",
+      required: true,
     },
     status: {
       type: String,
       enum: ["pending", "confirmed"],
       default: "pending",
-      required: true,
+    },
+    purchaseDate: {
+      type: Date,
+      default: Date.now,
+    },
+    receiptStatus: {
+      type: String,
+      enum: ["pending", "confirmed"],
+      default: "pending",
+    },
+    receiptDate: {
+      type: Date,
+    },
+    isAuction: {
+      type: Boolean,
+      default: false,
+    },
+    auctionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Auction",
     },
   },
   {
@@ -30,6 +47,4 @@ const buySchema = new mongoose.Schema(
   }
 );
 
-const Buy = mongoose.model("Buy", buySchema);
-
-module.exports = Buy;
+module.exports = mongoose.model("Buy", buySchema);

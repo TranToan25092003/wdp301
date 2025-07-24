@@ -10,6 +10,8 @@ const {
   getUserUploadedItems,
   getItemsByOwner,
   submitItemEditRequest,
+  confirmItemDelivery,
+  confirmItemReceipt,
 } = require("../../../controller/item.duc/item.controller");
 const validateFilterItems = require("../../../dto/item.dto");
 const { validationResult } = require("express-validator");
@@ -27,11 +29,11 @@ router.get("/recent", getRecentItems);
 router.get("/by-owner/:ownerId", getItemsByOwner);
 router.post(
   "/",
-  authenticate, 
-  checkBanStatus, 
+  authenticate,
+  checkBanStatus,
   createItemLimiter,
- checkSpamContent('name', 'spam_content'), 
-  checkSpamContent('description', 'spam_content'),
+  checkSpamContent("name", "spam_content"),
+  checkSpamContent("description", "spam_content"),
   createItem
 );
 
@@ -66,6 +68,22 @@ router.post(
   checkSpamContent("name", "item_name_spam"),
   checkSpamContent("description", "item_description_spam"),
   submitItemEditRequest
+);
+
+// Add new route for seller to confirm delivery
+router.post(
+  "/confirm-delivery/:itemId",
+  authenticate,
+  checkBanStatus,
+  confirmItemDelivery
+);
+
+// Add new route for buyer to confirm receipt
+router.post(
+  "/confirm-receipt/:itemId",
+  authenticate,
+  checkBanStatus,
+  confirmItemReceipt
 );
 
 module.exports = router;

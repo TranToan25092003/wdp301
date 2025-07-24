@@ -375,7 +375,7 @@ const AuctionPage = () => {
                     <AuctionCard
                       key={auction._id}
                       auction={auction}
-                      bidCount={auction.bids ? auction.bids.length : 0}
+                      bidCount={auction.bidCount || 0}
                       onViewDetails={() => navigate(`/auctions/${auction._id}`)}
                     />
                   ))}
