@@ -39,7 +39,10 @@ import CountdownTimer from "@/components/auction/CountdownTimer";
 import { useLoaderData, useLocation, useNavigate } from "react-router-dom";
 import { getAllItems, getRecentItems } from "@/API/duc.api/item.api";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
-import { getAllAuctions } from "@/API/huynt.api/auction.api";
+import {
+  getAllAuctions,
+  getAuctionByItemId,
+} from "@/API/huynt.api/auction.api";
 import AuctionCard from "@/components/auction/AuctionCard";
 import { filterNonDisplayableItems } from "@/lib/utils";
 
@@ -372,10 +375,22 @@ const TrendingProductsSection = ({ items = [] }) => {
 
   const trendingItems = getTrendingItems();
 
-  const handleItemClick = (item) => {
-    if (item.typeId?.name?.toLowerCase() === "auction") {
-      navigate(`/auctions/${item._id}`);
-    } else {
+  const handleItemClick = async (item) => {
+    try {
+      if (item.typeId?.name?.toLowerCase() === "auction") {
+        // Lấy auction từ itemId
+        const response = await getAuctionByItemId(item._id);
+        console.log("response", response);
+        if (response.auction) {
+          navigate(`/auctions/${response.auction._id}`);
+          return;
+        }
+      }
+      // Nếu không phải auction hoặc không tìm thấy auction, điều hướng đến trang item
+      navigate(`/item/${item._id}`);
+    } catch (error) {
+      console.error("Error handling item click:", error);
+      // Fallback to item page if there's an error
       navigate(`/item/${item._id}`);
     }
   };

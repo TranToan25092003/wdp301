@@ -2,6 +2,7 @@ const { clerkClient } = require("../../config/clerk");
 const Auction = require("../../model/auction.model");
 const Bid = require("../../model/bid.model");
 const Status = require("../../model/status.model");
+const Buy = require("../../model/buy.model");
 
 // Hàm kiểm tra và settle các auction đã hết hạn
 const checkAndSettleEndedAuctions = async (io) => {
@@ -153,7 +154,12 @@ exports.getAuctionDetails = async (req, res) => {
 exports.getAllAuctions = async (req, res) => {
   try {
     const auctions = await Auction.find()
-      .populate("itemId")
+      .populate({
+        path: "itemId",
+        populate: {
+          path: "categoryId",
+        },
+      })
       .populate("statusId")
       .sort({ startTime: -1 });
 
@@ -256,6 +262,26 @@ exports.updateAuction = async (req, res) => {
   }
 };
 
+exports.getAuctionByItemId = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+
+    const auction = await Auction.findOne({ itemId })
+      .populate("itemId")
+      .populate("statusId");
+
+    if (!auction) {
+      return res
+        .status(404)
+        .json({ message: "Auction not found for this item" });
+    }
+
+    res.status(200).json({ auction });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Hàm settleAuction: trừ coin người thắng khi auction kết thúc và cộng coin cho người bán
 exports.settleAuction = async (auctionId) => {
   // Tìm và update settled = true chỉ khi settled = false (atomic)
@@ -308,12 +334,21 @@ exports.settleAuction = async (auctionId) => {
         },
       });
 
-      // Update item status to "Sold"
-      const soldStatus = await Status.findOne({ name: "Sold" });
-      if (soldStatus) {
-        auction.itemId.statusId = soldStatus._id;
+      // Update item status to "Pending Delivery"
+      const pendingDeliveryStatus = await Status.findOne({
+        name: "Pending Delivery",
+      });
+      if (pendingDeliveryStatus) {
+        auction.itemId.statusId = pendingDeliveryStatus._id;
         await auction.itemId.save();
       }
+
+      // Create Buy record
+      const buy = await Buy.create({
+        total: highestBid.amount,
+        buyer: winnerId,
+        itemId: auction.itemId._id,
+      });
 
       // Get socket.io instance from the global app object
       const io = global.io;

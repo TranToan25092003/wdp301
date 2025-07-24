@@ -110,9 +110,12 @@ const Navbar = () => {
             </Link>
             <Link
               to="/auctions"
-              className="text-white hover:text-green-200 font-medium transition-colors text-lg"
+              className="text-white hover:text-green-200 font-medium transition-colors text-lg relative flex items-center gap-2"
             >
               Đấu giá
+              <span className="absolute -right-6 -top-1.5 bg-red-500 text-white text-[8px] px-1 py-0.5 rounded-full font-bold animate-pulse">
+                HOT
+              </span>
             </Link>
             <Link
               to="/sellers"

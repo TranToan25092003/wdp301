@@ -1346,7 +1346,75 @@ const AuctionDetailPage = () => {
           style={{ zIndex: 1001 }}
           maskStyle={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
         >
-          {/* ... keep existing modal content ... */}
+          <div className="text-center p-6">
+            <div className="mb-6">
+              {winnerModal.isWinner ? (
+                <TrophyOutlined
+                  style={{
+                    fontSize: 64,
+                    color: "#faad14",
+                    marginBottom: 16,
+                  }}
+                />
+              ) : winnerModal.isSeller ? (
+                <DollarOutlined
+                  style={{
+                    fontSize: 64,
+                    color: "#52c41a",
+                    marginBottom: 16,
+                  }}
+                />
+              ) : (
+                <InfoCircleOutlined
+                  style={{
+                    fontSize: 64,
+                    color: "#1890ff",
+                    marginBottom: 16,
+                  }}
+                />
+              )}
+            </div>
+
+            <Title level={3} style={{ marginBottom: 16, color: "#262626" }}>
+              {winnerModal.isWinner
+                ? "Chúc mừng! Bạn đã thắng!"
+                : winnerModal.isSeller
+                ? "Phiên đấu giá đã kết thúc!"
+                : "Phiên đấu giá đã kết thúc"}
+            </Title>
+
+            <Paragraph style={{ fontSize: 16, marginBottom: 24 }}>
+              {winnerModal.isWinner ? (
+                <>
+                  Bạn đã thắng phiên đấu giá này với giá{" "}
+                  <Text strong>{winnerModal.amount.toLocaleString()}₫</Text>
+                </>
+              ) : winnerModal.isSeller ? (
+                <>
+                  <Text strong>{winnerModal.winnerName}</Text> đã thắng với giá{" "}
+                  <Text strong>{winnerModal.amount.toLocaleString()}₫</Text>
+                </>
+              ) : (
+                <>
+                  <Text strong>{winnerModal.winnerName}</Text> đã thắng đấu giá
+                  với giá{" "}
+                  <Text strong>{winnerModal.amount.toLocaleString()}₫</Text>
+                </>
+              )}
+            </Paragraph>
+
+            <div className="flex justify-center gap-4">
+              <Button
+                type="primary"
+                size="large"
+                onClick={() =>
+                  setWinnerModal((prev) => ({ ...prev, visible: false }))
+                }
+              >
+                {winnerModal.isWinner ? "Xem chi tiết" : "Đóng"}
+              </Button>
+            </div>
+          </div>
         </Modal>
 
         <Layout style={{ backgroundColor: "#fff", padding: "20px" }}>

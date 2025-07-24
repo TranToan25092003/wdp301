@@ -8,7 +8,8 @@ const buySchema = new mongoose.Schema(
       required: [true, "Total is required"],
       min: [0, "Total cannot be negative"],
     },
-    buyer: { // Người mua (Buyer)
+    buyer: {
+      // Người mua (Buyer)
       type: String,
       required: [true, "Buyer is required"],
     },
@@ -19,8 +20,8 @@ const buySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed'],
-      default: 'pending',
+      enum: ["pending", "confirmed"],
+      default: "pending",
       required: true,
     },
   },

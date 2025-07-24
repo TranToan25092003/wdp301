@@ -35,10 +35,10 @@ export const confirmBuyItemReceipt = async (buyId, token) => {
 };
 
 export const getBuyRecordByItemId = async (itemId, token) => {
-    const response = await customFetch.get(`/buys/item/${itemId}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-    return response.data;
+  const response = await customFetch.get(`/buys/item/${itemId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
 };

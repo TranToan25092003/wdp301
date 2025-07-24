@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, Button, Tag, Tooltip } from "antd";
 import CountdownTimer from "./CountdownTimer";
 
 const AuctionCard = ({ auction, onViewDetails }) => {
+  const [imageError, setImageError] = useState(false);
   const now = new Date();
   const startTime = new Date(auction.startTime);
   const endTime = new Date(auction.endTime);
@@ -46,16 +47,29 @@ const AuctionCard = ({ auction, onViewDetails }) => {
       }}
       bodyStyle={{ padding: 18 }}
       cover={
-        <div className="relative">
+        <div
+          className="relative"
+          style={{
+            height: 180,
+            backgroundColor: "#f3f4f6",
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+            overflow: "hidden",
+          }}
+        >
           <img
-            alt={auction.itemId?.name}
-            src={auction.itemId?.images?.[0] || "/assets/fallback.png"}
+            alt={auction.itemId?.name || "Auction item"}
+            src={
+              imageError
+                ? "/assets/fallback.png"
+                : auction.itemId?.images?.[0] || "/assets/fallback.png"
+            }
             style={{
-              height: 180,
+              width: "100%",
+              height: "100%",
               objectFit: "cover",
-              borderTopLeftRadius: 18,
-              borderTopRightRadius: 18,
             }}
+            onError={() => setImageError(true)}
           />
           <div className="absolute top-3 right-3">
             <Tag

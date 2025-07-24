@@ -20,13 +20,15 @@ const ConfirmBuyReceiptModal = ({ visible, onCancel, onSuccess, buyId }) => {
           text: response.message,
           confirmButtonText: "OK",
         });
-        onSuccess(); 
+        onSuccess();
       }
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error.response?.data?.message || "Failed to confirm receipt. Please try again.",
+        text:
+          error.response?.data?.message ||
+          "Failed to confirm receipt. Please try again.",
         confirmButtonText: "OK",
       });
     } finally {
@@ -55,7 +57,10 @@ const ConfirmBuyReceiptModal = ({ visible, onCancel, onSuccess, buyId }) => {
         </Button>,
       ]}
     >
-      <p>Are you sure you have received the item? Confirming will transfer the payment to the seller.</p>
+      <p>
+        Are you sure you have received the item? Confirming will transfer the
+        payment to the seller.
+      </p>
     </Modal>
   );
 };
