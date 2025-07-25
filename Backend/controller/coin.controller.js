@@ -21,7 +21,7 @@ module.exports.secret = async (req, res) => {
         product_data: {
           name: "Coin: 💸💸💸",
         },
-        unit_amount: total * 1000,
+        unit_amount: total,
       },
     },
   ];

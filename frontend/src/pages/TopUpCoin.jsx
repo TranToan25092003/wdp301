@@ -77,8 +77,8 @@ export const TopUp = () => {
       return;
     }
 
-    if (total >= 100000) {
-      toast("Số coin phải nhỏ hơn 10.000");
+    if (total >= 100000000) {
+      toast("Số coin phải nhỏ hơn 100.000.000");
       return;
     }
 
@@ -144,18 +144,25 @@ export const TopUp = () => {
               </SelectTrigger>
               <SelectContent className="bg-[#222222] text-white border-[#169976]">
                 <SelectItem value="0">0</SelectItem>
-                <SelectItem value="100">100 Coins (100.000VND)</SelectItem>
-                <SelectItem value="500">500 Coins (500.000VND)</SelectItem>
-                <SelectItem value="1000">1000 Coins (1000.000VND)</SelectItem>
-                <SelectItem value="5000">5000 Coins (5.000.000VND)</SelectItem>
+                <SelectItem value="100000">
+                  100,000 Coins (100.000VND)
+                </SelectItem>
+                <SelectItem value="500000">
+                  500,000 Coins (500.000VND)
+                </SelectItem>
+                <SelectItem value="1000000">
+                  1,000,000 Coins (1.000.000VND)
+                </SelectItem>
+                <SelectItem value="5000000">
+                  5,000,000 Coins (5.000.000VND)
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
             <label className="text-[#1DCD9F] text-sm mb-2 block">
               Enter coin:{" "}
-              {new Intl.NumberFormat("vi-VN").format(paymentInfo * 1000) +
-                " VND"}
+              {new Intl.NumberFormat("vi-VN").format(paymentInfo) + " VND"}
             </label>
             <Input
               className="bg-[#222222] border-[#169976] text-white w-full"
@@ -258,8 +265,7 @@ export const TopUp = () => {
             <div>
               <label className="text-[#1DCD9F] text-sm mb-2 block">
                 Số coin muốn rút:{" "}
-                {new Intl.NumberFormat("vi-VN").format(withdrawAmount * 1000) +
-                  " VND"}
+                {new Intl.NumberFormat("vi-VN").format(withdrawAmount) + " VND"}
               </label>
               <Input
                 type="number"
