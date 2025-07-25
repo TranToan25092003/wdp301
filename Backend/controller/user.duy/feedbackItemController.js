@@ -53,7 +53,9 @@ const getValidFeedbackItems = async (req, res) => {
     const validBorrowStatuses = [
       "returned", 
       "completed", 
-      "finished"
+      "finished",
+      "borrowed",
+      "pending"
     ];
 
     const borrowTransactions = await Borrow.find({
