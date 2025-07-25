@@ -30,3 +30,13 @@ export const updateAuction = async (auctionId, auctionData) => {
   const response = await customFetch.put(`/auctions/${auctionId}`, auctionData);
   return response.data;
 };
+
+export const getAuctionByItemId = async (itemId) => {
+  try {
+    const response = await customFetch.get(`/auctions/by-item/${itemId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching auction by itemId:", error);
+    throw error;
+  }
+};

@@ -120,8 +120,9 @@ export function AuctionAdminDetail() {
                 alt={`${auction.owner.firstName} ${auction.owner.lastName}`}
               />
               <AvatarFallback>
-                {auction.owner.firstName[0]}
-                {auction.owner.lastName[0]}
+                {console.log(auction.owner)}
+                {auction.owner?.firstName[0]}
+                {auction.owner?.lastName && auction.owner.lastName[0]}
               </AvatarFallback>
             </Avatar>
             <div>

@@ -1,5 +1,5 @@
-import { useAuth, useUser } from "@clerk/clerk-react";
-import React, { use } from "react";
+import { useUser } from "@clerk/clerk-react";
+import React from "react";
 import { LuUser } from "react-icons/lu";
 
 const UserIcon = () => {
@@ -10,11 +10,11 @@ const UserIcon = () => {
   const profileImage = user?.imageUrl;
 
   if (profileImage) {
-    return <img src={profileImage} className="w-6 h-6 rounded object-cover" />;
+    return <img src={profileImage} className="w-8 h-8 rounded object-cover" />;
   }
 
   return (
-    <LuUser className="w-6 h-6 bg-primary rounded-full text-white"></LuUser>
+    <LuUser className="w-8 h-8 bg-primary rounded-full text-white"></LuUser>
   );
 };
 

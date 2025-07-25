@@ -13,7 +13,8 @@ const borrowSchema = new mongoose.Schema(
       required: [true, "Total time is required"],
       min: [0, "Total time cannot be negative"],
     },
-    borrowers: { // Người mượn (Borrower)
+    borrowers: {
+      // Người mượn (Borrower)
       type: String,
       required: [true, "Borrower is required"],
     },
@@ -31,12 +32,12 @@ const borrowSchema = new mongoose.Schema(
       required: [true, "End time is required"],
     },
     actualTime: {
-      type: Date, 
+      type: Date,
     },
     status: {
       type: String,
-      enum: ['borrowed', 'returned', 'late'],
-      default: 'borrowed',
+      enum: ["borrowed", "returned", "late"],
+      default: "borrowed",
       required: true,
     },
   },

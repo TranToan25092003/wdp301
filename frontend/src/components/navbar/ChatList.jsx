@@ -164,7 +164,7 @@ const ChatList = () => {
         onOpenChange={handleOpenChange}
       >
         <div className="flex items-center justify-center relative cursor-pointer">
-          <MessageCircle className="w-6 h-6" />
+          <MessageCircle className="w-8 h-8" />
           {isSignedIn && unreadCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center px-1">
               {unreadCount > 99 ? "99+" : unreadCount}

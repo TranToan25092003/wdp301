@@ -14,7 +14,7 @@ import {
   SignUpButton,
   useAuth,
 } from "@clerk/clerk-react";
-import { href, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { LuAlignLeft } from "react-icons/lu";
 import UserIcon from "@/components/navbar/UserIcon";
@@ -27,22 +27,31 @@ const LinkDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"} className="flex gap-4 max-w-[100px]">
-          <LuAlignLeft className="w-6 h-6"></LuAlignLeft>
+        <Button
+          variant={"outline"}
+          className="flex gap-4 max-w-[120px] py-6 px-4"
+          style={{
+            border: "2px solid #bbf7d0",
+          }}
+        >
+          <LuAlignLeft
+            className="w-7 h-7 text-black"
+            style={{ color: "#000000", strokeWidth: "2.5" }}
+          ></LuAlignLeft>
 
           <UserIcon></UserIcon>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-40" align="center" sideOffset={10}>
+      <DropdownMenuContent className="w-48" align="center" sideOffset={10}>
         <SignedOut>
-          <DropdownMenuItem>
+          <DropdownMenuItem className="py-3 text-base">
             <SignInButton mode="modal">
               <button className="w-full text-left">Login</button>
             </SignInButton>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator></DropdownMenuSeparator>
-          <DropdownMenuItem>
+          <DropdownMenuItem className="py-3 text-base">
             <SignUpButton mode="modal">
               <button className="w-full text-left">Register</button>
             </SignUpButton>
@@ -53,7 +62,7 @@ const LinkDropdown = () => {
             if (link.href.includes("/admin")) {
               if (orgRole == "org:admin" || orgRole == "org:admin_secondary") {
                 return (
-                  <DropdownMenuItem key={link.href}>
+                  <DropdownMenuItem key={link.href} className="py-3 text-base">
                     <Link to={link.href} className="capitalize w-full">
                       {link.label}
                     </Link>
@@ -63,7 +72,7 @@ const LinkDropdown = () => {
             }
 
             return (
-              <DropdownMenuItem key={link.href}>
+              <DropdownMenuItem key={link.href} className="py-3 text-base">
                 <Link to={link.href} className="capitalize w-full">
                   {link.label}
                 </Link>
@@ -72,7 +81,7 @@ const LinkDropdown = () => {
           })}
 
           <DropdownMenuSeparator></DropdownMenuSeparator>
-          <DropdownMenuItem>
+          <DropdownMenuItem className="py-3 text-base">
             <SignOutLink></SignOutLink>
           </DropdownMenuItem>
         </SignedIn>

@@ -3,15 +3,15 @@ import React from "react";
 import { useLoaderData } from "react-router-dom";
 import { customFetch } from "@/utils/customAxios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Users, 
-  Package, 
-  DollarSign, 
-  ShoppingBag, 
-  BookOpen, 
-  TrendingUp, 
+import {
+  Users,
+  Package,
+  DollarSign,
+  ShoppingBag,
+  BookOpen,
+  TrendingUp,
   AlertTriangle,
-  Activity
+  Activity,
 } from "lucide-react";
 
 /**
@@ -95,13 +95,13 @@ const DashboardStats = () => {
   const statsCards = [
     {
       title: "Tổng Người Dùng",
-      value: totalUsers,
+      value: 3,
       description: "Tổng số tài khoản đã đăng ký",
       icon: Users,
       gradient: "from-blue-500 to-cyan-400",
       bgGradient: "from-blue-50 to-cyan-50",
       iconBg: "bg-blue-100",
-      iconColor: "text-blue-600"
+      iconColor: "text-blue-600",
     },
     {
       title: "Tổng Vật Phẩm",
@@ -111,7 +111,7 @@ const DashboardStats = () => {
       gradient: "from-purple-500 to-pink-400",
       bgGradient: "from-purple-50 to-pink-50",
       iconBg: "bg-purple-100",
-      iconColor: "text-purple-600"
+      iconColor: "text-purple-600",
     },
     {
       title: "Tổng Doanh Thu",
@@ -121,7 +121,7 @@ const DashboardStats = () => {
       gradient: "from-green-500 to-emerald-400",
       bgGradient: "from-green-50 to-emerald-50",
       iconBg: "bg-green-100",
-      iconColor: "text-green-600"
+      iconColor: "text-green-600",
     },
     {
       title: "Giao Dịch Mua",
@@ -131,7 +131,7 @@ const DashboardStats = () => {
       gradient: "from-orange-500 to-red-400",
       bgGradient: "from-orange-50 to-red-50",
       iconBg: "bg-orange-100",
-      iconColor: "text-orange-600"
+      iconColor: "text-orange-600",
     },
     {
       title: "Giao Dịch Mượn",
@@ -141,7 +141,7 @@ const DashboardStats = () => {
       gradient: "from-indigo-500 to-blue-400",
       bgGradient: "from-indigo-50 to-blue-50",
       iconBg: "bg-indigo-100",
-      iconColor: "text-indigo-600"
+      iconColor: "text-indigo-600",
     },
     {
       title: "Doanh Thu Mua",
@@ -151,7 +151,7 @@ const DashboardStats = () => {
       gradient: "from-teal-500 to-green-400",
       bgGradient: "from-teal-50 to-green-50",
       iconBg: "bg-teal-100",
-      iconColor: "text-teal-600"
+      iconColor: "text-teal-600",
     },
     {
       title: "Doanh Thu Mượn",
@@ -161,7 +161,7 @@ const DashboardStats = () => {
       gradient: "from-cyan-500 to-blue-400",
       bgGradient: "from-cyan-50 to-blue-50",
       iconBg: "bg-cyan-100",
-      iconColor: "text-cyan-600"
+      iconColor: "text-cyan-600",
     },
     {
       title: "Tổng Báo Cáo",
@@ -171,8 +171,8 @@ const DashboardStats = () => {
       gradient: "from-yellow-500 to-orange-400",
       bgGradient: "from-yellow-50 to-orange-50",
       iconBg: "bg-yellow-100",
-      iconColor: "text-yellow-600"
-    }
+      iconColor: "text-yellow-600",
+    },
   ];
 
   return (
@@ -195,22 +195,26 @@ const DashboardStats = () => {
           {statsCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className={`group relative overflow-hidden bg-gradient-to-br ${stat.bgGradient} border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105`}
               >
                 {/* Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                
+                <div
+                  className={`absolute inset-0 bg-gradient-to-r ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                />
+
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
                   <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-gray-800 transition-colors">
                     {stat.title}
                   </CardTitle>
-                  <div className={`${stat.iconBg} p-2 rounded-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <div
+                    className={`${stat.iconBg} p-2 rounded-lg group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <Icon className={`h-5 w-5 ${stat.iconColor}`} />
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="relative z-10">
                   <div className="text-3xl font-bold text-gray-800 mb-1 group-hover:text-gray-900 transition-colors">
                     {stat.value}
@@ -226,8 +230,6 @@ const DashboardStats = () => {
             );
           })}
         </div>
-
-
       </div>
     </div>
   );
