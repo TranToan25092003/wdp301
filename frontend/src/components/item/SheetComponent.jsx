@@ -66,7 +66,7 @@ const SheetComponent = ({ itemId }) => {
                   approve: false,
                   reason: reason,
                 });
-                toast("Item approve successfully");
+                toast("Item declined successfully");
                 navigate(location.pathname, { replace: true });
               } catch (error) {
                 toast("error in reject items");

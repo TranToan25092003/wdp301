@@ -711,12 +711,19 @@ const CreatePost = () => {
                       label={<Text strong>Description</Text>}
                       rules={[
                         { required: true, message: "Please enter description" },
+                        {
+                          max: 100000,
+                          message:
+                            "Description cannot exceed 100000 characters",
+                        },
                       ]}
                     >
                       <TextArea
                         rows={8}
                         placeholder="Detailed description of the product. Line breaks and formatting will be preserved when displayed."
                         className="rounded-lg"
+                        maxLength={100000}
+                        showCount
                       />
                     </Form.Item>
                     <div className="text-xs text-gray-500 mt-1">
