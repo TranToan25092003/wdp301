@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import { getAllCategoriesWithStats } from "@/API/duc.api/category.api";
 import { getAllTypes } from "@/API/duc.api/type.api";
 import { getAllStatuses } from "@/API/duc.api/status.api";
+import { filterNonDisplayableItems } from "@/lib/utils";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -34,7 +35,12 @@ export const filterPageLoader = async () => {
     return {
       types: typesRes || [],
       categories: categoriesRes.data || [],
-      statuses: statusesRes || [],
+      statuses:
+        statusesRes.filter(
+          (status) =>
+            status.name.toLowerCase() !== "pending" &&
+            status.name.toLowerCase() !== "rejected"
+        ) || [],
     };
   } catch (error) {
     console.error("Error loading filter options:", error);
@@ -70,14 +76,13 @@ const FilterPage = () => {
     { label: "Hour", value: "hour" },
     { label: "Day", value: "day" },
     { label: "None", value: "no" },
-  ]
+  ];
 
   const statusOptions = statuses.map((s) => ({ label: s.name, value: s._id }));
 
   const fetchFilteredItems = async (filters = {}) => {
     setLoading(true);
     try {
-      // Use page and pageSize from filters if provided, otherwise fall back to state
       const pageToFetch = Number(filters.page) || page;
       const pageSizeToFetch = Number(filters.pageSize) || pageSize;
       const res = await getFilteredItems({
@@ -85,8 +90,17 @@ const FilterPage = () => {
         page: pageToFetch,
         pageSize: pageSizeToFetch,
       });
-      setFilteredItems(res.data || []);
-      setTotalItems(res.total || 0);
+
+      // Lọc bỏ các sản phẩm có trạng thái pending hoặc rejected
+      const filteredData = filterNonDisplayableItems(res.data || []);
+
+      // Điều chỉnh tổng số sản phẩm dựa trên kết quả lọc
+      const adjustedTotal = Math.floor(
+        (res.total || 0) * (filteredData.length / (res.data || []).length)
+      );
+
+      setFilteredItems(filteredData);
+      setTotalItems(adjustedTotal);
     } catch (error) {
       const errors = error?.response?.data?.errors;
       if (Array.isArray(errors)) {
@@ -270,7 +284,11 @@ const FilterPage = () => {
 
               <Form.Item label="Status" name="statusId">
                 <Select
-                  options={statusOptions}
+                  options={statusOptions.filter(
+                    (status) =>
+                      status.label.toLowerCase() !== "pending" &&
+                      status.label.toLowerCase() !== "rejected"
+                  )}
                   placeholder="Select a status"
                   allowClear
                 />

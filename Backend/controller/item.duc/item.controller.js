@@ -2,10 +2,10 @@ const { Mongoose, default: mongoose } = require("mongoose");
 const Category = require("../../model/category.model");
 const Item = require("../../model/item.model");
 const { clerkClient } = require("../../config/clerk");
-const { Follow, Borrow, Buy } = require("../../model"); 
+const { Follow, Borrow, Buy } = require("../../model");
 const {
   createNotification,
-} = require("../notification.duy/notificationController"); 
+} = require("../notification.duy/notificationController");
 const logActivity = require("../../utils/activityLogger");
 const Status = require("../../model/status.model"); // THÊM DÒNG NÀY ĐỂ IMPORT MODEL STATUS
 const getAllItems = async (req, res) => {
@@ -386,7 +386,9 @@ const createItem = async (req, res) => {
       const ownerUser = await clerkClient.users.getUser(owner);
       let ownerName = "Người dùng ẩn danh";
       if (ownerUser) {
-        const fullName = `${ownerUser.firstName || ""} ${ownerUser.lastName || ""}`.trim();
+        const fullName = `${ownerUser.firstName || ""} ${
+          ownerUser.lastName || ""
+        }`.trim();
         if (fullName) {
           ownerName = fullName;
         } else if (ownerUser.username) {
@@ -397,19 +399,20 @@ const createItem = async (req, res) => {
       }
 
       await logActivity(
-        owner, 
-        "ITEM_CREATED", 
-        `${ownerName} đã đăng tải vật phẩm mới: "${item.name}" (ID: ${item._id}).`, 
-        "Item", 
-        item._id, 
-        req 
+        owner,
+        "ITEM_CREATED",
+        `${ownerName} đã đăng tải vật phẩm mới: "${item.name}" (ID: ${item._id}).`,
+        "Item",
+        item._id,
+        req
       );
-      console.log(`Activity logged: Item "${item.name}" created by ${ownerName}.`);
+      console.log(
+        `Activity logged: Item "${item.name}" created by ${ownerName}.`
+      );
     } catch (logError) {
       console.error("Error logging ITEM_CREATED activity:", logError);
-      
     }
-   
+
     // THÊM LOGIC GỬI THÔNG BÁO TẠI ĐÂY
 
     const io = req.app.get("socketio");
@@ -899,6 +902,329 @@ const submitItemEditRequest = async (req, res) => {
   }
 };
 
+// Function to handle item delivery confirmation
+const confirmItemDelivery = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const userId = req.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid item ID format",
+      });
+    }
+
+    // Find the item
+    const item = await Item.findById(itemId)
+      .populate("statusId")
+      .populate("typeId");
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    // Check if the user is the owner of the item
+    if (item.owner !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to confirm delivery for this item",
+      });
+    }
+
+    // Check if item status is "Pending Delivery"
+    if (item.statusId.name !== "Pending Delivery") {
+      return res.status(400).json({
+        success: false,
+        message: "This item is not in the 'Pending Delivery' status",
+      });
+    }
+
+    // Find the "Awaiting Receipt" status
+    const awaitingReceiptStatus = await Status.findOne({
+      name: "Awaiting Receipt",
+    });
+    if (!awaitingReceiptStatus) {
+      return res.status(500).json({
+        success: false,
+        message: "Unable to find required status in the system",
+      });
+    }
+
+    // Update the item status to "Awaiting Receipt"
+    item.statusId = awaitingReceiptStatus._id;
+    await item.save();
+
+    // Find the related buy record to update delivery status
+    const buyRecord = await Buy.findOne({ itemId: item._id });
+    if (buyRecord) {
+      buyRecord.deliveryStatus = "delivered";
+      buyRecord.deliveryDate = new Date();
+      await buyRecord.save();
+    }
+
+    // Get buyer information for notification
+    let buyerInfo = null;
+    if (buyRecord) {
+      try {
+        const buyer = await clerkClient.users.getUser(buyRecord.buyer);
+        if (buyer) {
+          buyerInfo = {
+            id: buyer.id,
+            name: `${buyer.firstName || ""} ${buyer.lastName || ""}`.trim(),
+            imageUrl: buyer.imageUrl || "",
+          };
+        }
+      } catch (error) {
+        console.error("Error fetching buyer information:", error);
+      }
+    }
+
+    // Send notification to buyer
+    const io = req.app.get("socketio");
+    if (io && buyRecord && buyerInfo) {
+      try {
+        // Create notification for buyer about delivered item
+        const notification = await createNotification({
+          recipientId: buyRecord.buyer,
+          senderId: userId,
+          type: "item_delivered",
+          message: `Người bán đã xác nhận giao hàng: ${item.name}. Vui lòng xác nhận đã nhận được hàng.`,
+          link: `/item/${item._id}`,
+          sourceId: item._id,
+          sourceModel: "Item",
+          io: io,
+        });
+
+        // Send socket notification
+        io.to(buyRecord.buyer).emit("new_notification", {
+          ...notification._doc,
+          sender: {
+            id: userId,
+            // Assuming we have seller info, otherwise this will be incomplete
+            username: "Người bán",
+            imageUrl: "",
+          },
+        });
+
+        // Also emit a specific item status change event
+        io.to(buyRecord.buyer).emit("item_delivered", {
+          itemId: item._id,
+          itemName: item.name,
+          deliveryDate: new Date(),
+        });
+
+        console.log(
+          `Delivery confirmation notification sent to buyer ${buyRecord.buyer}`
+        );
+      } catch (notifyError) {
+        console.error("Error sending delivery notification:", notifyError);
+      }
+    }
+
+    // Log the activity
+    try {
+      await logActivity(
+        userId,
+        "DELIVERY_CONFIRMED",
+        `Người bán đã xác nhận giao hàng cho sản phẩm "${item.name}" (ID: ${item._id})`,
+        "Item",
+        item._id,
+        req
+      );
+    } catch (logError) {
+      console.error("Error logging delivery confirmation:", logError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Delivery confirmed successfully",
+      data: {
+        id: item._id,
+        name: item.name,
+        status: "Awaiting Receipt",
+        statusId: awaitingReceiptStatus._id,
+      },
+    });
+  } catch (error) {
+    console.error("Error confirming item delivery:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while confirming delivery",
+      error: error.message,
+    });
+  }
+};
+
+// Function to handle item receipt confirmation by the buyer
+const confirmItemReceipt = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const userId = req.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid item ID format",
+      });
+    }
+
+    // Find the item
+    const item = await Item.findById(itemId)
+      .populate("statusId")
+      .populate("typeId");
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    // Find the buy record to verify the buyer
+    const buyRecord = await Buy.findOne({ itemId: item._id });
+    if (!buyRecord) {
+      return res.status(404).json({
+        success: false,
+        message: "Purchase record not found for this item",
+      });
+    }
+
+    // Check if the user is the buyer
+    if (buyRecord.buyer !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to confirm receipt for this item",
+      });
+    }
+
+    // Check if item status is "Awaiting Receipt"
+    if (item.statusId.name !== "Awaiting Receipt") {
+      return res.status(400).json({
+        success: false,
+        message: "This item is not in the 'Awaiting Receipt' status",
+      });
+    }
+
+    // Find the "Sold" status
+    const soldStatus = await Status.findOne({ name: "Sold" });
+    if (!soldStatus) {
+      return res.status(500).json({
+        success: false,
+        message: "Unable to find required status in the system",
+      });
+    }
+
+    // Update the item status to "Sold"
+    item.statusId = soldStatus._id;
+    await item.save();
+
+    // Update the buy record
+    buyRecord.receiptStatus = "confirmed";
+    buyRecord.receiptDate = new Date();
+    await buyRecord.save();
+
+    // Transfer money to the seller
+    try {
+      const seller = await clerkClient.users.getUser(item.owner);
+      const sellerCoin = Number.parseInt(seller.publicMetadata?.coin) || 0;
+
+      // Add the item price to the seller's balance
+      await clerkClient.users.updateUserMetadata(item.owner, {
+        publicMetadata: {
+          coin: sellerCoin + buyRecord.total,
+        },
+      });
+
+      console.log(
+        `Transferred ${buyRecord.total} coins to seller ${item.owner}`
+      );
+    } catch (transferError) {
+      console.error("Error transferring money to seller:", transferError);
+      // Continue with the process even if the transfer fails
+      // Should have a separate admin process to resolve failed transfers
+    }
+
+    // Send notification to seller
+    const io = req.app.get("socketio");
+    if (io) {
+      try {
+        // Create notification for seller about receipt confirmation
+        const notification = await createNotification({
+          recipientId: item.owner,
+          senderId: userId,
+          type: "item_receipt_confirmed",
+          message: `Người mua đã xác nhận nhận được hàng: ${item.name}. Số tiền đã được chuyển vào tài khoản của bạn.`,
+          link: `/item/${item._id}`,
+          sourceId: item._id,
+          sourceModel: "Item",
+          io: io,
+        });
+
+        // Send socket notification to seller
+        io.to(item.owner).emit("new_notification", {
+          ...notification._doc,
+          sender: {
+            id: userId,
+            // Assuming we have buyer info, otherwise this will be incomplete
+            username: "Người mua",
+            imageUrl: "",
+          },
+        });
+
+        // Also emit a specific item status change event
+        io.to(item.owner).emit("payment_received", {
+          itemId: item._id,
+          itemName: item.name,
+          amount: buyRecord.total,
+          receiptDate: new Date(),
+        });
+
+        console.log(
+          `Receipt confirmation notification sent to seller ${item.owner}`
+        );
+      } catch (notifyError) {
+        console.error("Error sending receipt notification:", notifyError);
+      }
+    }
+
+    // Log the activity
+    try {
+      await logActivity(
+        userId,
+        "RECEIPT_CONFIRMED",
+        `Người mua đã xác nhận nhận hàng cho sản phẩm "${item.name}" (ID: ${item._id})`,
+        "Item",
+        item._id,
+        req
+      );
+    } catch (logError) {
+      console.error("Error logging receipt confirmation:", logError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Receipt confirmed successfully",
+      data: {
+        id: item._id,
+        name: item.name,
+        status: "Sold",
+        statusId: soldStatus._id,
+      },
+    });
+  } catch (error) {
+    console.error("Error confirming item receipt:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while confirming receipt",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllItems,
   getItemsByCategory,
@@ -910,4 +1236,6 @@ module.exports = {
   getUserUploadedItems,
   getItemsByOwner,
   submitItemEditRequest,
+  confirmItemDelivery,
+  confirmItemReceipt,
 };

@@ -23,14 +23,20 @@ router.get("/", authenticate, async (req, res, next) => {
   return getAllBorrowRecordByUserId(req, res, next);
 });
 
-router.post("/", authenticate, checkBanStatus, validateBorrow, async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+router.post(
+  "/",
+  authenticate,
+  checkBanStatus,
+  validateBorrow,
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-  return createBorrow(req, res, next);
-});
+    return createBorrow(req, res, next);
+  }
+);
 
 router.post("/request-return", authenticate, async (req, res, next) => {
   const errors = validationResult(req);
@@ -41,14 +47,18 @@ router.post("/request-return", authenticate, async (req, res, next) => {
   return requestForReturnBorrow(req, res, next);
 });
 
-router.patch("/confirm-return/:borrowId", authenticate, async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+router.patch(
+  "/confirm-return/:borrowId",
+  authenticate,
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-  return confirmReturnBorrow(req, res, next);
-});
+    return confirmReturnBorrow(req, res, next);
+  }
+);
 
 router.patch("/extend", authenticate, async (req, res, next) => {
   const errors = validationResult(req);

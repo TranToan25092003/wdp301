@@ -15,4 +15,6 @@ router.put("/:id", authenticate, controller.updateAuction);
 
 router.delete("/delete/:id", authenticate, controller.deleteAuction);
 
+router.get("/by-item/:itemId", controller.getAuctionByItemId);
+
 module.exports = router;

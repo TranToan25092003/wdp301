@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Modal, Button } from "antd";
+import { Modal, Button, Alert, Space } from "antd";
 import Swal from "sweetalert2";
 import { useAuth } from "@clerk/clerk-react";
 import { confirmBuyItemReceipt } from "@/API/duc.api/buy.api";
+import { CheckCircle, AlertTriangle } from "lucide-react";
 
 const ConfirmBuyReceiptModal = ({ visible, onCancel, onSuccess, buyId }) => {
   const { getToken } = useAuth();
@@ -12,37 +13,70 @@ const ConfirmBuyReceiptModal = ({ visible, onCancel, onSuccess, buyId }) => {
     setLoading(true);
     try {
       const token = await getToken();
+      console.log("Confirming receipt for buyId:", buyId);
+
+      if (!token) {
+        throw new Error(
+          "No authentication token available. Please try logging in again."
+        );
+      }
+
+      if (!buyId) {
+        throw new Error(
+          "No transaction ID found. Please refresh the page and try again."
+        );
+      }
+
       const response = await confirmBuyItemReceipt(buyId, token);
-      if (response.success) {
+      console.log("Confirmation response:", response);
+
+      if (response && response.success) {
+        setLoading(false);
+        onCancel(); // Close modal on success
+
         Swal.fire({
           icon: "success",
-          title: "Success!",
-          text: response.message,
-          confirmButtonText: "OK",
+          title: "Xác nhận thành công!",
+          text:
+            response.message ||
+            "Bạn đã xác nhận nhận hàng thành công. Thanh toán đã được chuyển cho người bán.",
+          confirmButtonText: "Đóng",
         });
-        onSuccess(); 
+
+        onSuccess();
+      } else {
+        throw new Error(response?.message || "Failed to confirm receipt");
       }
     } catch (error) {
+      console.error("Error confirming receipt:", error);
+      setLoading(false); // Stop loading but don't close modal
+
       Swal.fire({
         icon: "error",
-        title: "Error",
-        text: error.response?.data?.message || "Failed to confirm receipt. Please try again.",
-        confirmButtonText: "OK",
+        title: "Lỗi xác nhận",
+        text:
+          error.response?.data?.message ||
+          error.message ||
+          "Không thể xác nhận nhận hàng. Vui lòng thử lại sau.",
+        confirmButtonText: "Đóng",
       });
-    } finally {
-      setLoading(false);
-      onCancel(); // Close modal after action
+
+      // Do not close modal on error so user can try again
     }
   };
 
   return (
     <Modal
-      title="Confirm Receipt"
+      title={
+        <div className="flex items-center text-green-600">
+          <CheckCircle className="mr-2" /> Xác nhận đã nhận hàng
+        </div>
+      }
       open={visible}
       onCancel={onCancel}
       footer={[
         <Button key="cancel" onClick={onCancel} disabled={loading}>
-          Cancel
+          Hủy bỏ
         </Button>,
         <Button
           key="confirm"
@@ -51,11 +85,35 @@ const ConfirmBuyReceiptModal = ({ visible, onCancel, onSuccess, buyId }) => {
           loading={loading}
           className="bg-green-500 hover:bg-green-600"
         >
-          Confirm Receipt
+          Xác nhận đã nhận hàng
         </Button>,
       ]}
+      width={500}
     >
-      <p>Are you sure you have received the item? Confirming will transfer the payment to the seller.</p>
+      <Space direction="vertical" style={{ width: "100%" }}>
+        <p className="text-base">
+          Bạn xác nhận đã nhận được hàng và sản phẩm đúng như mô tả?
+        </p>
+
+        <Alert
+          message="Lưu ý quan trọng"
+          description={
+            <ul className="list-disc pl-5 text-sm">
+              <li>Khi xác nhận, tiền sẽ được chuyển đến người bán</li>
+              <li>Hãy kiểm tra kỹ sản phẩm trước khi xác nhận</li>
+              <li>Sau khi xác nhận, bạn không thể hoàn tác hành động này</li>
+            </ul>
+          }
+          type="warning"
+          showIcon
+          icon={<AlertTriangle className="text-amber-500" />}
+          className="my-3"
+        />
+
+        <div className="text-right text-gray-500 text-sm mt-3">
+          Mã giao dịch: {buyId}
+        </div>
+      </Space>
     </Modal>
   );
 };

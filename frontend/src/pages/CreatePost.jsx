@@ -242,7 +242,7 @@ const CreatePost = () => {
 
           if (!isAccept) {
             toast.error(
-              `Hmm Your item is: ${rejectReason} need to review to be available😕😕😕`,
+              ` ${rejectReason}. Admin sẽ kiểm tra và xử lý sản phẩm của bạn!`,
               {
                 id: toastLoading,
               }
@@ -290,15 +290,11 @@ const CreatePost = () => {
         await createAuction(auctionData);
       }
 
-      message.success("Post created successfully!");
+      // Remove success message here since we already show AI success notification
       navigate("/", { state: { created: true } });
     } catch (error) {
       console.error("Error creating post:", error);
-      message.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to create post"
-      );
+      // Remove error message here since we already show AI error notification
     } finally {
       setUploading(false);
     }
@@ -715,12 +711,19 @@ const CreatePost = () => {
                       label={<Text strong>Description</Text>}
                       rules={[
                         { required: true, message: "Please enter description" },
+                        {
+                          max: 100000,
+                          message:
+                            "Description cannot exceed 100000 characters",
+                        },
                       ]}
                     >
                       <TextArea
                         rows={8}
                         placeholder="Detailed description of the product. Line breaks and formatting will be preserved when displayed."
                         className="rounded-lg"
+                        maxLength={100000}
+                        showCount
                       />
                     </Form.Item>
                     <div className="text-xs text-gray-500 mt-1">

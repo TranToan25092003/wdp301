@@ -45,4 +45,16 @@
     "$oid": "682ff0154a0495973b61df60"
   },
   "name": "Auctioning"
+},
+{
+  "_id": {
+    "$oid": "687b9df0572f3d3ba1495889"
+  },
+  "name": "Pending Delivery"
+},
+{
+  "_id": {
+    "$oid": "688265037dc8aa694562e3f4"
+  },
+  "name": "Awaiting Receipt"
 }]

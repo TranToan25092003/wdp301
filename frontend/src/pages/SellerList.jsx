@@ -3,7 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import FollowButton from "@/components/global/FollowButton";
 import { Skeleton } from "antd";
-import { Users, TrendingUp, Star, MapPin, Calendar, Search } from "lucide-react";
+import {
+  Users,
+  TrendingUp,
+  Star,
+  MapPin,
+  Calendar,
+  Search,
+} from "lucide-react";
 
 // Styles tích hợp với layout cải tiến
 const sellerListStyles = `
@@ -17,8 +24,8 @@ const sellerListStyles = `
 
   .seller-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
-    border-color: #3b82f6;
+    box-shadow: 0 20px 40px -8px rgba(22, 101, 52, 0.12), 0 8px 16px -4px rgba(22, 101, 52, 0.06);
+    border-color: #22c55e;
   }
 
   .seller-avatar {
@@ -34,7 +41,7 @@ const sellerListStyles = `
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15));
+    background: linear-gradient(45deg, rgba(34, 197, 94, 0.15), rgba(21, 128, 61, 0.15));
     opacity: 0;
     transition: opacity 0.3s ease;
     border-radius: 50%;
@@ -49,7 +56,7 @@ const sellerListStyles = `
   }
 
   .seller-stats {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
     color: white;
     padding: 4px 12px;
     border-radius: 20px;
@@ -61,7 +68,7 @@ const sellerListStyles = `
   }
 
   .seller-badge {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
     color: white;
     padding: 3px 8px;
     border-radius: 12px;
@@ -85,13 +92,13 @@ const sellerListStyles = `
     font-size: 16px;
     transition: all 0.3s ease;
     background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 8px rgba(22, 101, 52, 0.04);
   }
 
   .search-input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #22c55e;
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1), 0 4px 12px rgba(22, 101, 52, 0.08);
   }
 
   .search-icon {
@@ -99,7 +106,7 @@ const sellerListStyles = `
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    color: #6b7280;
+    color: #16a34a;
   }
 
   /* Responsive Grid System */
@@ -160,8 +167,8 @@ const sellerListStyles = `
     background: white;
     border-radius: 20px;
     padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 20px rgba(22, 101, 52, 0.06);
+    border: 1px solid #dcfce7;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
@@ -175,12 +182,12 @@ const sellerListStyles = `
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(90deg, #22c55e, #15803d);
   }
 
   .stat-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 30px rgba(22, 101, 52, 0.12);
   }
 
   .stat-icon {
@@ -191,14 +198,14 @@ const sellerListStyles = `
     align-items: center;
     justify-content: center;
     border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.1);
   }
 
   .stat-value {
     font-size: 32px;
     font-weight: 800;
     margin-bottom: 8px;
-    background: linear-gradient(135deg, #1e40af, #7c3aed);
+    background: linear-gradient(135deg, #15803d, #16a34a);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -206,7 +213,7 @@ const sellerListStyles = `
 
   .stat-label {
     font-size: 14px;
-    color: #64748b;
+    color: #16a34a;
     font-weight: 600;
   }
 
@@ -270,7 +277,7 @@ const sellerListStyles = `
   }
 
   .activity-section {
-    background: #f8fafc;
+    background: #f0fdf4;
     padding: 16px;
     border-radius: 12px;
     margin-top: 16px;
@@ -285,19 +292,19 @@ const sellerListStyles = `
 
   .activity-label {
     font-size: 13px;
-    color: #64748b;
+    color: #15803d;
     font-weight: 600;
   }
 
   .activity-percentage {
     font-size: 13px;
     font-weight: 700;
-    color: #3b82f6;
+    color: #16a34a;
   }
 
   .progress-bar {
     height: 8px;
-    background: #e2e8f0;
+    background: #dcfce7;
     border-radius: 4px;
     overflow: hidden;
     position: relative;
@@ -305,7 +312,7 @@ const sellerListStyles = `
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(90deg, #22c55e, #15803d);
     border-radius: 4px;
     transition: width 0.8s ease;
     position: relative;
@@ -338,7 +345,7 @@ const sellerListStyles = `
   .empty-icon {
     width: 120px;
     height: 120px;
-    background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -349,13 +356,13 @@ const sellerListStyles = `
   .empty-title {
     font-size: 28px;
     font-weight: 800;
-    color: #1e293b;
+    color: #15803d;
     margin-bottom: 16px;
   }
 
   .empty-description {
     font-size: 18px;
-    color: #64748b;
+    color: #16a34a;
     line-height: 1.6;
   }
 
@@ -369,8 +376,8 @@ const sellerListStyles = `
     padding: 16px 24px;
     background: white;
     border-radius: 50px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f1f5f9;
+    box-shadow: 0 2px 8px rgba(22, 101, 52, 0.04);
+    border: 1px solid #dcfce7;
     max-width: 400px;
     margin-left: auto;
     margin-right: auto;
@@ -380,7 +387,7 @@ const sellerListStyles = `
   .results-text {
     font-size: 16px;
     font-weight: 600;
-    color: #475569;
+    color: #15803d;
   }
 
   /* Mobile optimizations */
@@ -479,7 +486,7 @@ export default function SellerList() {
     if (!searchTerm) {
       setFilteredSellers(sellers);
     } else {
-      const filtered = sellers.filter(seller =>
+      const filtered = sellers.filter((seller) =>
         seller.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredSellers(filtered);
@@ -488,16 +495,21 @@ export default function SellerList() {
 
   // Calculate stats
   const totalSellers = sellers.length;
-  const totalPosts = sellers.reduce((sum, seller) => sum + (seller.totalPosts || 0), 0);
+  const totalPosts = sellers.reduce(
+    (sum, seller) => sum + (seller.totalPosts || 0),
+    0
+  );
   const avgPosts = totalSellers > 0 ? Math.round(totalPosts / totalSellers) : 0;
-  const topSeller = sellers.reduce((max, seller) => 
-    (seller.totalPosts || 0) > (max.totalPosts || 0) ? seller : max, sellers[0] || {}
+  const topSeller = sellers.reduce(
+    (max, seller) =>
+      (seller.totalPosts || 0) > (max.totalPosts || 0) ? seller : max,
+    sellers[0] || {}
   );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="bg-white shadow-sm border-b">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
+        <div className="bg-white shadow-sm border-b border-green-100">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="text-center">
               <Skeleton.Avatar size={64} />
@@ -526,21 +538,27 @@ export default function SellerList() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
       {/* Header Section */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b border-green-100">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg">
+              <div className="p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-lg">
                 <Users className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1
+                className="text-5xl font-bold text-green-600"
+                style={{
+                  textShadow: "1px 1px 0px rgba(0,0,0,0.1)",
+                }}
+              >
                 Cộng đồng người bán
               </h1>
             </div>
-            <p className="text-gray-600 text-xl max-w-2xl mx-auto leading-relaxed">
-              Khám phá những người bán tích cực nhất trong cộng đồng của chúng tôi
+            <p className="text-green-700 text-xl max-w-2xl mx-auto leading-relaxed font-medium">
+              Khám phá những người bán tích cực nhất trong cộng đồng của chúng
+              tôi
             </p>
           </div>
 
@@ -564,7 +582,7 @@ export default function SellerList() {
         {/* Stats Cards */}
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
+            <div className="stat-icon bg-gradient-to-r from-green-500 to-green-600">
               <Users className="w-7 h-7 text-white" />
             </div>
             <div className="stat-value">{totalSellers}</div>
@@ -580,7 +598,7 @@ export default function SellerList() {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon bg-gradient-to-r from-purple-500 to-purple-600">
+            <div className="stat-icon bg-gradient-to-r from-green-500 to-green-600">
               <Star className="w-7 h-7 text-white" />
             </div>
             <div className="stat-value">{avgPosts}</div>
@@ -589,7 +607,7 @@ export default function SellerList() {
 
           {topSeller.name && (
             <div className="stat-card">
-              <div className="stat-icon bg-gradient-to-r from-yellow-500 to-yellow-600">
+              <div className="stat-icon bg-gradient-to-r from-green-500 to-green-600">
                 <Star className="w-7 h-7 text-white" />
               </div>
               <div className="stat-value">{topSeller.totalPosts}</div>
@@ -600,9 +618,11 @@ export default function SellerList() {
 
         {/* Results Info */}
         <div className="results-info">
-          <Users className="w-5 h-5 text-blue-500" />
+          <Users className="w-5 h-5 text-green-600" />
           <span className="results-text">
-            {searchTerm ? `Tìm thấy ${filteredSellers.length} kết quả` : `${totalSellers} người bán đang hoạt động`}
+            {searchTerm
+              ? `Tìm thấy ${filteredSellers.length} kết quả`
+              : `${totalSellers} người bán đang hoạt động`}
           </span>
         </div>
 
@@ -610,13 +630,15 @@ export default function SellerList() {
         {filteredSellers.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">
-              <Users className="w-16 h-16 text-blue-400" />
+              <Users className="w-16 h-16 text-green-600" />
             </div>
             <h3 className="empty-title">
               {searchTerm ? "Không tìm thấy kết quả" : "Chưa có người bán nào"}
             </h3>
             <p className="empty-description">
-              {searchTerm ? "Thử tìm kiếm với từ khóa khác nhé" : "Chờ các thành viên đăng bài đầu tiên"}
+              {searchTerm
+                ? "Thử tìm kiếm với từ khóa khác nhé"
+                : "Chờ các thành viên đăng bài đầu tiên"}
             </p>
           </div>
         ) : (
@@ -674,14 +696,24 @@ export default function SellerList() {
                   <div className="activity-header">
                     <span className="activity-label">Mức độ hoạt động</span>
                     <span className="activity-percentage">
-                      {Math.round((user.totalPosts / Math.max(topSeller.totalPosts || 1, 1)) * 100)}%
+                      {Math.round(
+                        (user.totalPosts /
+                          Math.max(topSeller.totalPosts || 1, 1)) *
+                          100
+                      )}
+                      %
                     </span>
                   </div>
                   <div className="progress-bar">
-                    <div 
+                    <div
                       className="progress-fill"
-                      style={{ 
-                        width: `${Math.min((user.totalPosts / Math.max(topSeller.totalPosts || 1, 1)) * 100, 100)}%` 
+                      style={{
+                        width: `${Math.min(
+                          (user.totalPosts /
+                            Math.max(topSeller.totalPosts || 1, 1)) *
+                            100,
+                          100
+                        )}%`,
                       }}
                     ></div>
                   </div>
