@@ -21,7 +21,7 @@ const createNotification = async ({
       console.error("Error creating notification: Missing required fields");
       return;
     }
-
+    
     const newNotification = await Notification.create({
       recipientId,
       senderId,
