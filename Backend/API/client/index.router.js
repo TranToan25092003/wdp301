@@ -18,7 +18,7 @@ const {
 } = require("../../controller/user.duy/userController");
 const activityLogRouter = require("./duy/activityLogRoutes");
 const withdrawRouter = require("./withdrawMoney.router");
-
+const feedbackItemRouter = require("./user.duy/feedbackItem");
 module.exports = (app) => {
   // this router only for testing app do not use this router to write data ok
   app.use("/test", authenticate, testRouter);
@@ -40,5 +40,6 @@ module.exports = (app) => {
   app.use("/notifications", notificationRouter);
   app.use("/activity-logs", activityLogRouter);
   app.use("/withdraw", authenticate, withdrawRouter);
-  // GET /api/users/with-posts
+   app.use("/feedback-items", feedbackItemRouter);
+ // GET /api/users/with-posts
 };
