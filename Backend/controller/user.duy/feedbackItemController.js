@@ -28,20 +28,46 @@ const getValidFeedbackItems = async (req, res) => {
 
     // ✅ CẢI TIẾN: Chấp nhận nhiều status hợp lệ cho Buy transactions
     const validBuyStatuses = [
-      "confirmed", 
-      "completed", 
-      "delivered", 
-      "finished", 
-      "success", 
+      "confirmed",
+      "completed",
+      "delivered",
+      "finished",
+      "pending",
       "paid",
       "received"
     ];
 
-    const buyTransactions = await Buy.find({
-      buyer: currentUserId,
-      owner: sellerClerkId,
-      status: { $in: validBuyStatuses } // Sử dụng $in để chấp nhận nhiều status
-    }).select("itemId status").lean(); // Thêm status để debug
+    const buyTransactions = await Buy.aggregate([
+      {
+        $match: {
+          buyer: currentUserId,
+          status: { $in: validBuyStatuses },
+        },
+      },
+      {
+        $lookup: {
+          from: 'items', // Tên collection chứa item
+          localField: 'itemId',
+          foreignField: '_id',
+          as: 'item',
+        },
+      },
+      {
+        $unwind: '$item',
+      },
+      {
+        $match: {
+          'item.owner': sellerClerkId,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          itemId: 1,
+          status: 1,
+        },
+      },
+    ]); // Thêm status để debug
 
     console.log(`✅ Found ${buyTransactions.length} buy transactions with valid statuses`);
     buyTransactions.forEach((buy) => {
@@ -51,18 +77,46 @@ const getValidFeedbackItems = async (req, res) => {
 
     // ✅ CẢI TIẾN: Chấp nhận nhiều status cho Borrow transactions
     const validBorrowStatuses = [
-      "returned", 
-      "completed", 
+      "returned",
+      "completed",
       "finished",
       "borrowed",
-      "pending"
+      "pending",
+      "late"
     ];
 
-    const borrowTransactions = await Borrow.find({
-      borrowers: currentUserId,
-      owner: sellerClerkId,
-      status: { $in: validBorrowStatuses }
-    }).select("itemId status").lean();
+    const borrowTransactions = await Borrow.aggregate([
+      {
+        $match: {
+          borrowers: currentUserId,
+          status: { $in: validBorrowStatuses },
+        },
+      },
+      {
+        $lookup: {
+          from: 'items', 
+          localField: 'itemId',
+          foreignField: '_id',
+          as: 'item',
+        },
+      },
+      {
+        $unwind: '$item',
+      },
+      {
+        $match: {
+          'item.owner': sellerClerkId,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          itemId: 1,
+          status: 1,
+        },
+      },
+    ]);
+
 
     console.log(`✅ Found ${borrowTransactions.length} borrow transactions with valid statuses`);
     borrowTransactions.forEach((borrow) => {
@@ -83,7 +137,7 @@ const getValidFeedbackItems = async (req, res) => {
         })
           .sort({ amount: -1 })
           .lean();
-        
+
         if (highestBid && highestBid.userId === currentUserId) {
           console.log(`🏆 Won auction item: ${auction.itemId._id}`);
           validItemIds.add(auction.itemId._id.toString());
@@ -115,17 +169,17 @@ const getValidFeedbackItems = async (req, res) => {
 // ✅ THÊM FUNCTION ĐỂ DỄ DÀNG CẬP NHẬT STATUS SAU NÀY
 const updateValidStatuses = {
   buy: [
-    "confirmed", 
-    "completed", 
-    "delivered", 
-    "finished", 
-    "success", 
+    "confirmed",
+    "completed",
+    "delivered",
+    "finished",
+    "success",
     "paid",
     "received"
   ],
   borrow: [
-    "returned", 
-    "completed", 
+    "returned",
+    "completed",
     "finished"
   ]
 };
