@@ -167,6 +167,13 @@ const AuctionPage = () => {
     setLoading(false);
   };
 
+  // Effect để refresh filteredAuctions khi rawAuctions thay đổi
+  useEffect(() => {
+    const filtered = filterNonDisplayableAuctions(rawAuctions);
+    setFilteredAuctions(filtered);
+    setDisplayedAuctions(filtered);
+  }, [rawAuctions]);
+
   // Effect để áp dụng filter khi các điều kiện thay đổi
   useEffect(() => {
     handleFilter();
@@ -369,15 +376,19 @@ const AuctionPage = () => {
                     gridTemplateColumns:
                       "repeat(auto-fill, minmax(300px, 1fr))",
                     gap: "20px",
+                    alignItems: "stretch",
                   }}
                 >
                   {displayedAuctions.map((auction) => (
-                    <AuctionCard
-                      key={auction._id}
-                      auction={auction}
-                      bidCount={auction.bidCount || 0}
-                      onViewDetails={() => navigate(`/auctions/${auction._id}`)}
-                    />
+                    <div key={auction._id} style={{ height: "100%" }}>
+                      <AuctionCard
+                        auction={auction}
+                        bidCount={auction.bidCount || 0}
+                        onViewDetails={() =>
+                          navigate(`/auctions/${auction._id}`)
+                        }
+                      />
+                    </div>
                   ))}
                 </div>
               </>

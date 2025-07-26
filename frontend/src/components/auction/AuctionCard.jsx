@@ -32,6 +32,11 @@ const AuctionCard = ({ auction, onViewDetails }) => {
 
   const status = getStatusDisplay();
 
+  // Format price safely
+  const formatPrice = (price) => {
+    return price !== undefined && price !== null ? price.toLocaleString() : "0";
+  };
+
   return (
     <Card
       hoverable
@@ -44,8 +49,17 @@ const AuctionCard = ({ auction, onViewDetails }) => {
         transition: "all 0.2s",
         overflow: "visible",
         background: "#fff",
+        height: "100%", // Ensure full height
+        display: "flex",
+        flexDirection: "column",
       }}
-      bodyStyle={{ padding: 18 }}
+      bodyStyle={{
+        padding: 18,
+        display: "flex",
+        flexDirection: "column",
+        flexGrow: 1,
+        height: "100%",
+      }}
       cover={
         <div
           className="relative"
@@ -83,18 +97,32 @@ const AuctionCard = ({ auction, onViewDetails }) => {
       }
       onClick={onViewDetails}
     >
-      <div style={{ minHeight: 60 }}>
+      <div style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
         <h3
           style={{
             fontWeight: 700,
             fontSize: 18,
             marginBottom: 4,
             color: "#166534",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {auction.itemId?.name}
         </h3>
-        <div style={{ color: "#4b5563", fontSize: 13, marginBottom: 12 }}>
+        <div
+          style={{
+            color: "#4b5563",
+            fontSize: 13,
+            marginBottom: 12,
+            height: "32px",
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+          }}
+        >
           {auction.itemId?.description?.slice(0, 60) || ""}
         </div>
         <div
@@ -105,12 +133,14 @@ const AuctionCard = ({ auction, onViewDetails }) => {
             alignItems: "center",
           }}
         >
-          <Tooltip title="Giá khởi điểm: ${auction.startingPrice.toLocaleString()} ₫">
+          <Tooltip
+            title={`Giá khởi điểm: ${formatPrice(auction.startingPrice)} ₫`}
+          >
             <Tag
               color="#16a34a"
               style={{ fontSize: "14px", padding: "2px 8px" }}
             >
-              Giá hiện tại: {auction.currentPrice.toLocaleString()} ₫
+              Giá hiện tại: {formatPrice(auction.currentPrice)} ₫
             </Tag>
           </Tooltip>
           <Tag color="#0891b2" style={{ fontSize: "12px" }}>
@@ -122,6 +152,7 @@ const AuctionCard = ({ auction, onViewDetails }) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            marginTop: "auto",
           }}
         >
           <span style={{ fontSize: 14, color: "#4b5563", fontWeight: 500 }}>
