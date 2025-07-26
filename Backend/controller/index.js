@@ -8,6 +8,7 @@ const auctionAdminController = require("./admin/auction.controller");
 const transactionAdminController = require("./admin/transaction.controller");
 const categoryAdminController = require("./admin/category.controller");
 const activityLogAdminController = require("./admin/activityLogAdminController"); // Import activity log admin controller
+const feedbackItemController = require("./user.duy/feedbackItemController"); // Import feedback item controller
 module.exports = {
   itemController,
   coinController,
@@ -19,4 +20,6 @@ module.exports = {
   auctionAdminController,
   transactionAdminController,
   categoryAdminController,
+  feedbackItemController,
+
 };

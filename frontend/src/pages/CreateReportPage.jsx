@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,32 +12,40 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { customFetch } from "@/utils/customAxios";
-import { useAuth, useUser } from '@clerk/clerk-react'; // Import useUser
-import { AlertCircle, FileText, User, Star, Mail, Search, Send } from 'lucide-react';
+import { useAuth, useUser } from "@clerk/clerk-react";
+import {
+  AlertCircle,
+  FileText,
+  User,
+  Star,
+  Mail,
+  Search,
+  Send,
+} from "lucide-react";
 
 const CreateReportPage = () => {
   const { userId } = useAuth();
-  const { user } = useUser(); // Lấy thông tin người dùng từ useUser
+  const { user } = useUser();
   const currentUserId = userId;
-  const currentUserEmail = user?.primaryEmailAddress?.emailAddress; // Lấy email chính của người dùng hiện tại
+  const currentUserEmail = user?.primaryEmailAddress?.emailAddress;
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [reportType, setReportType] = useState('');
-  const [sellerEmail, setSellerEmail] = useState('');
-  const [itemId, setItemId] = useState('');
-  const [rating, setRating] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [reportType, setReportType] = useState("");
+  const [sellerEmail, setSellerEmail] = useState("");
+  const [itemId, setItemId] = useState("");
+  const [rating, setRating] = useState("");
   const [items, setItems] = useState([]);
-  const [reportedUserEmail, setReportedUserEmail] = useState('');
+  const [reportedUserEmail, setReportedUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleReportTypeChange = (value) => {
     setReportType(value);
-    setSellerEmail('');
-    setItemId('');
-    setRating('');
+    setSellerEmail("");
+    setItemId("");
+    setRating("");
     setItems([]);
-    setReportedUserEmail('');
+    setReportedUserEmail("");
   };
 
   const fetchSellerAndItems = async () => {
@@ -46,34 +54,28 @@ const CreateReportPage = () => {
       return;
     }
 
-     try {
+    try {
       const resUser = await customFetch.get(`/users/by-email/${sellerEmail}`);
-      const sellerClerkId = resUser.data?.id; // Đổi tên biến để rõ ràng hơn
+      const sellerClerkId = resUser.data?.id;
 
       if (!sellerClerkId) {
         toast.error("Không tìm thấy người dùng với email này.");
         return;
       }
 
-      const resItems = await customFetch.get(`/items/by-owner/${sellerClerkId}`);
-      let itemList = resItems.data?.data || [];
-
-      // 1. Logic ngăn chặn tự đánh giá sản phẩm của chính mình
-      // 2. Logic chỉ hiển thị sản phẩm có ảnh
-      const filteredItems = itemList.filter(item =>
-        item.owner !== currentUserId && // Lọc bỏ sản phẩm của chính người dùng
-        item.images && item.images.length > 0 // Lọc bỏ sản phẩm không có ảnh
+      // Gọi endpoint mới để lấy danh sách sản phẩm hợp lệ (không có /api)
+      const resItems = await customFetch.get(
+        `/feedback-items/valid-for-feedback/${sellerClerkId}/${currentUserId}`
       );
+      const itemList = resItems.data?.data || [];
 
-      if (filteredItems.length === 0) {
-          if (itemList.length > 0) {
-              toast.warning("Người bán này chỉ có sản phẩm của bạn, hoặc các sản phẩm không có ảnh. Bạn không thể tự đánh giá sản phẩm của mình hoặc chọn sản phẩm không có ảnh.");
-          } else {
-              toast.warning("Người bán này chưa có sản phẩm nào.");
-          }
+      if (itemList.length === 0) {
+        toast.warning(
+          "Bạn chưa mua, mượn hoặc thắng đấu giá bất kỳ sản phẩm nào từ người bán này."
+        );
       }
 
-      setItems(filteredItems);
+      setItems(itemList);
     } catch (err) {
       console.error(err);
       toast.error("Lỗi khi tìm người dùng hoặc sản phẩm.");
@@ -97,7 +99,7 @@ const CreateReportPage = () => {
       reportType,
     };
 
-    if (reportType === 'item_feedback') {
+    if (reportType === "item_feedback") {
       if (!itemId || !rating) {
         toast.error("Vui lòng chọn sản phẩm và nhập đánh giá.");
         setIsLoading(false);
@@ -113,15 +115,17 @@ const CreateReportPage = () => {
 
       reportData.itemId = itemId;
       reportData.rating = parsedRating;
-    } else if (reportType === 'user_behavior' || reportType === 'spam') {
+    } else if (reportType === "user_behavior" || reportType === "spam") {
       if (!reportedUserEmail) {
         toast.error("Vui lòng nhập email người bị báo cáo.");
         setIsLoading(false);
         return;
       }
 
-      // THÊM LOGIC KIỂM TRA NGƯỜI DÙNG TỰ BÁO CÁO MÌNH
-      if (currentUserEmail && reportedUserEmail.toLowerCase() === currentUserEmail.toLowerCase()) {
+      if (
+        currentUserEmail &&
+        reportedUserEmail.toLowerCase() === currentUserEmail.toLowerCase()
+      ) {
         toast.error("Bạn không thể báo cáo chính mình.");
         setIsLoading(false);
         return;
@@ -131,17 +135,17 @@ const CreateReportPage = () => {
     }
 
     try {
-      const res = await customFetch.post('/reports', reportData);
+      const res = await customFetch.post("/reports", reportData);
       toast.success(res.data?.message || "Báo cáo đã được gửi!");
 
-      setTitle('');
-      setDescription('');
-      setReportType('');
-      setSellerEmail('');
+      setTitle("");
+      setDescription("");
+      setReportType("");
+      setSellerEmail("");
       setItems([]);
-      setItemId('');
-      setRating('');
-      setReportedUserEmail('');
+      setItemId("");
+      setRating("");
+      setReportedUserEmail("");
     } catch (err) {
       console.error("Lỗi khi gửi báo cáo:", err);
       let msg = "Đã xảy ra lỗi.";
@@ -156,16 +160,36 @@ const CreateReportPage = () => {
   };
 
   const reportTypeOptions = [
-    { value: 'item_feedback', label: 'Phản hồi sản phẩm', icon: Star, color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
-    { value: 'user_behavior', label: 'Hành vi người dùng', icon: User, color: 'text-red-600', bgColor: 'bg-red-50' },
-    { value: 'spam', label: 'Báo cáo spam', icon: AlertCircle, color: 'text-orange-600', bgColor: 'bg-orange-50' }
+    {
+      value: "item_feedback",
+      label: "Phản hồi sản phẩm",
+      icon: Star,
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
+    },
+    {
+      value: "user_behavior",
+      label: "Hành vi người dùng",
+      icon: User,
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+    },
+    {
+      value: "spam",
+      label: "Báo cáo spam",
+      icon: AlertCircle,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+    },
   ];
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, index) => (
       <Star
         key={index}
-        className={`w-5 h-5 ${index < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+        className={`w-5 h-5 ${
+          index < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+        }`}
       />
     ));
   };
@@ -182,28 +206,34 @@ const CreateReportPage = () => {
             Gửi Báo Cáo Mới
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Hãy chia sẻ phản hồi của bạn để giúp chúng tôi cải thiện trải nghiệm cho tất cả người dùng
+            Hãy chia sẻ phản hồi của bạn để giúp chúng tôi cải thiện trải nghiệm
+            cho tất cả người dùng
           </p>
         </div>
 
         {/* Main Form */}
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6">
-            <h2 className="text-white text-xl font-semibold">Thông tin báo cáo</h2>
+            <h2 className="text-white text-xl font-semibold">
+              Thông tin báo cáo
+            </h2>
           </div>
-          
+
           <div className="p-8 space-y-8">
             {/* Title Input */}
             <div className="space-y-3">
-              <Label htmlFor="title" className="text-gray-700 font-medium flex items-center gap-2">
+              <Label
+                htmlFor="title"
+                className="text-gray-700 font-medium flex items-center gap-2"
+              >
                 <FileText className="w-4 h-4" />
                 Tiêu đề báo cáo
               </Label>
-              <Input 
-                id="title" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                required 
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
                 className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
                 placeholder="Nhập tiêu đề báo cáo của bạn..."
               />
@@ -211,15 +241,18 @@ const CreateReportPage = () => {
 
             {/* Description */}
             <div className="space-y-3">
-              <Label htmlFor="description" className="text-gray-700 font-medium flex items-center gap-2">
+              <Label
+                htmlFor="description"
+                className="text-gray-700 font-medium flex items-center gap-2"
+              >
                 <FileText className="w-4 h-4" />
                 Mô tả chi tiết
               </Label>
-              <Textarea 
-                id="description" 
-                value={description} 
-                onChange={(e) => setDescription(e.target.value)} 
-                required 
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
                 className="min-h-[120px] border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl resize-none"
                 placeholder="Hãy mô tả chi tiết về vấn đề bạn muốn báo cáo..."
               />
@@ -251,15 +284,18 @@ const CreateReportPage = () => {
             </div>
 
             {/* Item Feedback Section */}
-            {reportType === 'item_feedback' && (
+            {reportType === "item_feedback" && (
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center gap-2 text-yellow-700 font-medium">
                   <Star className="w-5 h-5" />
                   Thông tin phản hồi sản phẩm
                 </div>
-                
+
                 <div className="space-y-3">
-                  <Label htmlFor="sellerEmail" className="text-gray-700 font-medium flex items-center gap-2">
+                  <Label
+                    htmlFor="sellerEmail"
+                    className="text-gray-700 font-medium flex items-center gap-2"
+                  >
                     <Mail className="w-4 h-4" />
                     Gmail người bán
                   </Label>
@@ -274,8 +310,8 @@ const CreateReportPage = () => {
                       placeholder="seller@gmail.com"
                       className="h-12 border-gray-200 focus:border-yellow-500 focus:ring-yellow-500 rounded-xl"
                     />
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       onClick={fetchSellerAndItems}
                       className="h-12 px-6 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl"
                     >
@@ -294,12 +330,11 @@ const CreateReportPage = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {items.map((item) => (
-                           <SelectItem key={item._id} value={item._id}>
+                          <SelectItem key={item._id} value={item._id}>
                             <div className="flex items-center gap-3">
-                              {/* THAY THẾ BIỂU TƯỢNG BẰNG ẢNH SẢN PHẨM NẾU CÓ */}
                               {item.images && item.images.length > 0 ? (
                                 <img
-                                  src={item.images[0]} // Hiển thị ảnh đầu tiên
+                                  src={item.images[0]}
                                   alt={item.name}
                                   className="w-8 h-8 object-cover rounded-lg"
                                 />
@@ -340,13 +375,13 @@ const CreateReportPage = () => {
             )}
 
             {/* User Behavior / Spam Section */}
-            {(reportType === 'user_behavior' || reportType === 'spam') && (
+            {(reportType === "user_behavior" || reportType === "spam") && (
               <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-6 space-y-4">
                 <div className="flex items-center gap-2 text-red-700 font-medium">
                   <AlertCircle className="w-5 h-5" />
                   Thông tin người bị báo cáo
                 </div>
-                
+
                 <div className="space-y-3">
                   <Label className="text-gray-700 font-medium flex items-center gap-2">
                     <Mail className="w-4 h-4" />
@@ -365,8 +400,8 @@ const CreateReportPage = () => {
 
             {/* Submit Button */}
             <div className="pt-6">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading}
                 onClick={handleSubmit}
                 className="w-full h-14 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
